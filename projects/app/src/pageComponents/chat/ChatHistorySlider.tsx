@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Button, Flex, useTheme, IconButton } from '@chakra-ui/react';
+import { Box, Button, Flex, useTheme, IconButton, Divider } from '@chakra-ui/react';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
 import { useEditTitle } from '@/web/common/hooks/useEditTitle';
 import { useRouter } from 'next/router';
@@ -16,6 +16,10 @@ import { formatTimeToChatTime } from '@fastgpt/global/common/string/time';
 import { ChatItemContext } from '@/web/core/chat/context/chatItemContext';
 import { useChatStore } from '@/web/core/chat/context/useChatStore';
 import PopoverConfirm from '@fastgpt/web/components/common/MyPopover/PopoverConfirm';
+import { ChatSourceEnum } from '@fastgpt/global/core/chat/constants';
+import { ThirdPartyAuthEnum } from '@fastgpt/global/support/outLink/constant';
+import SZTUChatUserInfoBox from './share/SZTUChatUserInfoBox';
+import MyImage from '@/components/MyImage';
 
 type HistoryItemType = {
   id: string;
@@ -34,7 +38,7 @@ const ChatHistorySlider = ({ confirmClearText }: { confirmClearText: string }) =
   const { isPc } = useSystem();
   const { userInfo } = useUserStore();
 
-  const { appId, chatId: activeChatId } = useChatStore();
+  const { appId, chatId: activeChatId, source, outLinkAuthData } = useChatStore();
   const onChangeChatId = useContextSelector(ChatContext, (v) => v.onChangeChatId);
   const isLoading = useContextSelector(ChatContext, (v) => v.isLoading);
   const ScrollData = useContextSelector(ChatContext, (v) => v.ScrollData);
@@ -47,6 +51,13 @@ const ChatHistorySlider = ({ confirmClearText }: { confirmClearText: string }) =
   const appAvatar = useContextSelector(ChatItemContext, (v) => v.chatBoxData?.app.avatar);
   const showRouteToAppDetail = useContextSelector(ChatItemContext, (v) => v.showRouteToAppDetail);
   const setCiteModalData = useContextSelector(ChatItemContext, (v) => v.setCiteModalData);
+
+  const isSZTUShared = useMemo(() => {
+    return (
+      outLinkAuthData?.thirdPartyAuth?.needAuth &&
+      outLinkAuthData?.thirdPartyAuth?.authType === ThirdPartyAuthEnum.SZTU
+    );
+  }, [outLinkAuthData]);
 
   const concatHistory = useMemo(() => {
     const formatHistories: HistoryItemType[] = histories.map((item) => {
@@ -112,6 +123,74 @@ const ChatHistorySlider = ({ confirmClearText }: { confirmClearText: string }) =
             </Box>
           </Flex>
         </MyTooltip>
+      )}
+      {/* SZTU 个性化样式 */}
+      {isPc && isSZTUShared && (
+        <>
+          <Flex
+            flexDir={'column'}
+            w={'100%'}
+            justifyContent={'center'}
+            alignItems={'center'}
+            gap={2}
+            padding={'0 20px'}
+            marginTop={'20px'}
+          >
+            <Button
+              variant={'whitePrimary'}
+              flex={['0 0 auto', 1]}
+              w={'100%'}
+              px={6}
+              color={'primary.600'}
+              borderRadius={'xl'}
+              leftIcon={
+                <MyImage
+                  src="https://www.sztu.edu.cn/images/log.svg"
+                  w="16px"
+                  objectFit="cover"
+                  borderRadius="none"
+                />
+              }
+              overflow={'hidden'}
+              onClick={() => {
+                location.href = 'https://www.sztu.edu.cn';
+              }}
+            >
+              {'官网'}
+            </Button>
+            <Button
+              variant={'whitePrimary'}
+              flex={['0 0 auto', 1]}
+              w={'100%'}
+              px={6}
+              color={'primary.600'}
+              borderRadius={'xl'}
+              leftIcon={<MyIcon name={'core/app/aiLight'} w={'16px'} />}
+              overflow={'hidden'}
+              onClick={() => {
+                location.href = 'https://ai.sztu.edu.cn/agent';
+              }}
+            >
+              {'智能体广场'}
+            </Button>
+            <Button
+              variant={'whitePrimary'}
+              flex={['0 0 auto', 1]}
+              w={'100%'}
+              px={6}
+              color={'primary.600'}
+              borderRadius={'xl'}
+              leftIcon={<MyIcon name={'plugins/email'} w={'16px'} />}
+              overflow={'hidden'}
+              onClick={() => {
+                location.href = 'https://nbw.sztu.edu.cn';
+              }}
+            >
+              {'公文通'}
+            </Button>
+          </Flex>
+          <Divider marginTop={5} />
+        </>
       )}
 
       {/* menu */}
@@ -289,7 +368,8 @@ const ChatHistorySlider = ({ confirmClearText }: { confirmClearText: string }) =
           ))}
         </>
       </ScrollData>
-
+      {/* SZTU 个人信息 */}
+      {isSZTUShared && <SZTUChatUserInfoBox />}
       {/* exec */}
       {!isPc && !!canRouteToDetail && (
         <Flex
