@@ -4,6 +4,7 @@ import type {
   OutLinkEditType,
   OutLinkSchema
 } from '@fastgpt/global/support/outLink/type.d';
+import { type SZTUUserInfo } from '@fastgpt/service/support/permission/publish/thirdpartyAuth/sztu';
 
 // create a shareChat
 export function createShareChat<T>(
@@ -35,7 +36,9 @@ export function delShareChatById(id: string) {
 export function updateShareChat<T extends OutlinkAppType>(data: OutLinkEditType<T>) {
   return POST<string>(`/support/outLink/update`, data);
 }
-
+export function getSZTUUserInfo() {
+  return GET<SZTUUserInfo>(`/support/outLink/thirdparty/sztuInfo`);
+}
 // /**
 //  * create a shareChat
 //  */

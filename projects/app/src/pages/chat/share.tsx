@@ -42,6 +42,7 @@ import { useToast } from '@fastgpt/web/hooks/useToast';
 import Cookie from 'cookie';
 import type { GetServerSideProps } from 'next';
 import { ThirdPartyAuthMap } from '@fastgpt/service/support/permission/publish/thirdpartyAuth/auth';
+import type { OutLinkSchema } from '@fastgpt/global/support/outLink/type';
 
 const CustomPluginRunBox = dynamic(() => import('@/pageComponents/chat/CustomPluginRunBox'));
 
@@ -58,6 +59,7 @@ type Props = {
   // showFullText: boolean;
   showNodeStatus: boolean;
   shareToken?: string;
+  thirdPartyAuth?: OutLinkSchema['thirdPartyAuth'];
 };
 
 const OutLink = (props: Props) => {
@@ -363,13 +365,14 @@ const Render = (props: Props) => {
       setOutLinkAuthData({
         shareId,
         shareToken: props.shareToken || '',
-        outLinkUid: chatHistoryProviderParams.outLinkUid
+        outLinkUid: chatHistoryProviderParams.outLinkUid,
+        thirdPartyAuth: props.thirdPartyAuth
       });
     }
     return () => {
       setOutLinkAuthData({});
     };
-  }, [chatHistoryProviderParams.outLinkUid, setOutLinkAuthData, shareId, props.shareToken]);
+  }, [chatHistoryProviderParams.outLinkUid, setOutLinkAuthData, shareId, props]);
 
   // Watch appId
   useEffect(() => {
@@ -441,6 +444,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       authToken: authToken ?? '',
       customUid,
       shareToken: '', // shareToken 需要在鉴权后设置
+      thirdPartyAuth: app?.thirdPartyAuth,
       ...(await serviceSideProps(context, ['file', 'app', 'chat', 'workflow']))
     }
   };
@@ -451,10 +455,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const res = await ThirdPartyAuthMap[authType].authThirdPartyLogin?.(context);
     if (res && res.success && res.shareToken) {
       // 如果验证成功,则进入该页面,并设置cookie中的shareToken
-      context.res.setHeader(
-        'Set-Cookie',
-        `shareToken=${res.shareToken}; Path=/; HttpOnly; Max-Age=86400`
-      );
+      context.res.setHeader('Set-Cookie', `shareToken=${res.shareToken}; Path=/; Max-Age=86400`);
       resProps.props.shareToken = res.shareToken;
       return resProps;
     }
@@ -472,9 +473,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
       // 获取原始请求路径和查询
       const url = req.url; // 例如: /path?query=1
-
-      // TODO: 判断是http还是https
-      const fullUrl = `http://${host}${url}`;
+      let protocol = 'http';
+      if (
+        req.headers['x-forwarded-proto'] === 'https' ||
+        (req.socket && (req.socket as any).encrypted)
+      ) {
+        protocol = 'https';
+      }
+      const fullUrl = `${protocol}://${host}${url}`;
 
       return {
         redirect: {
