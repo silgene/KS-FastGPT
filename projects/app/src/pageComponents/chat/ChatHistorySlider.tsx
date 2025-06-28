@@ -145,7 +145,7 @@ const ChatHistorySlider = ({ confirmClearText }: { confirmClearText: string }) =
               borderRadius={'xl'}
               leftIcon={
                 <MyImage
-                  src="https://www.sztu.edu.cn/images/log.svg"
+                  src="https://sztu-project.oss-rg-china-mainland.aliyuncs.com/sztu-FastGPT/sztu%20favicon.png"
                   w="16px"
                   objectFit="cover"
                   borderRadius="none"
@@ -156,7 +156,7 @@ const ChatHistorySlider = ({ confirmClearText }: { confirmClearText: string }) =
                 location.href = 'https://www.sztu.edu.cn';
               }}
             >
-              {'官网'}
+              {'深圳技术大学'}
             </Button>
             <Button
               variant={'whitePrimary'}
@@ -180,13 +180,67 @@ const ChatHistorySlider = ({ confirmClearText }: { confirmClearText: string }) =
               px={6}
               color={'primary.600'}
               borderRadius={'xl'}
-              leftIcon={<MyIcon name={'plugins/email'} w={'16px'} />}
+              leftIcon={
+                <MyImage
+                  src="https://sztu-project.oss-rg-china-mainland.aliyuncs.com/sztu-FastGPT/5.png"
+                  w="16px"
+                  objectFit="cover"
+                  borderRadius="none"
+                />
+              }
               overflow={'hidden'}
               onClick={() => {
                 location.href = 'https://nbw.sztu.edu.cn';
               }}
             >
-              {'公文通'}
+              {'深技大内部网'}
+            </Button>
+            <Button
+              variant={'whitePrimary'}
+              flex={['0 0 auto', 1]}
+              w={'100%'}
+              px={6}
+              color={'primary.600'}
+              borderRadius={'xl'}
+              leftIcon={
+                <MyImage
+                  src="https://sztu-project.oss-rg-china-mainland.aliyuncs.com/sztu-FastGPT/OA%E7%B3%BB%E7%BB%9F.png"
+                  w="16px"
+                  objectFit="cover"
+                  borderRadius="none"
+                />
+              }
+              overflow={'hidden'}
+              onClick={() => {
+                location.href =
+                  'https://auth.sztu.edu.cn/idp/authcenter/ActionAuthChain?entityId=oa';
+              }}
+            >
+              {'深技大OA系统'}
+            </Button>
+
+            <Button
+              variant={'whitePrimary'}
+              flex={['0 0 auto', 1]}
+              w={'100%'}
+              px={6}
+              color={'primary.600'}
+              borderRadius={'xl'}
+              leftIcon={
+                <MyImage
+                  src="https://sztu-project.oss-rg-china-mainland.aliyuncs.com/sztu-FastGPT/%E5%85%AC%E6%96%87%E9%80%9A%E5%91%8A.png"
+                  w="16px"
+                  objectFit="cover"
+                  borderRadius="none"
+                />
+              }
+              overflow={'hidden'}
+              onClick={() => {
+                location.href =
+                  'https://nbw.sztu.edu.cn/list.jsp?urltype=tree.TreeTempUrl&wbtreeid=1029';
+              }}
+            >
+              {'深技大公文通'}
             </Button>
           </Flex>
           <Divider marginTop={5} />

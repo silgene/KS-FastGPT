@@ -32,7 +32,7 @@ function GroupInfoModal({
     onOpen: onOpenSelectAvatar,
     onSelectImage
   } = useSelectFile({
-    fileType: '.jpg, .jpeg, .png',
+    fileType: '.jpg, .jpeg, ',
     multiple: false
   });
 

@@ -34,6 +34,11 @@ const SZTUChatUserInfoBox = () => {
     params.set('redirctToUrl', `${location.href}`);
     location.href = `https://auth.sztu.edu.cn/idp/profile/OAUTH2/Redirect/GLO?${params.toString()}`;
   };
+  const infoReflect = () => {
+    // 清除 cookie中的 shareToken
+
+    location.href = `https://ai.sztu.edu.cn`;
+  };
 
   useMount(() => {
     initSZTUUserInfo();
@@ -62,8 +67,23 @@ const SZTUChatUserInfoBox = () => {
             <ChevronUpIcon fontSize={18} marginLeft={'auto'} />
           </Button>
         </PopoverTrigger>
+
         <Portal>
           <PopoverContent w={'260px'}>
+            <Button
+              variant={'ghost'}
+              flex={['0 0 auto', 1]}
+              w={'100%'}
+              px={6}
+              borderRadius={'md'}
+              justifyContent={'flex-start'}
+              overflow={'hidden'}
+              border={'none'}
+              h={'44px'}
+              onClick={infoReflect}
+            >
+              {'返回润晓知'}
+            </Button>
             <Button
               variant={'ghost'}
               flex={['0 0 auto', 1]}
