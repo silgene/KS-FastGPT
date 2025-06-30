@@ -9,6 +9,7 @@ export enum UserErrEnum {
   balanceNotEnough = 'balanceNotEnough',
   unAuthSso = 'unAuthSso'
 }
+
 const errList = [
   {
     statusText: UserErrEnum.notUser,

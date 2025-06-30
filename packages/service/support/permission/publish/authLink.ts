@@ -71,18 +71,18 @@ export async function authOutLinkValid<T extends OutlinkAppType = any>({
   if (!outLinkConfig) {
     return Promise.reject(OutLinkErrEnum.linkUnInvalid);
   }
-  if (outLinkConfig?.thirdPartyAuth?.needAuth) {
-    // 第三方认证鉴权
-    if (!shareToken) {
-      return Promise.reject(OutLinkErrEnum.unAuthUser);
-    }
-    const authType = outLinkConfig.thirdPartyAuth.authType;
-
-    const isValid = !!(await ThirdPartyAuthMap[authType].authThirdPartyTokenValid?.(shareToken));
-    if (!isValid) {
-      return Promise.reject(OutLinkErrEnum.unAuthUser);
-    }
-  }
+  // if (outLinkConfig?.thirdPartyAuth?.needAuth) {
+  //   // 第三方认证鉴权
+  //   if (!shareToken) {
+  //     return Promise.reject(OutLinkErrEnum.unAuthUser);
+  //   }
+  //   const authType = outLinkConfig.thirdPartyAuth.authType;
+  //
+  //   const isValid = !!(await ThirdPartyAuthMap[authType].authThirdPartyTokenValid?.(shareToken));
+  //   if (!isValid) {
+  //     return Promise.reject(OutLinkErrEnum.unAuthUser);
+  //   }
+  // }
   return {
     appId: outLinkConfig.appId,
     outLinkConfig: outLinkConfig
