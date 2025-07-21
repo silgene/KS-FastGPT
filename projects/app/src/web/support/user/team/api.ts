@@ -6,6 +6,7 @@ import type {
 } from '@fastgpt/global/support/permission/collaborator';
 import type {
   CreateTeamProps,
+  TeamMemberListQuery,
   UpdateInviteProps,
   UpdateTeamProps
 } from '@fastgpt/global/support/user/team/controller.d';
@@ -37,18 +38,9 @@ export const putSwitchTeam = (teamId: string) =>
   PUT<string>(`/proApi/support/user/team/switch`, { teamId });
 
 /* --------------- team member ---------------- */
-export const getTeamMembers = (
-  props: PaginationProps<{
-    status?: 'active' | 'inactive';
-    withOrgs?: boolean;
-    withPermission?: boolean;
-    searchKey?: string;
-    orgId?: string;
-    groupId?: string;
-  }>
-) => POST<PaginationResponse<TeamMemberItemType>>(`/proApi/support/user/team/member/list`, props);
-export const getTeamMemberCount = () =>
-  GET<{ count: number }>(`/proApi/support/user/team/member/count`);
+export const getTeamMembers = (props: PaginationProps<TeamMemberListQuery>) =>
+  POST<PaginationResponse<TeamMemberItemType>>(`/support/user/team/member/list`, props);
+export const getTeamMemberCount = () => GET<{ count: number }>(`/support/user/team/member/count`);
 
 // export const postInviteTeamMember = (data: InviteMemberProps) =>
 //   POST<InviteMemberResponse>(`/proApi/support/user/team/member/invite`, data);

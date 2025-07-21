@@ -1,4 +1,9 @@
-import { type TeamSchema, type TeamTmbItemType } from '@fastgpt/global/support/user/team/type';
+import {
+  type TeamMemberItemType,
+  TeamMemberSchema,
+  type TeamSchema,
+  type TeamTmbItemType
+} from '@fastgpt/global/support/user/team/type';
 import { type ClientSession, Types } from '../../../common/mongo';
 import {
   TeamMemberRoleEnum,
@@ -7,7 +12,10 @@ import {
 } from '@fastgpt/global/support/user/team/constant';
 import { MongoTeamMember } from './teamMemberSchema';
 import { MongoTeam } from './teamSchema';
-import { type UpdateTeamProps } from '@fastgpt/global/support/user/team/controller';
+import type {
+  TeamMemberListQuery,
+  UpdateTeamProps
+} from '@fastgpt/global/support/user/team/controller';
 import { getResourcePermission } from '../../permission/controller';
 import { PerResourceTypeEnum } from '@fastgpt/global/support/permission/constant';
 import { TeamPermission } from '@fastgpt/global/support/permission/user/controller';
@@ -18,6 +26,10 @@ import { DefaultGroupName } from '@fastgpt/global/support/user/team/group/consta
 import { getAIApi } from '../../../core/ai/config';
 import { createRootOrg } from '../../permission/org/controllers';
 import { refreshSourceAvatar } from '../../../common/file/image/controller';
+import { type PaginationProps } from '@fastgpt/global/common/fetch/type';
+import { MongoUser } from '../schema';
+import { MongoOrgModel } from 'support/permission/org/orgSchema';
+import { type UserModelSchema } from '@fastgpt/global/support/user/type';
 
 async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemType> {
   const tmb = await MongoTeamMember.findOne(match).populate<{ team: TeamSchema }>('team').lean();
@@ -246,4 +258,52 @@ export async function updateTeam({
       await refreshSourceAvatar(avatar, team?.avatar, session);
     }
   });
+}
+export async function getTeamMemberList({
+  status,
+  searchKey,
+  withOrgs,
+  orgId,
+  withPermission,
+  groupId,
+  pageSize,
+  offset,
+  teamId
+}: PaginationProps<TeamMemberListQuery> & { teamId: string }) {
+  const userMatch: Record<string, any> = { status: status || TeamMemberStatusEnum.active };
+  if (searchKey?.trim().length) {
+    userMatch.username = { $regex: searchKey, $options: 'i' };
+  }
+  const query = MongoTeamMember.find({ teamId }).populate<{ user: UserModelSchema }>({
+    path: 'user',
+    match: userMatch
+  });
+  if (withOrgs) {
+  }
+  if (withPermission) {
+  }
+  const res = await query
+    .skip(Number(offset) || 0)
+    .limit(Number(pageSize) || 10)
+    .lean();
+  return res
+    .filter((item) => item.user)
+    .map((item) => {
+      return {
+        userId: item.userId,
+        tmbId: item._id,
+        teamId: item.teamId,
+        memberName: item.user.username,
+        avatar: item.avatar,
+        role: item.role,
+        status: item.status,
+        contact: item.user.contact,
+        createTime: item.createTime,
+        updateTime: item.updateTime
+      };
+    });
+}
+export async function getTeamMemberCount(teamId: string) {
+  const count = await MongoTeamMember.countDocuments({ teamId }).lean();
+  return count;
 }

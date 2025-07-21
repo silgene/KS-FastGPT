@@ -45,3 +45,11 @@ export type InviteMemberResponse = Record<
   'invite' | 'inValid' | 'inTeam',
   { username: string; userId: string }[]
 >;
+export type TeamMemberListQuery = {
+  status?: 'active' | 'inactive';
+  withOrgs?: boolean;
+  withPermission?: boolean;
+  searchKey?: string;
+  orgId?: string;
+  groupId?: string;
+};

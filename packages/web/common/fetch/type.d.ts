@@ -1,16 +1,17 @@
 import type { RequireOnlyOne } from '@fastgpt/global/common/type/utils';
 
-type PaginationProps<T = {}> = T & {
-  pageSize: number | string;
-} & RequireOnlyOne<{
-    offset: number | string;
-    pageNum: number | string;
-  }>;
+// type PaginationProps<T = {}> = T & {
+//   pageSize: number | string;
+// } & RequireOnlyOne<{
+//     offset: number | string;
+//     pageNum: number | string;
+//   }>;
 
-type PaginationResponse<T = {}> = {
-  total: number;
-  list: T[];
-};
+// type PaginationResponse<T = {}> = {
+//   total: number;
+//   list: T[];
+// };
+export type { PaginationProps, PaginationResponse } from '@fastgpt/global/common/fetch/type';
 
 type LinkedPaginationProps<T = {}> = T & {
   pageSize: number;

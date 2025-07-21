@@ -51,6 +51,7 @@ import MySelect from '@fastgpt/web/components/common/MySelect';
 import { useEditTitle } from '@/web/common/hooks/useEditTitle';
 import PopoverConfirm from '@fastgpt/web/components/common/MyPopover/PopoverConfirm';
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
+import { useMount } from 'ahooks';
 
 const InviteModal = dynamic(() => import('./Invite/InviteModal'));
 const TeamTagModal = dynamic(() => import('@/components/support/user/team/TeamTagModal'));
@@ -163,6 +164,10 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
       }
     });
   };
+  useMount(() => {
+    console.log('feconfigs', feConfigs);
+    console.log('userInfo', userInfo);
+  });
 
   return (
     <>

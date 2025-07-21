@@ -109,7 +109,7 @@ const CollaboratorContextProvider = ({
     loading: isFetchingCollaborator
   } = useRequest2(
     async () => {
-      if (feConfigs.isPlus) {
+      try {
         const data = await onGetCollaboratorList();
         return data.map((item) => {
           return {
@@ -119,8 +119,9 @@ const CollaboratorContextProvider = ({
             })
           };
         });
+      } catch (err) {
+        return [];
       }
-      return [];
     },
     {
       manual: false,
