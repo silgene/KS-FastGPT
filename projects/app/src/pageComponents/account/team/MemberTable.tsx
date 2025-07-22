@@ -53,7 +53,7 @@ import PopoverConfirm from '@fastgpt/web/components/common/MyPopover/PopoverConf
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
 import { useMount } from 'ahooks';
 
-const InviteModal = dynamic(() => import('./Invite/InviteModal'));
+const DirectInviteModal = dynamic(() => import('./Invite/DirectInviteModal'));
 const TeamTagModal = dynamic(() => import('@/components/support/user/team/TeamTagModal'));
 
 function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
@@ -63,7 +63,6 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
   const { feConfigs } = useSystemStore();
   //关闭同步模式
   const isSyncMember = false;
-  console.log('zhi', isSyncMember);
   const { myTeams, onSwitchTeam } = useContextSelector(TeamContext, (v) => v);
 
   // Member status selector
@@ -373,7 +372,13 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
         </MemberScrollData>
       </MyBox>
 
-      {isOpenInvite && userInfo?.team?.teamId && <InviteModal onClose={onCloseInvite} />}
+      {isOpenInvite && userInfo?.team?.teamId && (
+        <DirectInviteModal
+          isOpen={isOpenInvite}
+          onClose={onCloseInvite}
+          onSuccess={onRefreshMembers}
+        />
+      )}
       {isOpenTeamTagsAsync && <TeamTagModal onClose={onCloseTeamTagsAsync} />}
     </>
   );
