@@ -61,8 +61,9 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
   const { toast } = useToast();
   const { userInfo } = useUserStore();
   const { feConfigs } = useSystemStore();
-  const isSyncMember = feConfigs?.register_method?.includes('sync');
-
+  //关闭同步模式
+  const isSyncMember = false;
+  console.log('zhi', isSyncMember);
   const { myTeams, onSwitchTeam } = useContextSelector(TeamContext, (v) => v);
 
   // Member status selector
