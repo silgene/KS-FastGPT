@@ -5,6 +5,7 @@ import {
   TeamCollectionName,
   TeamMemberCollectionName
 } from '@fastgpt/global/support/user/team/constant';
+import { SpaceCollectionName } from '@fastgpt/global/support/user/space/constant';
 
 export const AppCollectionName = 'apps';
 
@@ -36,6 +37,11 @@ const AppSchema = new Schema({
   tmbId: {
     type: Schema.Types.ObjectId,
     ref: TeamMemberCollectionName,
+    required: true
+  },
+  spaceId: {
+    type: Schema.Types.ObjectId,
+    ref: SpaceCollectionName,
     required: true
   },
   name: {
@@ -130,5 +136,22 @@ AppSchema.index(
     }
   }
 );
-
+AppSchema.virtual('team', {
+  ref: TeamCollectionName,
+  localField: 'teamId',
+  foreignField: '_id',
+  justOne: true
+});
+AppSchema.virtual('tmb', {
+  ref: TeamMemberCollectionName,
+  localField: 'tmbId',
+  foreignField: '_id',
+  justOne: true
+});
+AppSchema.virtual('space', {
+  ref: SpaceCollectionName,
+  localField: 'spaceId',
+  foreignField: '_id',
+  justOne: true
+});
 export const MongoApp = getMongoModel<AppType>(AppCollectionName, AppSchema);

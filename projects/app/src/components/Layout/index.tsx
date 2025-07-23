@@ -163,7 +163,7 @@ const Layout = ({ children }: { children: JSX.Element }) => {
           </>
         )}
       </Box>
-      {feConfigs?.isPlus && (
+      {
         <>
           <NotSufficientModal />
           <SystemMsgModal />
@@ -176,7 +176,7 @@ const Layout = ({ children }: { children: JSX.Element }) => {
           <ResetExpiredPswModal />
           <WorkorderButton />
         </>
-      )}
+      }
 
       <ManualCopyModal />
       <Loading loading={loading} zIndex={999999} />

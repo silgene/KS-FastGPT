@@ -20,6 +20,7 @@ import type chat from '../i18n/zh-CN/chat.json';
 import type login from '../i18n/zh-CN/login.json';
 import type account_model from '../i18n/zh-CN/account_model.json';
 import type dashboard_mcp from '../i18n/zh-CN/dashboard_mcp.json';
+import type space from '../i18n/zh-CN/space.json';
 
 export interface I18nNamespaces {
   common: typeof common;
@@ -30,6 +31,7 @@ export interface I18nNamespaces {
   workflow: typeof workflow;
   user: typeof user;
   chat: typeof chat;
+  space: typeof space;
   login: typeof login;
   account_info: typeof account_info;
   account_usage: typeof account_usage;
@@ -62,6 +64,7 @@ declare module 'i18next' {
       'common',
       'dataset',
       'app',
+      'space',
       'file',
       'publish',
       'workflow',

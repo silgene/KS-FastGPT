@@ -255,7 +255,7 @@ const MyApps = ({ MenuIcon }: { MenuIcon: JSX.Element }) => {
 
           {!isPc && <Box mt={2}>{RenderSearchInput}</Box>}
 
-          <MyBox flex={'1 0 0'} isLoading={myApps.length === 0 && isFetchingApps}>
+          <MyBox flex={'1 0 0'} isLoading={isFetchingApps}>
             <List />
           </MyBox>
         </Flex>

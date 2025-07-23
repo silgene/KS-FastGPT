@@ -13,6 +13,7 @@ import {
   TeamMemberCollectionName
 } from '@fastgpt/global/support/user/team/constant';
 import type { DatasetSchemaType } from '@fastgpt/global/core/dataset/type.d';
+import { SpaceCollectionName } from '@fastgpt/global/support/user/space/constant';
 
 export const DatasetCollectionName = 'datasets';
 
@@ -73,6 +74,11 @@ const DatasetSchema = new Schema({
   tmbId: {
     type: Schema.Types.ObjectId,
     ref: TeamMemberCollectionName,
+    required: true
+  },
+  spaceId: {
+    type: Schema.Types.ObjectId,
+    ref: SpaceCollectionName,
     required: true
   },
   type: {

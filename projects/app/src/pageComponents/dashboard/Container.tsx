@@ -17,6 +17,7 @@ import {
 } from '@fastgpt/global/core/app/type';
 import { getPluginGroups } from '@/web/core/app/api/plugin';
 import { type PluginGroupSchemaType } from '@fastgpt/service/core/app/plugin/type';
+import SpaceSelector from '../account/space/SpaceSelector';
 
 export enum TabEnum {
   apps = 'apps',
@@ -240,6 +241,7 @@ const DashboardContainer = ({
           zIndex={100}
           userSelect={'none'}
         >
+          <SpaceSelector showManage mb={3}></SpaceSelector>
           {groupList.map((group) => {
             const selected = currentTab === group.groupId;
 

@@ -11,7 +11,8 @@ import type { getBasicInfoResponse } from '@/pages/api/core/app/getBasicInfo';
 /**
  * 获取应用列表
  */
-export const getMyApps = (data?: ListAppBody) =>
+// TODO: 调用这个接口的都需要传递spaceId
+export const getMyApps = (data: ListAppBody) =>
   POST<AppListItemType[]>('/core/app/list', data, {
     maxQuantity: 1
   });

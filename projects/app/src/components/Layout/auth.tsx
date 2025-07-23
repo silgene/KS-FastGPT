@@ -21,16 +21,25 @@ const Auth = ({ children }: { children: JSX.Element | React.ReactNode }) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { toast } = useToast();
-  const { userInfo, initUserInfo } = useUserStore();
-
+  const { userInfo, initUserInfo, spaceInfo, initSpaceInfo } = useUserStore();
+  const userQueryFn = () => {
+    if (unAuthPage[router.pathname] === true || userInfo) {
+      return null;
+    } else {
+      return initUserInfo();
+    }
+  };
+  const spaceQueryFn = () => {
+    if (unAuthPage[router.pathname] === true || spaceInfo) {
+      return null;
+    } else {
+      return initSpaceInfo();
+    }
+  };
   useQuery(
     [router.pathname],
     () => {
-      if (unAuthPage[router.pathname] === true || userInfo) {
-        return null;
-      } else {
-        return initUserInfo();
-      }
+      return Promise.all([userQueryFn(), spaceQueryFn()]);
     },
     {
       onError(error) {

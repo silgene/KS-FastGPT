@@ -25,6 +25,7 @@ export type ListAppBody = {
   type?: AppTypeEnum | AppTypeEnum[];
   getRecentlyChat?: boolean;
   searchKey?: string;
+  spaceId: string;
 };
 
 /*
@@ -38,7 +39,7 @@ export type ListAppBody = {
 */
 
 async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemType[]> {
-  const { parentId, type, getRecentlyChat, searchKey } = req.body;
+  const { parentId, type, getRecentlyChat, searchKey, spaceId } = req.body;
 
   // Auth user permission
   const [{ tmbId, teamId, permission: teamPer }] = await Promise.all([
@@ -98,6 +99,7 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
       return {
         // get all chat app
         teamId,
+        spaceId,
         type: { $in: [AppTypeEnum.workflow, AppTypeEnum.simple, AppTypeEnum.plugin] }
       };
     }
@@ -125,6 +127,7 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
       return {
         ...appPerQuery,
         teamId,
+        spaceId,
         ...searchMatch
       };
     }
@@ -132,6 +135,7 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
     return {
       ...appPerQuery,
       teamId,
+      spaceId,
       ...(type && (Array.isArray(type) ? { type: { $in: type } } : { type })),
       ...parseParentIdInMongo(parentId)
     };

@@ -15,6 +15,7 @@ import dynamic from 'next/dynamic';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useTranslation } from 'next-i18next';
+import { useUserStore } from '@/web/support/user/useUserStore';
 const MoveModal = dynamic(() => import('@/components/common/folder/MoveModal'));
 
 type AppListContextType = {
@@ -59,6 +60,7 @@ export const AppListContext = createContext<AppListContextType>({
 
 const AppListContextProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
+  const spaceInfo = useUserStore((state) => state.spaceInfo);
   const router = useRouter();
   const { parentId = null, type = 'all' } = router.query as {
     parentId?: string | null;
@@ -79,11 +81,11 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
 
         return [AppTypeEnum.folder, type];
       })();
-      return getMyApps({ parentId, type: formatType, searchKey });
+      return getMyApps({ parentId, type: formatType, searchKey, spaceId: spaceInfo!._id });
     },
     {
       manual: false,
-      refreshDeps: [searchKey, parentId, type],
+      refreshDeps: [searchKey, parentId, type, spaceInfo],
       throttleWait: 500,
       refreshOnWindowFocus: true
     }
@@ -127,7 +129,8 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
   const getAppFolderList = useCallback(({ parentId }: GetResourceFolderListProps) => {
     return getMyApps({
       parentId,
-      type: AppTypeEnum.folder
+      type: AppTypeEnum.folder,
+      spaceId: spaceInfo!._id
     }).then((res) =>
       res
         .filter((item) => item.permission.hasWritePer)

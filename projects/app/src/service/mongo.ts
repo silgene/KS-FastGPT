@@ -33,6 +33,8 @@ export async function initRootUser(retry = 3): Promise<any> {
       }
       // init root team
       await createDefaultTeam({ userId: rootId, session });
+      // TODO: 初始化root用户的个人空间
+      // await createDefaultPersonalSpace({ tmbId: rootId, session });
     });
 
     console.log(`root user init:`, {

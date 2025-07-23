@@ -1,0 +1,7 @@
+{
+  "permission.des.manage": "可管理该空间，包括编辑、删除和设置权限",
+  "permission.des.read": "可查看该空间的应用",
+  "permission.des.write": "可查看和编辑空间的应用",
+  "space_error.not_exist": "空间不存在",
+  "space_error.un_auth_space": "无权限访问该空间"
+}

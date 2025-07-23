@@ -6,6 +6,8 @@ import type { OrgType } from '@fastgpt/global/support/user/team/org/type';
 import type { UserType } from '@fastgpt/global/support/user/type.d';
 import type { ClientTeamPlanStatusType } from '@fastgpt/global/support/wallet/sub/type';
 import { getTeamPlanStatus } from './team/api';
+import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
+import { getLastUsedSpace } from './space/api';
 
 type State = {
   systemMsgReadId: string;
@@ -24,6 +26,9 @@ type State = {
   initTeamPlanStatus: () => Promise<any>;
 
   teamOrgs: OrgType[];
+  spaceInfo: SpaceDetailType | null;
+  setSpaceInfo: (spaceInfo?: SpaceDetailType) => void;
+  initSpaceInfo: () => Promise<SpaceDetailType>;
 };
 
 export const useUserStore = create<State>()(
@@ -95,7 +100,18 @@ export const useUserStore = create<State>()(
           });
         },
         teamMemberGroups: [],
-        teamOrgs: []
+        teamOrgs: [],
+        spaceInfo: null,
+        setSpaceInfo(spaceInfo?: SpaceDetailType) {
+          set((state) => {
+            state.spaceInfo = spaceInfo || null;
+          });
+        },
+        async initSpaceInfo() {
+          const space = await getLastUsedSpace();
+          get().setSpaceInfo(space);
+          return space;
+        }
       })),
       {
         name: 'userStore',
