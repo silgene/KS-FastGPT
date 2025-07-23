@@ -139,7 +139,7 @@ const DirectInviteModal: React.FC<DirectInviteModalProps> = ({ isOpen, onClose, 
                 </FormControl>
                 <IconButton
                   aria-label="Remove user"
-                  icon={<MyIcon name="delete" />}
+                  icon={<MyIcon name="minus" />}
                   size="sm"
                   colorScheme="red"
                   variant="outline"
@@ -150,11 +150,11 @@ const DirectInviteModal: React.FC<DirectInviteModalProps> = ({ isOpen, onClose, 
             ))}
 
             <Button
-              leftIcon={<MyIcon name="common/addLight" />}
               variant="outline"
               size="sm"
               onClick={addCreateUser}
               alignSelf="flex-start"
+              justifyContent="center"
             >
               {t('account_team:add_user')}
             </Button>

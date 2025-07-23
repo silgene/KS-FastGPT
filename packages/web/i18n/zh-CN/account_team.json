@@ -241,5 +241,13 @@
   "create_invite_failed": "创建用户失败",
   "member_usernames_required": "请输入要邀请的用户名",
   "user_team_leave_team": "离开团队",
-  "user_team_leave_team_failed": "离开团队失败"
+  "user_team_leave_team_failed": "离开团队失败",
+  "remove_member_success": "移除成员成功",
+  "remove_member_failed": "移除成员失败",
+  "confirm_remove_member": "确认移除成员？",
+  "confirm_remove_member_desc": "确认将 {{username}} 移出团队？成员将被标记为“已离职”，不删除操作数据，账号下资源自动转让给团队所有者。",
+  "member_not_found": "成员不存在",
+  "unauthorized_remove_member": "无权限移除此成员",
+  "cannot_remove_owner": "不能移除团队所有者",
+  "cannot_remove_self": "不能移除自己"
 }

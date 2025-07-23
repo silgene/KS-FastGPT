@@ -293,7 +293,7 @@ export async function getTeamMemberList({
         userId: item.userId,
         tmbId: item._id,
         teamId: item.teamId,
-        memberName: item.user.username,
+        memberName: item.name,
         avatar: item.avatar,
         role: item.role,
         status: item.status,

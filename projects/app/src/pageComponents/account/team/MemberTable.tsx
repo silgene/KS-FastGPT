@@ -132,7 +132,9 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
   });
 
   const { runAsync: onRemoveMember } = useRequest2(delRemoveMember, {
-    onSuccess: onRefreshMembers
+    onSuccess: onRefreshMembers,
+    successToast: t('account_team:remove_member_success'),
+    errorToast: t('account_team:remove_member_failed')
   });
 
   const { runAsync: onRestore } = useRequest2(postRestoreMember, {
