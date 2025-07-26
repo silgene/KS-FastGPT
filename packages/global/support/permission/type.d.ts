@@ -12,7 +12,7 @@ import { AuthUserTypeEnum, type PermissionKeyEnum, type PerResourceTypeEnum } fr
 export type PermissionValueType = number;
 export type ResourceType = `${PerResourceTypeEnum}`;
 
-export type PermissionListType<T = {}> = Record<
+export type PermissionListType<T = PermissionKeyEnum> = Record<
   T | PermissionKeyEnum,
   {
     name: string;

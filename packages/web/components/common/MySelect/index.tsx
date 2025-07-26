@@ -25,6 +25,30 @@ import MyDivider from '../MyDivider';
 import type { useScrollPagination } from '../../../hooks/useScrollPagination';
 import Avatar from '../Avatar';
 import EmptyTip from '../EmptyTip';
+import { createPortal } from 'react-dom';
+
+type SelectListItem<T = any> =
+  | {
+      alias?: string | React.ReactNode;
+      icon?: string;
+      iconSize?: string;
+      label: string | React.ReactNode;
+      description?: string;
+      value: T;
+      showBorder?: boolean;
+      customRender?: undefined;
+    }
+  | {
+      customRender: React.ReactNode;
+      alias?: string | React.ReactNode;
+      icon?: string;
+      iconSize?: string;
+      description?: string;
+      showBorder?: boolean;
+      // value和label可选
+      value?: T;
+      label?: string | React.ReactNode;
+    };
 
 /** 选择组件 Props 类型
  * value: 选中的值
@@ -34,22 +58,16 @@ import EmptyTip from '../EmptyTip';
  * ScrollData: 分页滚动数据控制器 [useScrollPagination] 的返回值
  * customOnOpen: 自定义打开回调
  * customOnClose: 自定义关闭回调
+ * customButton: 自定义按钮内容
  * */
 export type SelectProps<T = any> = Omit<ButtonProps, 'onChange'> & {
   value?: T;
   valueLabel?: string | React.ReactNode;
   placeholder?: string;
   isSearch?: boolean;
-  list: {
-    alias?: string | React.ReactNode;
-    icon?: string;
-    iconSize?: string;
-    label: string | React.ReactNode;
-    description?: string;
-    value: T;
-    showBorder?: boolean;
-  }[];
+  list: SelectListItem[];
   isLoading?: boolean;
+  customButton?: React.ReactNode;
   onChange?: (val: T) => any | Promise<any>;
   ScrollData?: ReturnType<typeof useScrollPagination>['ScrollData'];
   customOnOpen?: () => void;
@@ -82,6 +100,7 @@ const MySelect = <T = any,>(
     ScrollData,
     customOnOpen,
     customOnClose,
+    customButton,
     ...props
   }: SelectProps<T>,
   ref: ForwardedRef<{
@@ -112,6 +131,10 @@ const MySelect = <T = any,>(
       return list;
     }
     return list.filter((item) => {
+      if (item.customRender) {
+        // 如果有自定义渲染，则不在搜索中，直接返回 true
+        return true;
+      }
       const text = `${item.label?.toString()}${item.alias}${item.value}`;
       const regx = new RegExp(search, 'gi');
       return regx.test(text);
@@ -145,39 +168,43 @@ const MySelect = <T = any,>(
         {filterList.length > 0 ? (
           filterList.map((item, i) => (
             <Box key={i}>
-              <MenuItem
-                {...menuItemStyles}
-                {...(value === item.value
-                  ? {
-                      ref: SelectedItemRef,
-                      color: 'primary.700',
-                      bg: 'myGray.100'
+              {item.customRender ? (
+                <> {item.customRender}</>
+              ) : (
+                <MenuItem
+                  {...menuItemStyles}
+                  {...(value === item.value
+                    ? {
+                        ref: SelectedItemRef,
+                        color: 'primary.700',
+                        bg: 'myGray.100'
+                      }
+                    : {
+                        color: 'myGray.900'
+                      })}
+                  onClick={() => {
+                    if (value !== item.value) {
+                      onClickChange(item.value);
                     }
-                  : {
-                      color: 'myGray.900'
-                    })}
-                onClick={() => {
-                  if (value !== item.value) {
-                    onClickChange(item.value);
-                  }
-                }}
-                whiteSpace={'pre-wrap'}
-                fontSize={'sm'}
-                display={'block'}
-                mb={0.5}
-              >
-                <Flex alignItems={'center'} fontWeight={value === item.value ? '600' : 'normal'}>
-                  {item.icon && (
-                    <Avatar mr={2} src={item.icon as any} w={item.iconSize ?? '1rem'} />
+                  }}
+                  whiteSpace={'pre-wrap'}
+                  fontSize={'sm'}
+                  display={'block'}
+                  mb={0.5}
+                >
+                  <Flex alignItems={'center'} fontWeight={value === item.value ? '600' : 'normal'}>
+                    {item.icon && (
+                      <Avatar mr={2} src={item.icon as any} w={item.iconSize ?? '1rem'} />
+                    )}
+                    {item.label}
+                  </Flex>
+                  {item.description && (
+                    <Box color={'myGray.500'} fontSize={'xs'}>
+                      {item.description}
+                    </Box>
                   )}
-                  {item.label}
-                </Flex>
-                {item.description && (
-                  <Box color={'myGray.500'} fontSize={'xs'}>
-                    {item.description}
-                  </Box>
-                )}
-              </MenuItem>
+                </MenuItem>
+              )}
               {item.showBorder && <MyDivider my={2} />}
             </Box>
           ))
@@ -200,100 +227,108 @@ const MySelect = <T = any,>(
         strategy={'fixed'}
         // matchWidth
       >
-        <MenuButton
-          as={Button}
-          ref={ButtonRef}
-          width={width}
-          px={3}
-          rightIcon={<MyIcon name={'core/chat/chevronDown'} w={4} color={'myGray.500'} />}
-          variant={'whitePrimaryOutline'}
-          size={'md'}
-          fontSize={'sm'}
-          textAlign={'left'}
-          h={'auto'}
-          whiteSpace={'pre-wrap'}
-          wordBreak={'break-word'}
-          _active={{
-            transform: 'none'
-          }}
-          {...(isOpen
-            ? {
-                boxShadow: '0px 0px 0px 2.4px rgba(51, 112, 255, 0.15)',
-                borderColor: 'primary.600',
-                color: 'primary.700'
-              }
-            : {})}
-          {...props}
-        >
-          <Flex alignItems={'center'} justifyContent="space-between" w="100%">
-            <Flex alignItems={'center'}>
-              {isSelecting && <MyIcon mr={2} name={'common/loading'} w={'1rem'} />}
-              {valueLabel ? (
-                <>{valueLabel}</>
-              ) : (
-                <>
-                  {isSearch && isOpen ? (
-                    <Input
-                      ref={SearchInputRef}
-                      autoFocus
-                      variant={'unstyled'}
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder={
-                        (typeof selectItem?.alias === 'string' ? selectItem?.alias : '') ||
-                        (typeof selectItem?.label === 'string' ? selectItem?.label : placeholder)
-                      }
-                      size={'sm'}
-                      w={'100%'}
-                      color={'myGray.700'}
-                      onBlur={() => {
-                        setTimeout(() => {
-                          SearchInputRef?.current?.focus();
-                        }, 0);
-                      }}
-                    />
-                  ) : (
-                    <>
-                      {selectItem?.icon && (
-                        <Avatar
-                          mr={2}
-                          src={selectItem.icon as any}
-                          w={selectItem.iconSize ?? '1rem'}
-                        />
-                      )}
-                      {selectItem?.alias || selectItem?.label || placeholder}
-                    </>
-                  )}
-                </>
-              )}
+        {customButton ? (
+          <MenuButton ref={ButtonRef}>{customButton}</MenuButton>
+        ) : (
+          <MenuButton
+            as={Button}
+            ref={ButtonRef}
+            width={width}
+            px={3}
+            rightIcon={<MyIcon name={'core/chat/chevronDown'} w={4} color={'myGray.500'} />}
+            variant={'whitePrimaryOutline'}
+            size={'md'}
+            fontSize={'sm'}
+            textAlign={'left'}
+            h={'auto'}
+            whiteSpace={'pre-wrap'}
+            wordBreak={'break-word'}
+            _active={{
+              transform: 'none'
+            }}
+            {...(isOpen
+              ? {
+                  boxShadow: '0px 0px 0px 2.4px rgba(51, 112, 255, 0.15)',
+                  borderColor: 'primary.600',
+                  color: 'primary.700'
+                }
+              : {})}
+            {...props}
+          >
+            <Flex alignItems={'center'} justifyContent="space-between" w="100%">
+              <Flex alignItems={'center'}>
+                {isSelecting && <MyIcon mr={2} name={'common/loading'} w={'1rem'} />}
+                {valueLabel ? (
+                  <>{valueLabel}</>
+                ) : (
+                  <>
+                    {isSearch && isOpen ? (
+                      <Input
+                        ref={SearchInputRef}
+                        autoFocus
+                        variant={'unstyled'}
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder={
+                          (typeof selectItem?.alias === 'string' ? selectItem?.alias : '') ||
+                          (typeof selectItem?.label === 'string' ? selectItem?.label : placeholder)
+                        }
+                        size={'sm'}
+                        w={'100%'}
+                        color={'myGray.700'}
+                        onBlur={() => {
+                          setTimeout(() => {
+                            SearchInputRef?.current?.focus();
+                          }, 0);
+                        }}
+                      />
+                    ) : (
+                      <>
+                        {selectItem?.icon && (
+                          <Avatar
+                            mr={2}
+                            src={selectItem.icon as any}
+                            w={selectItem.iconSize ?? '1rem'}
+                          />
+                        )}
+                        {selectItem?.alias || selectItem?.label || placeholder}
+                      </>
+                    )}
+                  </>
+                )}
+              </Flex>
             </Flex>
-          </Flex>
-        </MenuButton>
-
-        <MenuList
-          ref={MenuListRef}
-          className={props.className}
-          w={(() => {
-            const w = ButtonRef.current?.clientWidth;
-            if (w) {
-              return `${w}px !important`;
-            }
-            return Array.isArray(width)
-              ? width.map((item) => `${item} !important`)
-              : `${width} !important`;
-          })()}
-          px={'6px'}
-          py={'6px'}
-          border={'1px solid #fff'}
-          boxShadow={
-            '0px 2px 4px rgba(161, 167, 179, 0.25), 0px 0px 1px rgba(121, 141, 159, 0.25);'
-          }
-          zIndex={99}
-          maxH={'45vh'}
-          overflowY={'auto'}
-        >
-          {ScrollData ? <ScrollData>{ListRender}</ScrollData> : ListRender}
-        </MenuList>
+          </MenuButton>
+        )}
+        {createPortal(
+          <>
+            <MenuList
+              ref={MenuListRef}
+              className={props.className}
+              w={(() => {
+                const w = ButtonRef.current?.clientWidth;
+                if (w) {
+                  return `${w}px !important`;
+                }
+                return Array.isArray(width)
+                  ? width.map((item) => `${item} !important`)
+                  : `${width} !important`;
+              })()}
+              px={'6px'}
+              py={'6px'}
+              border={'1px solid #fff'}
+              boxShadow={
+                '0px 2px 4px rgba(161, 167, 179, 0.25), 0px 0px 1px rgba(121, 141, 159, 0.25);'
+              }
+              zIndex={10000}
+              maxH={'45vh'}
+              overflowY={'auto'}
+            >
+              {ScrollData ? <ScrollData>{ListRender}</ScrollData> : ListRender}
+            </MenuList>
+          </>,
+          document.body // 渲染到 body
+        )}
       </Menu>
     </Box>
   );

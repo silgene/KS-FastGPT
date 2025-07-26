@@ -241,9 +241,9 @@ const Render = (props: { appId: string; isStandalone?: string }) => {
   const { toast } = useToast();
   const router = useRouter();
   const { source, chatId, lastChatAppId, setSource, setAppId } = useChatStore();
-
+  const { spaceInfo } = useUserStore();
   const { data: myApps = [], runAsync: loadMyApps } = useRequest2(
-    () => getMyApps({ getRecentlyChat: true }),
+    () => getMyApps({ getRecentlyChat: true, spaceId: spaceInfo?._id || '' }),
     {
       manual: false
     }

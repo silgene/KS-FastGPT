@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Box, type ButtonProps } from '@chakra-ui/react';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import { useTranslation } from 'next-i18next';
@@ -8,21 +8,29 @@ import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import MySelect from '@fastgpt/web/components/common/MySelect';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useRouter } from 'next/router';
+import type { TeamTmbItemType } from '@fastgpt/global/support/user/team/type';
+
+export type TeamSelectorProps = Omit<ButtonProps, 'onChange'> & {
+  showManage?: boolean;
+  onChange?: () => void;
+  customButton?: React.ReactNode;
+  // 当团队列表发生变化时触发, 初始化时也触发
+  onTeamTmbsChanged?: (teamTmbs: TeamTmbItemType[]) => void;
+};
 
 const TeamSelector = ({
   showManage,
   onChange,
-  ...props
-}: Omit<ButtonProps, 'onChange'> & {
-  showManage?: boolean;
-  onChange?: () => void;
-}) => {
+  onTeamTmbsChanged,
+  customButton,
+  ...buttonProps
+}: TeamSelectorProps) => {
   const { t } = useTranslation();
   const router = useRouter();
   const { userInfo } = useUserStore();
   const { setLoading } = useSystemStore();
 
-  const { data: myTeams = [] } = useRequest2(() => getTeamList(TeamMemberStatusEnum.active), {
+  const { data: myTmbs = [] } = useRequest2(() => getTeamList(TeamMemberStatusEnum.active), {
     manual: false,
     refreshDeps: [userInfo]
   });
@@ -42,13 +50,13 @@ const TeamSelector = ({
   );
 
   const teamList = useMemo(() => {
-    return myTeams.map((team) => ({
-      icon: team.avatar,
+    return myTmbs.map((tmb) => ({
+      icon: tmb.teamAvatar,
       iconSize: '1.25rem',
-      label: team.teamName,
-      value: team.teamId
+      label: tmb.teamName,
+      value: tmb.teamId
     }));
-  }, [myTeams]);
+  }, [myTmbs]);
 
   const formatTeamList = useMemo(() => {
     return [
@@ -74,11 +82,14 @@ const TeamSelector = ({
       onSwitchTeam(value);
     }
   };
-
+  useEffect(() => {
+    onTeamTmbsChanged?.(myTmbs);
+  }, [myTmbs, onTeamTmbsChanged]);
   return (
     <Box w={'100%'}>
       <MySelect
-        {...props}
+        {...buttonProps}
+        customButton={customButton}
         value={userInfo?.team?.teamId}
         list={formatTeamList}
         onChange={handleChange}

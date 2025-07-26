@@ -31,8 +31,8 @@ export type ListAppBody = {
 
 /*
   获取 APP 列表权限
-  1. 校验 folder 权限和获取 team 权限（owner 单独处理）
-  2. 获取 team 下所有 app 权限。获取我的所有组。并计算出我所有的app权限。
+  1. 校验 folder 权限和获取 team 权限, space权限（owner 单独处理）
+  2. 获取 该space 下所有 app 权限。
   3. 过滤我有的权限的 app，以及当前 parentId 的 app（由于权限继承问题，这里没法一次性根据 id 去获取）
   4. 根据过滤条件获取 app 列表
   5. 遍历搜索出来的 app，并赋予权限（继承的 app，使用 parent 的权限）
@@ -43,7 +43,6 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
   const { parentId, type, getRecentlyChat, searchKey, spaceId } = req.body;
 
   // Auth user permission
-  // TODO: 将teamPer改为spacePer
   const [{ tmbId, teamId, permission: spacePer }] = await Promise.all([
     // authUserPer({
     //   req,

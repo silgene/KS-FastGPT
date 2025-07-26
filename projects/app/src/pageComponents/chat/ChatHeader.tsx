@@ -23,6 +23,7 @@ import { getMyApps } from '@/web/core/app/api';
 import SelectOneResource from '@/components/common/folder/SelectOneResource';
 import { ChatItemContext } from '@/web/core/chat/context/chatItemContext';
 import VariablePopover from '@/components/core/chat/ChatContainer/ChatBox/components/VariablePopover';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 const ChatHeader = ({
   history,
@@ -99,9 +100,10 @@ const MobileDrawer = ({
   const router = useRouter();
   const isTeamChat = router.pathname === '/chat/team';
   const [currentTab, setCurrentTab] = useState<TabEnum>(TabEnum.recently);
+  const { spaceInfo } = useUserStore();
 
   const getAppList = useCallback(async ({ parentId }: GetResourceFolderListProps) => {
-    return getMyApps({ parentId }).then((res) =>
+    return getMyApps({ parentId, spaceId: spaceInfo?._id || '' }).then((res) =>
       res.map<GetResourceListItemResponse>((item) => ({
         id: item._id,
         name: item.name,

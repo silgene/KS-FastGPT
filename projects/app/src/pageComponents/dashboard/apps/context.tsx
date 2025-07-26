@@ -81,7 +81,7 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
 
         return [AppTypeEnum.folder, type];
       })();
-      return getMyApps({ parentId, type: formatType, searchKey, spaceId: spaceInfo!._id });
+      return getMyApps({ parentId, type: formatType, searchKey, spaceId: spaceInfo?._id || '' });
     },
     {
       manual: false,
@@ -130,7 +130,7 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
     return getMyApps({
       parentId,
       type: AppTypeEnum.folder,
-      spaceId: spaceInfo!._id
+      spaceId: spaceInfo?._id || ''
     }).then((res) =>
       res
         .filter((item) => item.permission.hasWritePer)

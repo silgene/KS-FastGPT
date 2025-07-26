@@ -16,12 +16,14 @@ import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import dynamic from 'next/dynamic';
 import { ChatItemContext } from '@/web/core/chat/context/chatItemContext';
 import { useContextSelector } from 'use-context-selector';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 const SelectOneResource = dynamic(() => import('@/components/common/folder/SelectOneResource'));
 
 const SliderApps = ({ apps, activeAppId }: { apps: AppListItemType[]; activeAppId: string }) => {
   const { t } = useTranslation();
   const router = useRouter();
+  const { spaceInfo } = useUserStore();
   const isTeamChat = router.pathname === '/chat/team';
 
   const showRouteToAppDetail = useContextSelector(ChatItemContext, (v) => v.showRouteToAppDetail);
@@ -29,7 +31,8 @@ const SliderApps = ({ apps, activeAppId }: { apps: AppListItemType[]; activeAppI
   const getAppList = useCallback(async ({ parentId }: GetResourceFolderListProps) => {
     return getMyApps({
       parentId,
-      type: [AppTypeEnum.folder, AppTypeEnum.simple, AppTypeEnum.workflow, AppTypeEnum.plugin]
+      type: [AppTypeEnum.folder, AppTypeEnum.simple, AppTypeEnum.workflow, AppTypeEnum.plugin],
+      spaceId: spaceInfo?._id || ''
     }).then((res) =>
       res.map<GetResourceListItemResponse>((item) => ({
         id: item._id,

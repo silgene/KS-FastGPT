@@ -36,6 +36,7 @@ import { AppFolderTypeList } from '@fastgpt/global/core/app/constants';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import { postCreateMcpServer, putUpdateMcpServer } from '../../../web/support/mcp/api';
 import QuestionTip from '@fastgpt/web/components/common/MyTooltip/QuestionTip';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 export type EditMcForm = {
   id?: string;
@@ -58,6 +59,7 @@ const SelectAppModal = ({
   onConfirm: (e: McpAppType[]) => void;
 }) => {
   const { t } = useTranslation();
+  const { spaceInfo } = useUserStore();
 
   const [selectedList, setSelectedList] = useState<
     {
@@ -93,7 +95,8 @@ const SelectAppModal = ({
     () =>
       getMyApps({
         searchKey,
-        parentId
+        parentId,
+        spaceId: spaceInfo?._id || ''
       }),
     {
       manual: false,

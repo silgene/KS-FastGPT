@@ -35,7 +35,7 @@ export const authSpaceByTmbId = async ({
     }
     // 如果是个人空间,则只能有一个成员
     if (space.type === SpaceTypeEnum.personal) {
-      if (space.ownerId !== tmbId) {
+      if (String(space.ownerId) !== tmbId) {
         return Promise.reject(SpaceErrEnum.unAuthSpace);
       }
       return {

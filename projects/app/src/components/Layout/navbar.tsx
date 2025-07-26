@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Box, type BoxProps, Flex, Link, type LinkProps } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { useUserStore } from '@/web/support/user/useUserStore';
@@ -11,6 +11,9 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import { useTranslation } from 'next-i18next';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
+import TeamSelector from '@/pageComponents/account/TeamSelector';
+import type { TeamTmbItemType } from '@fastgpt/global/support/user/team/type';
+import MyDivider from '@fastgpt/web/components/common/MyDivider';
 
 export enum NavbarTypeEnum {
   normal = 'normal',
@@ -97,6 +100,11 @@ const Navbar = ({ unread }: { unread: number }) => {
     return ['/toolkit'].includes(router.pathname);
   }, [router.pathname]);
 
+  const [currentTeamIcon, setCurrentTeamIcon] = useState('');
+  const teamTmbsChanged = useCallback((teamTmbs: TeamTmbItemType[]) => {
+    const currentTeam = teamTmbs.find((item) => item.teamId === userInfo?.team?.teamId);
+    setCurrentTeamIcon(currentTeam?.teamAvatar || HUMAN_ICON);
+  }, []);
   return (
     <Flex
       flexDirection={'column'}
@@ -212,22 +220,37 @@ const Navbar = ({ unread }: { unread: number }) => {
           </MyTooltip>
         ))}
 
-      {feConfigs?.show_git && (
-        <MyTooltip label={`Git Star: ${gitStar}`} placement={'right-end'}>
-          <Link
-            as={NextLink}
-            href="https://github.com/labring/FastGPT"
-            target={'_blank'}
-            {...itemStyles}
-            {...hoverStyle}
-            mt={0}
-            color={'myGray.400'}
-            height={'48px'}
-          >
-            <MyIcon name={'common/gitInlight'} width={'26px'} height={'26px'} />
-          </Link>
+      {/* <MyTooltip label={`Git Star: ${gitStar}`} placement={'right-end'}>
+        <Link
+          as={NextLink}
+          href="https://github.com/labring/FastGPT"
+          target={'_blank'}
+          {...itemStyles}
+          {...hoverStyle}
+          mt={0}
+          color={'myGray.400'}
+          height={'48px'}
+        >
+          <MyIcon name={'common/gitInlight'} width={'26px'} height={'26px'} />
+        </Link>
+      </MyTooltip> */}
+      <MyDivider w={'60%'} color={'gray.200'} h={2}></MyDivider>
+      <Box>
+        <MyTooltip label={t('common:user.team.Select Team')} placement={'right-end'}>
+          <TeamSelector
+            customButton={
+              <Avatar
+                src={currentTeamIcon}
+                borderRadius={'50%'}
+                border={'2px solid #E2E8F0'}
+                width={'30px'}
+                height={'30px'}
+              ></Avatar>
+            }
+            onTeamTmbsChanged={teamTmbsChanged}
+          ></TeamSelector>
         </MyTooltip>
-      )}
+      </Box>
     </Flex>
   );
 };

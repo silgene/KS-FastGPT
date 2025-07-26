@@ -8,6 +8,7 @@ import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useRouter } from 'next/router';
 import { getAllAccessibleSpaces } from '@/web/support/user/space/api';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
+import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
 
 const SpaceSelector = ({
   showManage,
@@ -42,16 +43,31 @@ const SpaceSelector = ({
     }
   );
 
-  const spaceList = useMemo(() => {
-    return mySpaces.map((space) => {
-      return {
-        icon: space.avatar,
-        iconSize: '1.25rem',
-        label: space.name,
-        value: space._id,
-        description: space.team.name
-      };
-    });
+  const teamSpaceList = useMemo(() => {
+    return mySpaces
+      .filter((item) => item.type === SpaceTypeEnum.team)
+      .map((space) => {
+        return {
+          icon: space.avatar,
+          iconSize: '1.25rem',
+          label: space.name,
+          value: space._id,
+          description: space.team.name
+        };
+      });
+  }, [mySpaces]);
+  const personalSpaceList = useMemo(() => {
+    return mySpaces
+      .filter((item) => item.type === SpaceTypeEnum.personal)
+      .map((space) => {
+        return {
+          icon: space.avatar,
+          iconSize: '1.25rem',
+          label: space.name,
+          value: space._id,
+          description: space.team.name
+        };
+      });
   }, [mySpaces]);
 
   const formatSpaceList = useMemo(() => {
@@ -67,9 +83,32 @@ const SpaceSelector = ({
             }
           ]
         : []),
-      ...spaceList
+      ...(personalSpaceList.length > 0
+        ? [
+            {
+              customRender: (
+                <Box fontSize={12} ml={3} fontWeight={600}>
+                  {t('common:user.space.type.personal')}
+                </Box>
+              )
+            }
+          ]
+        : []),
+      ...personalSpaceList,
+      ...(teamSpaceList.length > 0
+        ? [
+            {
+              customRender: (
+                <Box fontSize={12} mt={2} ml={3} fontWeight={600}>
+                  {t('common:user.space.type.team')}
+                </Box>
+              )
+            }
+          ]
+        : []),
+      ...teamSpaceList
     ];
-  }, [showManage, t, spaceList]);
+  }, [showManage, t, personalSpaceList, teamSpaceList]);
 
   const handleChange = (value: string) => {
     if (value === 'manage') {
@@ -86,4 +125,4 @@ const SpaceSelector = ({
   );
 };
 
-export default SpaceSelector;
+export default React.memo(SpaceSelector);

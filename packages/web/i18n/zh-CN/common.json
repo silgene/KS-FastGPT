@@ -1304,6 +1304,8 @@
   "user.team.role.Visitor": "访客",
   "user.team.role.writer": "可写成员",
   "user.space.Switch Space Failed": "切换空间异常",
+  "user.space.type.team": "团队空间",
+  "user.space.type.personal": "个人空间",
   "user.type": "类型",
   "user_leaved": "已离开",
   "value": "值",

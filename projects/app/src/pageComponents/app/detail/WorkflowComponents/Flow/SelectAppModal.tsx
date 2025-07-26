@@ -10,6 +10,7 @@ import {
 } from '@fastgpt/global/common/parentFolder/type';
 import { getMyApps } from '@/web/core/app/api';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 const SelectAppModal = ({
   value,
@@ -24,12 +25,14 @@ const SelectAppModal = ({
 }) => {
   const { t } = useTranslation();
   const [selectedApp, setSelectedApp] = useState<SelectAppItemType | undefined>(value);
+  const { spaceInfo } = useUserStore();
 
   const getAppList = useCallback(
     async ({ parentId }: GetResourceFolderListProps) => {
       return getMyApps({
         parentId,
-        type: [AppTypeEnum.folder, AppTypeEnum.simple, AppTypeEnum.workflow]
+        type: [AppTypeEnum.folder, AppTypeEnum.simple, AppTypeEnum.workflow],
+        spaceId: spaceInfo?._id || ''
       }).then((res) =>
         res
           .filter((item) => !filterAppIds.includes(item._id))

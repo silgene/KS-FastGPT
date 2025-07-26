@@ -2,6 +2,12 @@ import { NullPermission, PermissionKeyEnum, PermissionList } from '../constant';
 import { type PermissionListType } from '../type';
 import { i18nT } from '../../../../web/i18n/utils';
 export enum SpacePermissionKeyEnum {}
+// TODO: 需要添加更多权限
+// // 可编辑应用
+// writeApp = 'writeApp',
+// // 可编辑数据集
+// writeDataset = 'writeDataset'
+
 export const SpacePermissionList: PermissionListType = {
   [PermissionKeyEnum.read]: {
     ...PermissionList[PermissionKeyEnum.read],
