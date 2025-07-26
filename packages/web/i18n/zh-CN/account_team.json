@@ -211,6 +211,8 @@
   "update_publish_app": "应用更新",
   "used_times_limit": "有效人数",
   "user_name": "用户名",
+  "name": "昵称",
+  "user_role": "角色",
   "user_team_invite_member": "邀请成员",
   "user_team_leave_team": "离开团队",
   "user_team_leave_team_failed": "离开团队失败",

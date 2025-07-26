@@ -209,6 +209,8 @@
   "update_publish_app": "Application update",
   "used_times_limit": "Limit",
   "user_name": "username",
+  "user_role": "User role",
+  "name": "name",
   "user_team_invite_member": "Invite members",
   "user_team_leave_team": "Leave the team",
   "user_team_leave_team_failed": "Failure to leave the team",

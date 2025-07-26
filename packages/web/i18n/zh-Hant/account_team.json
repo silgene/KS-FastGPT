@@ -209,6 +209,8 @@
   "update_publish_app": "應用更新",
   "used_times_limit": "有效人數",
   "user_name": "使用者名稱",
+  "user_role": "使用者角色",
+  "name": "名稱",
   "user_team_invite_member": "邀請成員",
   "user_team_leave_team": "離開團隊",
   "user_team_leave_team_failed": "離開團隊失敗",

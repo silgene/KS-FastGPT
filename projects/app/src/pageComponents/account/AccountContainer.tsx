@@ -22,7 +22,8 @@ export enum TabEnum {
   'apikey' = 'apikey',
   'loginout' = 'loginout',
   'team' = 'team',
-  'model' = 'model'
+  'model' = 'model',
+  'space' = 'space'
 }
 
 const AccountContainer = ({
@@ -61,6 +62,11 @@ const AccountContainer = ({
             icon: 'support/usage/usageRecordLight',
             label: t('account:usage_records'),
             value: TabEnum.usage
+          },
+          {
+            icon: 'common/settingLight',
+            label: t('account:spacePermission'),
+            value: TabEnum.space
           }
         ]
       : []),
