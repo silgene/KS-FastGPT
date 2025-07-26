@@ -22,6 +22,7 @@ export type AppSchema = {
   parentId?: ParentIdType;
   teamId: string;
   tmbId: string;
+  spaceId: string;
   type: AppTypeEnum;
   version?: 'v1' | 'v2';
 

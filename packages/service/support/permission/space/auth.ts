@@ -1,10 +1,10 @@
 import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
-import { MongoSpace } from 'support/user/space/spaceSchema';
+import { MongoSpace } from '../../../support/user/space/spaceSchema';
 import type { AuthModeType, AuthResponseType } from '../type';
 import { getResourcePermission, parseHeaderCert } from '../controller';
 import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
 import type { SpaceDetailType, SpaceSchemaType } from '@fastgpt/global/support/user/space/type';
-import { getTmbInfoByTmbId } from 'support/user/team/controller';
+import { getTmbInfoByTmbId } from '../../../support/user/team/controller';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 import { PerResourceTypeEnum } from '@fastgpt/global/support/permission/constant';
 import { SpaceDefaultPermissionVal } from '@fastgpt/global/support/permission/space/constant';

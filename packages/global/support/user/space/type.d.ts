@@ -1,4 +1,4 @@
-import { type SpacePermission } from 'support/permission/space/controller';
+import { type SpacePermission } from '../../../support/permission/space/controller';
 import type { SpaceTypeEnum } from './constant';
 import { type TeamSchema } from '../team/type';
 

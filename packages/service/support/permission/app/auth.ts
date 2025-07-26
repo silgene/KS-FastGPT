@@ -2,7 +2,10 @@
 import { MongoApp } from '../../../core/app/schema';
 import { type AppDetailType } from '@fastgpt/global/core/app/type.d';
 import { parseHeaderCert } from '../controller';
-import { PerResourceTypeEnum } from '@fastgpt/global/support/permission/constant';
+import {
+  PerResourceTypeEnum,
+  ReadPermissionVal
+} from '@fastgpt/global/support/permission/constant';
 import { AppErrEnum } from '@fastgpt/global/common/error/code/app';
 import { getTmbInfoByTmbId } from '../../user/team/controller';
 import { getResourcePermission } from '../controller';
@@ -14,6 +17,7 @@ import { splitCombineToolId } from '../../../core/app/plugin/controller';
 import { PluginSourceEnum } from '@fastgpt/global/core/plugin/constants';
 import { type AuthModeType, type AuthResponseType } from '../type';
 import { AppDefaultPermissionVal } from '@fastgpt/global/support/permission/app/constant';
+import { authSpaceByTmbId } from '../space/auth';
 
 export const authPluginByTmbId = async ({
   tmbId,
@@ -71,8 +75,12 @@ export const authAppByTmbId = async ({
       return Promise.reject(AppErrEnum.unAuthApp);
     }
 
-    const isOwner = tmbPer.isOwner || String(app.tmbId) === String(tmbId);
-
+    // 对该app的space进行鉴权
+    const {
+      space: { permission: spacePer }
+    } = await authSpaceByTmbId({ tmbId, spaceId: app.spaceId, per: ReadPermissionVal });
+    // teamOwner,app创建者,该app所属的空间的owner都为owner
+    const isOwner = tmbPer.isOwner || String(app.tmbId) === String(tmbId) || spacePer.isOwner;
     const { Per } = await (async () => {
       if (isOwner) {
         return {

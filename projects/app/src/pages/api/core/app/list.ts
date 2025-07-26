@@ -19,6 +19,7 @@ import { concatPer } from '@fastgpt/service/support/permission/controller';
 import { getGroupsByTmbId } from '@fastgpt/service/support/permission/memberGroup/controllers';
 import { getOrgIdSetWithParentByTmbId } from '@fastgpt/service/support/permission/org/controllers';
 import { addSourceMember } from '@fastgpt/service/support/user/utils';
+import { authSpace } from '@fastgpt/service/support/permission/space/auth';
 
 export type ListAppBody = {
   parentId?: ParentIdType;
@@ -42,13 +43,15 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
   const { parentId, type, getRecentlyChat, searchKey, spaceId } = req.body;
 
   // Auth user permission
-  const [{ tmbId, teamId, permission: teamPer }] = await Promise.all([
-    authUserPer({
-      req,
-      authToken: true,
-      authApiKey: true,
-      per: ReadPermissionVal
-    }),
+  // TODO: 将teamPer改为spacePer
+  const [{ tmbId, teamId, permission: spacePer }] = await Promise.all([
+    // authUserPer({
+    //   req,
+    //   authToken: true,
+    //   authApiKey: true,
+    //   per: ReadPermissionVal
+    // }),
+    authSpace({ spaceId, per: ReadPermissionVal, authToken: true, req }),
     ...(parentId
       ? [
           authApp({
@@ -106,7 +109,7 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
 
     // Filter apps by permission, if not owner, only get apps that I have permission to access
     const idList = { _id: { $in: myPerList.map((item) => item.resourceId) } };
-    const appPerQuery = teamPer.isOwner
+    const appPerQuery = spacePer.isOwner
       ? {}
       : parentId
         ? {
@@ -176,7 +179,7 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
 
           return new AppPermission({
             per: tmbPer ?? groupPer ?? AppDefaultPermissionVal,
-            isOwner: String(app.tmbId) === String(tmbId) || teamPer.isOwner
+            isOwner: String(app.tmbId) === String(tmbId) || spacePer.isOwner
           });
         };
 
