@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -24,9 +24,10 @@ import { useScrollPagination } from '@fastgpt/web/hooks/useScrollPagination';
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
 import MyBox from '@fastgpt/web/components/common/MyBox';
 import Avatar from '@fastgpt/web/components/common/Avatar';
-import { delRemoveMember, getTeamMembers } from '@/web/support/user/team/api';
+import { delRemoveMember } from '@/web/support/user/team/api';
+import { getSpaceMemberList } from '@/web/support/user/space/api';
 import { type PaginationResponse } from '@fastgpt/web/common/fetch/type';
-import { type TeamMemberItemType } from '@fastgpt/global/support/user/team/type';
+import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
 import { useContextSelector } from 'use-context-selector';
 import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 import { serviceSideProps } from '@/web/common/i18n/utils';
@@ -36,7 +37,7 @@ import SpaceManageModalContextProvider from '@/pageComponents/account/space/cont
 
 function SpaceManage() {
   const { t } = useTranslation();
-  const { userInfo } = useUserStore();
+  const { userInfo, spaceInfo } = useUserStore();
 
   const {
     data: members = [],
@@ -45,20 +46,35 @@ function SpaceManage() {
     ScrollData: MemberScrollData
   } = useScrollPagination<
     any,
-    PaginationResponse<TeamMemberItemType<{ withOrgs: true; withPermission: true }>>
-  >(getTeamMembers, {
-    pageSize: 20,
-    params: {
-      withPermission: true,
-      withOrgs: true
+    PaginationResponse<SpaceMemberItemType<{ withOrgs: true; withPermission: true }>>
+  >(
+    async () => {
+      // 只有团队空间才获取成员列表
+      if (spaceInfo?.type === 'team' && spaceInfo?._id) {
+        const memberList = await getSpaceMemberList(spaceInfo._id);
+        return {
+          list: memberList,
+          total: memberList.length
+        };
+      }
+      return { list: [], total: 0 };
     },
-    refreshDeps: [],
-    throttleWait: 500,
-    debounceWait: 200
-  });
+    {
+      pageSize: 20,
+      params: {
+        withPermission: true,
+        withOrgs: true
+      },
+      refreshDeps: [spaceInfo?._id, spaceInfo?.type],
+      throttleWait: 500,
+      debounceWait: 200
+    }
+  );
+
   const onRefreshMembers = useCallback(() => {
     refetchMemberList();
   }, [refetchMemberList]);
+
   const isLoading = loadingMembers;
   const { runAsync: onRemoveMember } = useRequest2(delRemoveMember, {
     onSuccess: onRefreshMembers
@@ -102,12 +118,11 @@ function SpaceManage() {
           borderRadius={'1.25rem'}
           bg={'myGray.150'}
         >
-          {t('account_team:total_team_members', { amount: teamSize })}
+          {t('account_team:total_team_members', { amount: members.length })}
         </Box>
       </Flex>
 
       {/* 权限管理表格 */}
-
       <MyBox isLoading={isLoading} flex={'1 0 0'} py={'1.5rem'} px={'2rem'}>
         <MemberScrollData>
           <TableContainer overflow={'unset'} fontSize={'sm'}>
@@ -129,11 +144,11 @@ function SpaceManage() {
               </Thead>
               <Tbody>
                 {members.map((member) => (
-                  <Tr key={member.tmbId} overflow={'unset'}>
+                  <Tr key={member._id} overflow={'unset'}>
                     <Td>
                       <HStack>
                         <Avatar src={member.avatar} w={['18px', '22px']} borderRadius={'50%'} />
-                        <Box className={'textEllipsis'}>{member.memberName}</Box>
+                        <Box className={'textEllipsis'}>{member.name}</Box>
                       </HStack>
                     </Td>
                     <Td maxW={'300px'}>{member.contact || '-'}</Td>
@@ -155,7 +170,7 @@ function SpaceManage() {
                     <Td>
                       {userInfo?.team.permission.hasManagePer &&
                         member.role !== TeamMemberRoleEnum.owner &&
-                        member.tmbId !== userInfo?.team.tmbId && (
+                        member._id !== userInfo?.team.tmbId && (
                           <HStack>
                             <PopoverConfirm
                               Trigger={
@@ -170,9 +185,9 @@ function SpaceManage() {
                               }
                               type="delete"
                               content={t('account_team:remove_tip', {
-                                username: member.memberName
+                                username: member.name
                               })}
-                              onConfirm={() => onRemoveMember(member.tmbId)}
+                              onConfirm={() => onRemoveMember(member._id)}
                             />
                           </HStack>
                         )}
