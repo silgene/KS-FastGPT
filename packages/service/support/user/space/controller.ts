@@ -16,13 +16,31 @@ import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
 export const getSpaceMemberList = async (spaceId: string) => {
   // TODO: 鉴权空间管理者
   const space = await MongoSpace.findOne({ _id: spaceId })
-    .populate<{ tmb: TeamMemberSchema }>('tmb')
+    .populate<{ tmb: TeamMemberSchema & { user: { username: string } } }>({
+      path: 'tmb',
+      populate: {
+        path: 'user',
+        select: 'username'
+      }
+    })
     .lean();
   if (!space) {
     return Promise.reject('空间不存在');
   }
   if (space.type === SpaceTypeEnum.personal) {
-    return [space.tmb];
+    return [
+      {
+        _id: space.tmb._id,
+        teamId: space.tmb.teamId,
+        userId: space.tmb.userId,
+        name: space.tmb.name,
+        status: space.tmb.status,
+        createTime: space.tmb.createTime,
+        role: space.tmb.role,
+        avatar: space.tmb.avatar,
+        username: space.tmb.user?.username || space.tmb.name
+      }
+    ];
   }
   const tmbList = [
     // 空间创建者
@@ -33,13 +51,34 @@ export const getSpaceMemberList = async (spaceId: string) => {
         resourceId: spaceId,
         resourceType: PerResourceTypeEnum.space
       })
-        .populate<{ tmb: TeamMemberSchema }>('tmb')
+        .populate<{ tmb: TeamMemberSchema & { user: { username: string } } }>({
+          path: 'tmb',
+          populate: {
+            path: 'user',
+            select: 'username'
+          }
+        })
         .lean()
     ).map((item) => {
       return item.tmb;
     })
   ];
-  return tmbList;
+
+  const mappedList = tmbList.map((tmb) => {
+    return {
+      _id: tmb._id,
+      teamId: tmb.teamId,
+      userId: tmb.userId,
+      name: tmb.name,
+      status: tmb.status,
+      createTime: tmb.createTime,
+      role: tmb.role,
+      avatar: tmb.avatar,
+      username: tmb.user?.username || tmb.name
+    };
+  });
+
+  return mappedList;
 };
 
 // 创建默认个人空间(每个个人空间都依托于单个团队)
