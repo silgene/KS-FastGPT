@@ -21,16 +21,11 @@ export type SpaceDetailType = SpaceSchemaType & {
 };
 
 // 空间成员类型定义
-export type SpaceMemberItemType<
-  Options extends {
-    withPermission?: boolean;
-    withOrgs?: boolean;
-    withGroupRole?: boolean;
-  } = { withPermission: true; withOrgs: true; withGroupRole: false }
-> = {
+export type SpaceMemberItemType = {
   _id: string; // 成员ID
   userId: string; // 用户ID
   teamId: string; // 团队ID
+  username: string;
   name: string; // 成员名称（对应你数据中的 name 字段）
   avatar: string; // 头像
   role: `${TeamMemberRoleEnum}`; // 角色
@@ -38,18 +33,4 @@ export type SpaceMemberItemType<
   createTime: Date; // 创建时间
   updateTime?: Date; // 更新时间（可选）
   contact?: string; // 联系方式（可选）
-} & (Options extends { withPermission: true }
-  ? {
-      permission: SpacePermission;
-    }
-  : {}) &
-  (Options extends { withOrgs: true }
-    ? {
-        orgs?: string[]; // full path name, pattern: /teamName/orgname1/orgname2
-      }
-    : {}) &
-  (Options extends { withGroupRole: true }
-    ? {
-        groupRole?: `${GroupMemberRole}`;
-      }
-    : {});
+};

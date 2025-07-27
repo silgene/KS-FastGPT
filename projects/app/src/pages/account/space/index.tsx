@@ -8,15 +8,16 @@ import {
   Td,
   Th,
   Thead,
+  useDisclosure,
   Tr,
   HStack,
+  Button,
   VStack
 } from '@chakra-ui/react';
 import Icon from '@fastgpt/web/components/common/Icon';
 import { useTranslation } from 'next-i18next';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { useUserStore } from '@/web/support/user/useUserStore';
-import OrgTags from '@/components/support/user/team/OrgTags';
 import SpaceSelector from '@/pageComponents/account/space/SpaceSelector';
 import PopoverConfirm from '@fastgpt/web/components/common/MyPopover/PopoverConfirm';
 import format from 'date-fns/format';
@@ -26,14 +27,16 @@ import MyBox from '@fastgpt/web/components/common/MyBox';
 import Avatar from '@fastgpt/web/components/common/Avatar';
 import { delRemoveMember } from '@/web/support/user/team/api';
 import { getSpaceMemberList } from '@/web/support/user/space/api';
+import dynamic from 'next/dynamic';
 import { type PaginationResponse } from '@fastgpt/web/common/fetch/type';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
-import { useContextSelector } from 'use-context-selector';
+import MyIcon from '@fastgpt/web/components/common/Icon';
 import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 import { serviceSideProps } from '@/web/common/i18n/utils';
 import AccountContainer from '@/pageComponents/account/AccountContainer';
-import { SpaceManageModalContext } from '@/pageComponents/account/space/context';
 import SpaceManageModalContextProvider from '@/pageComponents/account/space/context';
+
+const SpaceAddModal = dynamic(() => import('@/pageComponents/account/space/SpaceAddModal'));
 
 function SpaceManage() {
   const { t } = useTranslation();
@@ -44,10 +47,7 @@ function SpaceManage() {
     isLoading: loadingMembers,
     refreshList: refetchMemberList,
     ScrollData: MemberScrollData
-  } = useScrollPagination<
-    any,
-    PaginationResponse<SpaceMemberItemType<{ withOrgs: true; withPermission: true }>>
-  >(
+  } = useScrollPagination<any, PaginationResponse<SpaceMemberItemType>>(
     async () => {
       // 只有团队空间才获取成员列表
       if (spaceInfo?.type === 'team' && spaceInfo?._id) {
@@ -71,6 +71,7 @@ function SpaceManage() {
     }
   );
 
+  const { isOpen: isOpenAdd, onOpen: onOpenAdd, onClose: onCloseAdd } = useDisclosure();
   const onRefreshMembers = useCallback(() => {
     refetchMemberList();
   }, [refetchMemberList]);
@@ -79,7 +80,6 @@ function SpaceManage() {
   const { runAsync: onRemoveMember } = useRequest2(delRemoveMember, {
     onSuccess: onRefreshMembers
   });
-  const { teamSize } = useContextSelector(SpaceManageModalContext, (v) => v);
 
   return (
     <>
@@ -106,6 +106,16 @@ function SpaceManage() {
           <Flex align={'center'} ml={6}>
             <SpaceSelector></SpaceSelector>
           </Flex>
+          <Button
+            variant={'primary'}
+            size="md"
+            borderRadius={'md'}
+            ml={3}
+            leftIcon={<MyIcon name="common/inviteLight" w={'16px'} color={'white'} />}
+            onClick={onOpenAdd}
+          >
+            {t('account_team:user_team_invite_member')}
+          </Button>
         </Flex>
 
         <Box
@@ -151,12 +161,8 @@ function SpaceManage() {
                         <Box className={'textEllipsis'}>{member.name}</Box>
                       </HStack>
                     </Td>
-                    <Td maxW={'300px'}>{member.contact || '-'}</Td>
-                    <Td maxWidth="300px">
-                      {(() => {
-                        return <OrgTags orgs={member.orgs || undefined} type="tag" />;
-                      })()}
-                    </Td>
+                    <Td maxW={'300px'}>{member.username || '-'}</Td>
+                    <Td maxWidth="300px">{member.role || '成员'}</Td>
                     <Td maxW={'300px'}>
                       <VStack gap={0} align="start">
                         <Box>{format(new Date(member.createTime), 'yyyy-MM-dd HH:mm:ss')}</Box>
@@ -199,6 +205,9 @@ function SpaceManage() {
           </TableContainer>
         </MemberScrollData>
       </MyBox>
+      {isOpenAdd && userInfo?.team?.teamId && (
+        <SpaceAddModal spaceId={spaceInfo?._id as string} onClose={onCloseAdd} />
+      )}
     </>
   );
 }

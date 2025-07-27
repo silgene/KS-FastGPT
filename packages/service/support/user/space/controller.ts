@@ -64,7 +64,7 @@ export const getSpaceMemberList = async (spaceId: string) => {
     })
   ];
 
-  const mappedList = tmbList.map((tmb) => {
+  tmbList.forEach((tmb) => {
     return {
       _id: tmb._id,
       teamId: tmb.teamId,
@@ -78,7 +78,7 @@ export const getSpaceMemberList = async (spaceId: string) => {
     };
   });
 
-  return mappedList;
+  return tmbList;
 };
 
 // 创建默认个人空间(每个个人空间都依托于单个团队)
