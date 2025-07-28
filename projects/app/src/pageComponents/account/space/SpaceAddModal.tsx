@@ -1,242 +1,320 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  Button,
   Box,
+  Button,
   Flex,
+  Grid,
+  HStack,
+  ModalBody,
+  ModalFooter,
   Text,
-  Avatar,
-  Checkbox,
-  Radio,
-  RadioGroup,
-  Stack,
   useToast,
-  Divider,
-  HStack
+  VStack,
+  Radio,
+  RadioGroup
 } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { useScrollPagination } from '@fastgpt/web/hooks/useScrollPagination';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { getTeamMembers } from '@/web/support/user/team/api';
-// import { updateSpaceCollaborators } from '@/web/support/user/space/api';
+import { addSpaceMembers, getRoleList } from '@/web/support/user/space/api';
 import type { TeamMemberItemType } from '@fastgpt/global/support/user/team/type';
-import {
-  ReadPermissionVal,
-  WritePermissionVal,
-  ManagePermissionVal
-} from '@fastgpt/global/support/permission/constant';
-// import { useSpaceManageModalContext } from './context';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
+import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import MyAvatar from '@fastgpt/web/components/common/Avatar';
+import SearchInput from '@fastgpt/web/components/common/Input/SearchInput';
+import MyModal from '@fastgpt/web/components/common/MyModal';
 
-const SpaceAddModal = ({ spaceId, onClose }: { spaceId: string; onClose: () => void }) => {
+const HoverBoxStyle = {
+  bgColor: 'myGray.50',
+  cursor: 'pointer'
+};
+
+// 成员卡片组件
+const MemberCard = ({
+  member,
+  isSelected,
+  onToggle
+}: {
+  member: TeamMemberItemType;
+  isSelected: boolean;
+  onToggle: () => void;
+}) => {
+  return (
+    <HStack
+      justifyContent="space-between"
+      py="2"
+      px="3"
+      borderRadius="sm"
+      alignItems="center"
+      _hover={HoverBoxStyle}
+      _notLast={{ mb: 1 }}
+      onClick={onToggle}
+      bg={isSelected ? 'blue.50' : 'transparent'}
+      border={isSelected ? '1px solid' : '1px solid transparent'}
+      borderColor={isSelected ? 'blue.200' : 'transparent'}
+    >
+      <MyAvatar src={member.avatar} w="2rem" borderRadius={'50%'} />
+      <Box ml="2" w="full">
+        <Text fontWeight="medium">{member.memberName}</Text>
+        <Text fontSize="sm" color="gray.600">
+          {member.role === 'owner' ? '团队所有者' : member.role === 'admin' ? '管理员' : '成员'}
+        </Text>
+      </Box>
+      {isSelected && <Box w="4" h="3" bg="blue.500" borderRadius="full" />}
+    </HStack>
+  );
+};
+
+const SpaceAddModal = ({
+  spaceId,
+  onClose,
+  onSuccess
+}: {
+  spaceId: string;
+  onClose: () => void;
+  onSuccess?: () => void;
+}) => {
   const { t } = useTranslation();
   const toast = useToast();
-  // const { refetchTeamSize } = useSpaceManageModalContext();
 
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
-  const [permission, setPermission] = useState<string>(ReadPermissionVal.toString());
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedMembers, setSelectedMembers] = useState<TeamMemberItemType[]>([]);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [searchKey, setSearchKey] = useState('');
+
+  // 获取空间角色列表
+  const { data: spaceRoles, loading: loadingRoles } = useRequest2(
+    () => getRoleList({ type: RoleTypeEnum.space }),
+    {
+      manual: false,
+      refreshDeps: []
+    }
+  );
+
+  // 设置默认选中的角色（空间只读成员）
+  React.useEffect(() => {
+    if (spaceRoles && spaceRoles.length > 0 && !selectedRoleId) {
+      const readerRole = spaceRoles.find(
+        (role) => role.name.includes('Space Reader') || role.permission === 0b100
+      );
+      if (readerRole) {
+        setSelectedRoleId(readerRole._id);
+      } else {
+        setSelectedRoleId(spaceRoles[0]._id);
+      }
+    }
+  }, [spaceRoles, selectedRoleId]);
 
   // 获取团队成员列表
   const {
     data: teamMembers,
     isLoading: loadingMembers,
-    ScrollData: TeamMemberScrollData,
-    refreshList
+    ScrollData: TeamMemberScrollData
   } = useScrollPagination(getTeamMembers, {
     pageSize: 15,
     params: {
       withPermission: true,
       withOrgs: true,
-      status: 'active'
+      status: 'active',
+      searchKey
     },
     throttleWait: 500,
-    debounceWait: 200
+    debounceWait: 200,
+    refreshDeps: [searchKey]
   });
 
   // 处理成员选择
-  const handleMemberToggle = useCallback((tmbId: string) => {
-    setSelectedMembers((prev) =>
-      prev.includes(tmbId) ? prev.filter((id) => id !== tmbId) : [...prev, tmbId]
-    );
+  const handleMemberToggle = useCallback((member: TeamMemberItemType) => {
+    setSelectedMembers((prev) => {
+      const exists = prev.find((m) => m.tmbId === member.tmbId);
+      if (exists) {
+        return prev.filter((m) => m.tmbId !== member.tmbId);
+      }
+      return [...prev, member];
+    });
   }, []);
 
-  // 全选/取消全选
-  const handleSelectAll = useCallback(() => {
-    if (selectedMembers.length === teamMembers?.length) {
-      setSelectedMembers([]);
-    } else {
-      setSelectedMembers(teamMembers?.map((member: TeamMemberItemType) => member.tmbId) || []);
-    }
-  }, [selectedMembers.length, teamMembers]);
-
   // 提交添加成员
-  const handleSubmit = useCallback(async () => {
-    if (selectedMembers.length === 0) {
-      toast({
-        title: '请选择要添加的成员',
-        status: 'warning'
+  const { runAsync: handleSubmit, loading: isSubmitting } = useRequest2(
+    async () => {
+      if (selectedMembers.length === 0) {
+        throw new Error('请选择要添加的成员');
+      }
+      if (!selectedRoleId) {
+        throw new Error('请选择角色');
+      }
+
+      await addSpaceMembers({
+        spaceId,
+        tmbs: selectedMembers.map((m) => m.tmbId),
+        roleId: selectedRoleId
       });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // TODO: 实现 updateSpaceCollaborators API
-      // await updateSpaceCollaborators({
-      //   spaceId,
-      //   members: selectedMembers,
-      //   permission: parseInt(permission)
-      // });
-
-      toast({
-        title: '成员添加成功',
-        status: 'success'
-      });
-
-      // 刷新团队成员数量
-      // refetchTeamSize();
-      onClose();
-    } catch (error: any) {
-      toast({
-        title: '添加成员失败',
-        description: error?.message || '未知错误',
-        status: 'error'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [selectedMembers, permission, spaceId, toast, onClose]);
-
-  // 权限选项
-  const permissionOptions = [
-    {
-      value: ReadPermissionVal.toString(),
-      label: '只读权限',
-      description: '可查看该空间的应用'
     },
     {
-      value: WritePermissionVal.toString(),
-      label: '编辑权限',
-      description: '可查看和编辑空间的应用'
-    },
-    {
-      value: ManagePermissionVal.toString(),
-      label: '管理权限',
-      description: '可管理该空间，包括编辑、删除和设置权限'
+      successToast: '成员添加成功',
+      onSuccess() {
+        onSuccess?.(); // 调用父组件的刷新函数
+        onClose();
+      }
     }
-  ];
+  );
 
   return (
-    <Modal isOpen={true} onClose={onClose} size="4xl">
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>添加团队成员到空间</ModalHeader>
-        <ModalCloseButton />
-
-        <ModalBody>
-          {/* 权限设置 */}
-          <Box mb={6}>
-            <Text fontSize="md" fontWeight="medium" mb={3}>
-              设置权限
-            </Text>
-            <RadioGroup value={permission} onChange={setPermission}>
-              <Stack spacing={3}>
-                {permissionOptions.map((option) => (
-                  <Radio key={option.value} value={option.value}>
-                    <Box>
-                      <Text fontWeight="medium">{option.label}</Text>
-                      <Text fontSize="sm" color="gray.600">
-                        {option.description}
-                      </Text>
-                    </Box>
-                  </Radio>
-                ))}
-              </Stack>
-            </RadioGroup>
-          </Box>
-
-          <Divider mb={4} />
-
-          {/* 成员选择 */}
-          <Box>
-            <Flex justify="space-between" align="center" mb={3}>
-              <Text fontSize="md" fontWeight="medium">
-                选择成员 ({selectedMembers.length}/{teamMembers?.length || 0})
-              </Text>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={handleSelectAll}
-                isDisabled={loadingMembers || !teamMembers?.length}
-              >
-                {selectedMembers.length === teamMembers?.length ? '取消全选' : '全选'}
-              </Button>
-            </Flex>
-
-            {loadingMembers ? (
-              <Text>加载中...</Text>
-            ) : (
-              <Box maxH="300px" overflowY="auto">
-                {teamMembers?.map((member: TeamMemberItemType) => (
-                  <Flex
-                    key={member.tmbId}
-                    align="center"
-                    p={3}
-                    borderRadius="md"
-                    _hover={{ bg: 'gray.50' }}
-                    cursor="pointer"
-                    onClick={() => handleMemberToggle(member.tmbId)}
-                  >
-                    <Checkbox
-                      isChecked={selectedMembers.includes(member.tmbId)}
-                      onChange={() => handleMemberToggle(member.tmbId)}
-                      mr={3}
-                    />
-                    <Avatar size="sm" src={member.avatar} name={member.memberName} mr={3} />
-                    <Box flex={1}>
-                      <Text fontWeight="medium">{member.memberName}</Text>
-                      <Text fontSize="sm" color="gray.600">
-                        {member.role === 'owner'
-                          ? '团队所有者'
-                          : member.role === 'admin'
-                            ? '管理员'
-                            : '成员'}
-                      </Text>
-                    </Box>
-                  </Flex>
-                ))}
-
-                {!teamMembers?.length && (
-                  <Text textAlign="center" color="gray.500" py={4}>
-                    暂无团队成员
-                  </Text>
-                )}
-              </Box>
-            )}
-          </Box>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button variant="ghost" mr={3} onClick={onClose}>
-            取消
-          </Button>
-          <Button
-            colorScheme="blue"
-            onClick={handleSubmit}
-            isLoading={isSubmitting}
-            isDisabled={selectedMembers.length === 0 || loadingMembers}
+    <MyModal
+      isOpen
+      onClose={onClose}
+      iconSrc="modal/AddClb"
+      title="添加团队成员到空间"
+      minW="900px"
+      maxW={'70vw'}
+      h={'100%'}
+      maxH={'90vh'}
+      isCentered
+      isLoading={loadingMembers || loadingRoles}
+    >
+      <ModalBody flex={'1'}>
+        <Grid
+          border="1px solid"
+          borderColor="myGray.200"
+          borderRadius="0.5rem"
+          gridTemplateColumns="300px 1fr 1fr"
+          h={'100%'}
+        >
+          {/* 最左栏：权限选择 */}
+          <Flex
+            h={'100%'}
+            flexDirection="column"
+            borderRight="1px solid"
+            borderColor="myGray.200"
+            p="4"
           >
-            添加成员 ({selectedMembers.length})
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+            <Text fontSize="md" fontWeight="medium" mb={4}>
+              设置角色
+            </Text>
+            <RadioGroup value={selectedRoleId} onChange={setSelectedRoleId}>
+              <VStack spacing={4} align="stretch">
+                {spaceRoles
+                  ?.filter((role) => !role.name.includes('Owner'))
+                  .map((role) => (
+                    <Box key={role._id}>
+                      <Radio value={role._id} mb={1}>
+                        <Text fontWeight="medium" fontSize="sm">
+                          {role.defaultRole ? t(role.name as any) : role.name}
+                        </Text>
+                      </Radio>
+                      <Text fontSize="xs" color="gray.600" ml={6}>
+                        {role.defaultRole ? t(role.description as any) : role.description}
+                      </Text>
+                    </Box>
+                  ))}
+              </VStack>
+            </RadioGroup>
+          </Flex>
+
+          {/* 中间栏：成员选择 */}
+          <Flex
+            h={'100%'}
+            flexDirection="column"
+            borderRight="1px solid"
+            borderColor="myGray.200"
+            p="4"
+          >
+            <SearchInput
+              placeholder="搜索团队成员"
+              bgColor="myGray.50"
+              onChange={(e) => setSearchKey(e.target.value)}
+            />
+
+            <Flex flexDirection="column" mt="3" overflow={'auto'} flex={'1 0 0'} h={0}>
+              {searchKey ? (
+                teamMembers?.map((member) => {
+                  const isSelected = selectedMembers.some((m) => m.tmbId === member.tmbId);
+                  return (
+                    <MemberCard
+                      key={member.tmbId}
+                      member={member}
+                      isSelected={isSelected}
+                      onToggle={() => handleMemberToggle(member)}
+                    />
+                  );
+                })
+              ) : (
+                <TeamMemberScrollData
+                  flexDirection={'column'}
+                  gap={1}
+                  userSelect={'none'}
+                  height={'fit-content'}
+                >
+                  {teamMembers?.map((member) => {
+                    const isSelected = selectedMembers.some((m) => m.tmbId === member.tmbId);
+                    return (
+                      <MemberCard
+                        key={member.tmbId}
+                        member={member}
+                        isSelected={isSelected}
+                        onToggle={() => handleMemberToggle(member)}
+                      />
+                    );
+                  })}
+                </TeamMemberScrollData>
+              )}
+            </Flex>
+          </Flex>
+
+          {/* 最右栏：已选成员 */}
+          <Flex h={'100%'} p="4" flexDirection="column">
+            <Box mb={3}>
+              <Text fontSize="md" fontWeight="medium">
+                已选择成员 ({selectedMembers.length})
+              </Text>
+            </Box>
+            <Flex flexDirection="column" gap={1} overflow={'auto'} flex={'1 0 0'} h={0}>
+              {selectedMembers.map((member) => (
+                <HStack
+                  key={member.tmbId}
+                  justifyContent="space-between"
+                  py="2"
+                  px="3"
+                  borderRadius="sm"
+                  alignItems="center"
+                  bg="blue.50"
+                  border="1px solid"
+                  borderColor="blue.200"
+                >
+                  <MyAvatar src={member.avatar} w="1.5rem" borderRadius={'50%'} />
+                  <Box ml="2" w="full">
+                    <Text fontSize="sm" fontWeight="medium">
+                      {member.memberName}
+                    </Text>
+                  </Box>
+                  <Button size="xs" variant="ghost" onClick={() => handleMemberToggle(member)}>
+                    移除
+                  </Button>
+                </HStack>
+              ))}
+              {selectedMembers.length === 0 && (
+                <Text fontSize="sm" color="gray.500" textAlign="center" mt={4}>
+                  暂未选择成员
+                </Text>
+              )}
+            </Flex>
+          </Flex>
+        </Grid>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="ghost" mr={3} onClick={onClose}>
+          取消
+        </Button>
+        <Button
+          isLoading={isSubmitting}
+          h={'32px'}
+          onClick={handleSubmit}
+          isDisabled={selectedMembers.length === 0 || !selectedRoleId}
+        >
+          添加成员 ({selectedMembers.length})
+        </Button>
+      </ModalFooter>
+    </MyModal>
   );
 };
 

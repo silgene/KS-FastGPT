@@ -3,6 +3,7 @@ import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
 import type { TeamMemberSchema } from '@fastgpt/global/support/user/team/type';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
 import { type PaginationResponse, type PaginationProps } from '@fastgpt/global/common/fetch/type';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 
 export const getLastUsedSpace = () =>
   GET<SpaceDetailType>('/support/user/space/lastUsedSpace', {}, { maxQuantity: 1 });
@@ -18,3 +19,46 @@ export const getSpaceMemberList = ({
     spaceId,
     ...paginationProps
   });
+
+// 添加空间成员
+export const addSpaceMembers = ({
+  spaceId,
+  tmbs,
+  roleId
+}: {
+  spaceId: string;
+  tmbs: string[];
+  roleId: string;
+}) =>
+  POST('/support/user/space/addMember', {
+    spaceId,
+    tmbs,
+    roleId
+  });
+
+// 移除空间成员
+export const removeSpaceMembers = ({ spaceId, tmbs }: { spaceId: string; tmbs: string[] }) =>
+  POST('/support/user/space/removeMember', {
+    spaceId,
+    tmbs
+  });
+
+// 更新空间成员角色
+export const updateSpaceMemberRole = ({
+  spaceId,
+  tmbId,
+  roleId
+}: {
+  spaceId: string;
+  tmbId: string;
+  roleId: string;
+}) =>
+  POST('/support/user/space/updateMemberRole', {
+    spaceId,
+    tmbId,
+    roleId
+  });
+
+// 获取角色列表
+export const getRoleList = ({ type }: { type?: string } = {}) =>
+  POST<RoleSchemaType[]>('/support/user/role/list', { type });

@@ -25,8 +25,7 @@ import { useScrollPagination } from '@fastgpt/web/hooks/useScrollPagination';
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
 import MyBox from '@fastgpt/web/components/common/MyBox';
 import Avatar from '@fastgpt/web/components/common/Avatar';
-import { delRemoveMember } from '@/web/support/user/team/api';
-import { getSpaceMemberList } from '@/web/support/user/space/api';
+import { getSpaceMemberList, removeSpaceMembers } from '@/web/support/user/space/api';
 import dynamic from 'next/dynamic';
 import { type PaginationProps, type PaginationResponse } from '@fastgpt/web/common/fetch/type';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
@@ -75,9 +74,20 @@ function SpaceManage() {
   }, [refetchMemberList]);
 
   const isLoading = loadingMembers;
-  const { runAsync: onRemoveMember } = useRequest2(delRemoveMember, {
-    onSuccess: onRefreshMembers
-  });
+  const { runAsync: onRemoveMember } = useRequest2(
+    (memberId: string) => {
+      if (!spaceInfo?._id) {
+        throw new Error('Space ID is required');
+      }
+      return removeSpaceMembers({
+        spaceId: spaceInfo._id,
+        tmbs: [memberId]
+      });
+    },
+    {
+      onSuccess: onRefreshMembers
+    }
+  );
 
   return (
     <>
@@ -161,9 +171,20 @@ function SpaceManage() {
                     </Td>
                     <Td maxW={'300px'}>{member.username || '-'}</Td>
                     <Td maxWidth="300px">
-                      {member.role?.defaultRole
-                        ? t(member.role.name as ParseKeys)
-                        : member.role.name || '-'}
+                      <Box
+                        display="inline-block"
+                        px={2}
+                        py={1}
+                        borderRadius="md"
+                        bg={member.role.tagColor}
+                        color="white"
+                        fontSize="sm"
+                        fontWeight="medium"
+                      >
+                        {member.role?.defaultRole
+                          ? t(member.role.name as ParseKeys)
+                          : member.role.name || '-'}
+                      </Box>
                     </Td>
                     <Td maxW={'300px'}>
                       <VStack gap={0} align="start">
@@ -207,7 +228,11 @@ function SpaceManage() {
         </MemberScrollData>
       </MyBox>
       {isOpenAdd && userInfo?.team?.teamId && (
-        <SpaceAddModal spaceId={spaceInfo?._id as string} onClose={onCloseAdd} />
+        <SpaceAddModal
+          spaceId={spaceInfo?._id as string}
+          onClose={onCloseAdd}
+          onSuccess={onRefreshMembers}
+        />
       )}
     </>
   );
