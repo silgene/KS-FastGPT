@@ -42,7 +42,8 @@ export enum PerResourceTypeEnum {
   team = 'team',
   space = 'space',
   app = 'app',
-  dataset = 'dataset'
+  dataset = 'dataset',
+  system = 'system'
 }
 
 /* new permission */

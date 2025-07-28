@@ -28,13 +28,14 @@ import Avatar from '@fastgpt/web/components/common/Avatar';
 import { delRemoveMember } from '@/web/support/user/team/api';
 import { getSpaceMemberList } from '@/web/support/user/space/api';
 import dynamic from 'next/dynamic';
-import { type PaginationResponse } from '@fastgpt/web/common/fetch/type';
+import { type PaginationProps, type PaginationResponse } from '@fastgpt/web/common/fetch/type';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 import { serviceSideProps } from '@/web/common/i18n/utils';
 import AccountContainer from '@/pageComponents/account/AccountContainer';
 import SpaceManageModalContextProvider from '@/pageComponents/account/space/context';
+import { type ParseKeys } from '@fastgpt/web/types/i18next';
 
 const SpaceAddModal = dynamic(() => import('@/pageComponents/account/space/SpaceAddModal'));
 
@@ -47,24 +48,21 @@ function SpaceManage() {
     isLoading: loadingMembers,
     refreshList: refetchMemberList,
     ScrollData: MemberScrollData
-  } = useScrollPagination<any, PaginationResponse<SpaceMemberItemType>>(
-    async () => {
+  } = useScrollPagination<
+    PaginationProps<{ spaceId: string }>,
+    PaginationResponse<SpaceMemberItemType>
+  >(
+    async (props) => {
       // 只有团队空间才获取成员列表
       if (spaceInfo?.type === 'team' && spaceInfo?._id) {
-        const memberList = await getSpaceMemberList(spaceInfo._id);
-        return {
-          list: memberList,
-          total: memberList.length
-        };
+        const memberList = await getSpaceMemberList(props);
+        return memberList;
       }
       return { list: [], total: 0 };
     },
     {
       pageSize: 20,
-      params: {
-        withPermission: true,
-        withOrgs: true
-      },
+      params: { spaceId: spaceInfo?._id || '' },
       refreshDeps: [spaceInfo?._id, spaceInfo?.type],
       throttleWait: 500,
       debounceWait: 200
@@ -104,7 +102,7 @@ function SpaceManage() {
             </Box>
           </Flex>
           <Flex align={'center'} ml={6}>
-            <SpaceSelector></SpaceSelector>
+            <SpaceSelector showPersonal={false}></SpaceSelector>
           </Flex>
           <Button
             variant={'primary'}
@@ -162,7 +160,11 @@ function SpaceManage() {
                       </HStack>
                     </Td>
                     <Td maxW={'300px'}>{member.username || '-'}</Td>
-                    <Td maxWidth="300px">{member.role || '成员'}</Td>
+                    <Td maxWidth="300px">
+                      {member.role?.defaultRole
+                        ? t(member.role.name as ParseKeys)
+                        : member.role.name || '-'}
+                    </Td>
                     <Td maxW={'300px'}>
                       <VStack gap={0} align="start">
                         <Box>{format(new Date(member.createTime), 'yyyy-MM-dd HH:mm:ss')}</Box>
@@ -175,7 +177,6 @@ function SpaceManage() {
                     </Td>
                     <Td>
                       {userInfo?.team.permission.hasManagePer &&
-                        member.role !== TeamMemberRoleEnum.owner &&
                         member._id !== userInfo?.team.tmbId && (
                           <HStack>
                             <PopoverConfirm

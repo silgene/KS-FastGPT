@@ -3,5 +3,6 @@
   "permission.des.read": "可查看该空间的应用",
   "permission.des.write": "可查看和编辑空间的应用",
   "space_error.not_exist": "空间不存在",
+  "space_error.not_user": "空间中不存在该成员",
   "space_error.un_auth_space": "无权限访问该空间"
 }

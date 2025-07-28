@@ -13,9 +13,11 @@ import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
 const SpaceSelector = ({
   showManage,
   onChange,
+  showPersonal = true,
   ...props
 }: Omit<ButtonProps, 'onChange'> & {
   showManage?: boolean;
+  showPersonal?: boolean;
   onChange?: () => void;
 }) => {
   const { t } = useTranslation();
@@ -57,6 +59,7 @@ const SpaceSelector = ({
       });
   }, [mySpaces]);
   const personalSpaceList = useMemo(() => {
+    if (!showPersonal) return [];
     return mySpaces
       .filter((item) => item.type === SpaceTypeEnum.personal)
       .map((space) => {
@@ -68,7 +71,7 @@ const SpaceSelector = ({
           description: space.team.name
         };
       });
-  }, [mySpaces]);
+  }, [mySpaces, showPersonal]);
 
   const formatSpaceList = useMemo(() => {
     return [

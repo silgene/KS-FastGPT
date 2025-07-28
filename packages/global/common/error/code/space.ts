@@ -3,7 +3,8 @@ import { i18nT } from '../../../../web/i18n/utils';
 /* dataset: 510000 */
 export enum SpaceErrEnum {
   unExist = 'spaceUnExist',
-  unAuthSpace = 'unAuthSpace'
+  unAuthSpace = 'unAuthSpace',
+  notUser = 'notUser'
 }
 const spaceErrList = [
   {
@@ -13,6 +14,10 @@ const spaceErrList = [
   {
     statusText: SpaceErrEnum.unAuthSpace,
     message: i18nT('space:space_error.un_auth_space')
+  },
+  {
+    statusText: SpaceErrEnum.notUser,
+    message: i18nT('space:space_error.not_user')
   }
 ];
 export default spaceErrList.reduce((acc, cur, index) => {

@@ -52,4 +52,7 @@ export type TeamMemberListQuery = {
   searchKey?: string;
   orgId?: string;
   groupId?: string;
+  spaceQuery?: {
+    spaceId: string;
+  };
 };

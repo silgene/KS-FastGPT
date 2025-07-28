@@ -22,5 +22,5 @@ export const SpacePermissionList: PermissionListType = {
     description: i18nT('space:permission.des.manage')
   }
 };
-
+export const SpaceManagePermissionVal = SpacePermissionList[PermissionKeyEnum.manage].value;
 export const SpaceDefaultPermissionVal = NullPermission;
