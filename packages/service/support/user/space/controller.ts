@@ -19,6 +19,7 @@ import type { PaginationProps, PaginationResponse } from '@fastgpt/global/common
 import { getRoleByTmbId } from '../role/controller';
 import { MongoRole } from '../role/roleSchema';
 import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
+import type { AddMembersPropsType } from '@fastgpt/global/support/user/space/controller';
 
 // 获取空间中成员的列表
 export const getSpaceMemberList = async ({
@@ -249,10 +250,7 @@ export const addSpaceMembers = async ({
   roleId,
   spaceId,
   session
-}: {
-  tmbs: string[];
-  roleId: string;
-  spaceId: string;
+}: AddMembersPropsType & {
   session?: ClientSession;
 }): Promise<void> => {
   // 调用前需要先鉴权,对该空间有管理权限

@@ -10,15 +10,9 @@ import { authSpace } from '@fastgpt/service/support/permission/space/auth';
 import { SpaceManagePermissionVal } from '@fastgpt/global/support/permission/space/constant';
 import { addSpaceMembers } from '@fastgpt/service/support/user/space/controller';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
+import type { AddMembersPropsType } from '@fastgpt/global/support/user/space/controller';
 
-async function handler(
-  req: ApiRequestProps<{
-    tmbs: string[];
-    roleId: string;
-    spaceId: string;
-  }>,
-  res: ApiResponseType
-) {
+async function handler(req: ApiRequestProps<AddMembersPropsType>, res: ApiResponseType) {
   const { spaceId, tmbs, roleId } = req.body;
   await authSpace({ spaceId, req, authToken: true, per: SpaceManagePermissionVal });
   await mongoSessionRun(async (session) => {
