@@ -24,6 +24,9 @@ import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import MyAvatar from '@fastgpt/web/components/common/Avatar';
 import SearchInput from '@fastgpt/web/components/common/Input/SearchInput';
 import MyModal from '@fastgpt/web/components/common/MyModal';
+import { getAvailableTeamMembers } from '@/web/support/user/space/api';
+import { TeamMemberStatusEnum } from '@fastgpt/global/support/user/team/constant';
+import { ReadPermissionVal } from '@fastgpt/global/support/permission/constant';
 
 const HoverBoxStyle = {
   bgColor: 'myGray.50',
@@ -95,7 +98,7 @@ const SpaceAddModal = ({
   React.useEffect(() => {
     if (spaceRoles && spaceRoles.length > 0 && !selectedRoleId) {
       const readerRole = spaceRoles.find(
-        (role) => role.name.includes('Space Reader') || role.permission === 0b100
+        (role) => role.name.includes('Space Reader') || role.permission === ReadPermissionVal
       );
       if (readerRole) {
         setSelectedRoleId(readerRole._id);
@@ -110,16 +113,16 @@ const SpaceAddModal = ({
     data: teamMembers,
     isLoading: loadingMembers,
     ScrollData: TeamMemberScrollData
-  } = useScrollPagination(getTeamMembers, {
+  } = useScrollPagination(getAvailableTeamMembers, {
     pageSize: 15,
     params: {
       withPermission: true,
       withOrgs: true,
-      status: 'active',
-      searchKey
+      status: TeamMemberStatusEnum.active,
+      searchKey,
+      spaceId
     },
-    throttleWait: 500,
-    debounceWait: 200,
+    debounceWait: 300,
     refreshDeps: [searchKey]
   });
 
@@ -170,7 +173,7 @@ const SpaceAddModal = ({
       h={'100%'}
       maxH={'90vh'}
       isCentered
-      isLoading={loadingMembers || loadingRoles}
+      // isLoading={loadingMembers || loadingRoles}
     >
       <ModalBody flex={'1'}>
         <Grid
@@ -243,6 +246,7 @@ const SpaceAddModal = ({
                   flexDirection={'column'}
                   gap={1}
                   userSelect={'none'}
+                  minHeight={'20%'}
                   height={'fit-content'}
                 >
                   {teamMembers?.map((member) => {
@@ -287,7 +291,13 @@ const SpaceAddModal = ({
                       {member.memberName}
                     </Text>
                   </Box>
-                  <Button size="xs" variant="ghost" onClick={() => handleMemberToggle(member)}>
+                  <Button
+                    size="xs"
+                    p={3}
+                    variant="ghost"
+                    _hover={{ bg: 'myGray.150' }}
+                    onClick={() => handleMemberToggle(member)}
+                  >
                     移除
                   </Button>
                 </HStack>

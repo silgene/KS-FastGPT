@@ -212,7 +212,7 @@ function SpaceManage() {
                                 </Box>
                               }
                               type="delete"
-                              content={t('account_team:remove_tip', {
+                              content={t('account_team:remove_space_tip', {
                                 username: member.name
                               })}
                               onConfirm={() => onRemoveMember(member._id)}

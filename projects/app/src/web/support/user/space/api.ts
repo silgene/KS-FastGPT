@@ -1,9 +1,10 @@
 import { GET, POST, PUT } from '@/web/common/api/request';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
-import type { TeamMemberSchema } from '@fastgpt/global/support/user/team/type';
+import type { TeamMemberItemType } from '@fastgpt/global/support/user/team/type.d';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
 import { type PaginationResponse, type PaginationProps } from '@fastgpt/global/common/fetch/type';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
+import type { TeamMemberListQuery } from '@fastgpt/global/support/user/team/controller.d';
 
 export const getLastUsedSpace = () =>
   GET<SpaceDetailType>('/support/user/space/lastUsedSpace', {}, { maxQuantity: 1 });
@@ -20,6 +21,10 @@ export const getSpaceMemberList = ({
     ...paginationProps
   });
 
+// 获取可用团队成员列表
+export const getAvailableTeamMembers = async (
+  props: PaginationProps<TeamMemberListQuery> & { spaceId: string }
+) => POST<PaginationResponse<TeamMemberItemType>>('/support/user/space/availableMemberList', props);
 // 添加空间成员
 export const addSpaceMembers = ({
   spaceId,
