@@ -39,7 +39,7 @@ import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 import { serviceSideProps } from '@/web/common/i18n/utils';
 import AccountContainer from '@/pageComponents/account/AccountContainer';
 import SpaceManageModalContextProvider from '@/pageComponents/account/space/context';
-import { getRoleList } from '@/web/support/user/space/api';
+import { getRoleList } from '@/web/support/user/role/api';
 import { type ParseKeys } from '@fastgpt/web/types/i18next';
 import { type PermissionValueType } from '@fastgpt/global/support/permission/type';
 
