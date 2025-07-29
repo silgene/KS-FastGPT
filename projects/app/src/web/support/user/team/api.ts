@@ -35,7 +35,7 @@ export const postCreateTeam = (data: CreateTeamProps) =>
   POST<string>(`/proApi/support/user/team/create`, data);
 export const putUpdateTeam = (data: UpdateTeamProps) => PUT(`/support/user/team/update`, data);
 export const putSwitchTeam = (teamId: string) =>
-  PUT<string>(`/proApi/support/user/team/switch`, { teamId });
+  PUT<string>(`/support/user/team/switch`, { teamId });
 
 /* --------------- team member ---------------- */
 export const getTeamMembers = (props: PaginationProps<TeamMemberListQuery>) =>
@@ -44,17 +44,18 @@ export const getTeamMemberCount = () => GET<{ count: number }>(`/support/user/te
 
 // export const postInviteTeamMember = (data: InviteMemberProps) =>
 //   POST<InviteMemberResponse>(`/proApi/support/user/team/member/invite`, data);
+
 export const putUpdateMemberNameByManager = (tmbId: string, name: string) =>
-  PUT(`/proApi/support/user/team/member/updateNameByManager`, { tmbId, name });
+  PUT(`/support/user/team/member/updateNameByManager`, { tmbId, name });
 
 export const putUpdateMemberName = (name: string) =>
   PUT(`/proApi/support/user/team/member/updateName`, { name });
 export const delRemoveMember = (tmbId: string) =>
-  DELETE(`/proApi/support/user/team/member/delete`, { tmbId });
+  DELETE(`/support/user/team/member/delete`, { tmbId });
 export const updateInviteResult = (data: UpdateInviteProps) =>
   PUT('/proApi/support/user/team/member/updateInvite', data);
 export const postRestoreMember = (tmbId: string) =>
-  POST('/proApi/support/user/team/member/restore', { tmbId });
+  POST('/support/user/team/member/restore', { tmbId });
 export const delLeaveTeam = () => DELETE('/proApi/support/user/team/member/leave');
 
 /* -------------- team invitaionlink -------------------- */
@@ -107,3 +108,20 @@ export const getTeamInvoiceHeader = () =>
 
 export const updateTeamInvoiceHeader = (data: TeamInvoiceHeaderType) =>
   POST(`/proApi/support/user/team/invoiceAccount/update`, data);
+
+export type CreateAndInviteMemberProps = {
+  teamId: string;
+  users: Array<{
+    username: string;
+    password: string;
+  }>;
+};
+
+export type CreateAndInviteMemberResponse = {
+  created: Array<{ username: string; userId: string }>;
+  failed: Array<{ username: string; error: string }>;
+  alreadyExists: Array<{ username: string; userId: string }>;
+};
+
+export const postCreateAndInviteTeamMember = (data: CreateAndInviteMemberProps) =>
+  POST<CreateAndInviteMemberResponse>('/support/user/team/member/createAndInvite', data);
