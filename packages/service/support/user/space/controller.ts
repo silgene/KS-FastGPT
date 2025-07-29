@@ -238,7 +238,10 @@ export const getSpaceList = async (tmbId: string): Promise<SpaceDetailType[]> =>
       ownerId: space.ownerId,
       description: space.description,
       team: space.team as TeamSchema,
-      permission: spacePerMap.get(space._id) || new SpacePermission({ per: ReadPermissionVal })
+      permission:
+        (String(space.ownerId) === String(tmbId)
+          ? new SpacePermission({ isOwner: true })
+          : spacePerMap.get(space._id)) || new SpacePermission({ per: ReadPermissionVal })
     };
   });
   return res;

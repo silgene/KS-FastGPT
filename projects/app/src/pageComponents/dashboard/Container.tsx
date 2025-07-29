@@ -241,7 +241,7 @@ const DashboardContainer = ({
           zIndex={100}
           userSelect={'none'}
         >
-          <SpaceSelector showManage mb={3}></SpaceSelector>
+          <SpaceSelector isGlobal showManage mb={3}></SpaceSelector>
           {groupList.map((group) => {
             const selected = currentTab === group.groupId;
 

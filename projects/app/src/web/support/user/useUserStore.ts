@@ -8,6 +8,7 @@ import type { ClientTeamPlanStatusType } from '@fastgpt/global/support/wallet/su
 import { getTeamPlanStatus } from './team/api';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
 import { getLastUsedSpace } from './space/api';
+import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 
 type State = {
   systemMsgReadId: string;
@@ -99,7 +100,7 @@ export const useUserStore = create<State>()(
             return res;
           });
         },
-        teamMemberGroups: [],
+        // teamMemberGroups: [],
         teamOrgs: [],
         spaceInfo: null,
         setSpaceInfo(spaceInfo?: SpaceDetailType) {

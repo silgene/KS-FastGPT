@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   Box,
   Flex,
@@ -38,17 +38,25 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 import { serviceSideProps } from '@/web/common/i18n/utils';
 import AccountContainer from '@/pageComponents/account/AccountContainer';
-import SpaceManageModalContextProvider from '@/pageComponents/account/space/context';
+import SpaceManageContextProvider, {
+  SpaceManageContext
+} from '@/pageComponents/account/space/context';
 import { getRoleList } from '@/web/support/user/role/api';
 import { type ParseKeys } from '@fastgpt/web/types/i18next';
 import { type PermissionValueType } from '@fastgpt/global/support/permission/type';
+import { useContextSelector } from 'use-context-selector';
+import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
+import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import { useToast } from '@fastgpt/web/hooks/useToast';
 
 const SpaceAddModal = dynamic(() => import('@/pageComponents/account/space/SpaceAddModal'));
 
 function SpaceManage() {
   const { t } = useTranslation();
-  const { userInfo, spaceInfo } = useUserStore();
-
+  const { userInfo } = useUserStore();
+  const { spaceList, currentSpaceId, setCurrentSpaceId, currentSpace, spaceListLoading } =
+    useContextSelector(SpaceManageContext, (context) => context);
+  const { toast } = useToast();
   const {
     data: members = [],
     isLoading: loadingMembers,
@@ -60,7 +68,7 @@ function SpaceManage() {
   >(
     async (props) => {
       // 只有团队空间才获取成员列表
-      if (spaceInfo?.type === 'team' && spaceInfo?._id) {
+      if (currentSpace?.type === SpaceTypeEnum.team && currentSpace?._id) {
         const memberList = await getSpaceMemberList(props);
         return memberList;
       }
@@ -68,8 +76,8 @@ function SpaceManage() {
     },
     {
       pageSize: 20,
-      params: { spaceId: spaceInfo?._id || '' },
-      refreshDeps: [spaceInfo?._id, spaceInfo?.type],
+      params: { spaceId: currentSpace?._id || '' },
+      refreshDeps: [currentSpace?._id, currentSpace?.type],
       throttleWait: 500,
       debounceWait: 200
     }
@@ -80,14 +88,13 @@ function SpaceManage() {
     refetchMemberList();
   }, [refetchMemberList]);
 
-  const isLoading = loadingMembers;
-  const { runAsync: onRemoveMember } = useRequest2(
+  const { runAsync: onRemoveMember, loading: removeMemberLoading } = useRequest2(
     (memberId: string) => {
-      if (!spaceInfo?._id) {
+      if (!currentSpace?._id) {
         throw new Error('Space ID is required');
       }
       return removeSpaceMembers({
-        spaceId: spaceInfo._id,
+        spaceId: currentSpace._id,
         tmbs: [memberId]
       });
     },
@@ -96,37 +103,47 @@ function SpaceManage() {
     }
   );
 
-  const { data: myRoleList = [] } = useRequest2(() => getRoleList({ type: 'space' }), {
+  const { data: myRoleList = [] } = useRequest2(() => getRoleList({ type: RoleTypeEnum.space }), {
     manual: false
   });
 
-  const { runAsync: onUpdateMemberPermission } = useRequest2(
+  const { runAsync: onUpdateMemberPermission, loading: updateMemberLoading } = useRequest2(
     ({ memberId, roleId }: { memberId: string; roleId: string }) => {
-      if (!spaceInfo?._id) {
+      if (!currentSpace?._id) {
         throw new Error('Space ID is required');
       }
       return updateSpaceMemberRole({
-        spaceId: spaceInfo._id,
+        spaceId: currentSpace._id,
         tmbId: memberId,
         roleId
       });
     },
     {
-      onSuccess: onRefreshMembers
+      onSuccess: () => {
+        toast({
+          title: t('common:Success'),
+          status: 'success'
+        });
+      }
     }
   );
 
   // 处理权限更新
   const handleUpdateMemberPermission = useCallback(
-    (memberId: string, newRoleId: string) => {
-      onUpdateMemberPermission({ memberId, roleId: newRoleId });
+    async (memberId: string, newRoleId: string) => {
+      await onUpdateMemberPermission({ memberId, roleId: newRoleId });
+      const member = members.find((member) => member._id === memberId);
+      if (member) member.role._id = newRoleId;
     },
-    [onUpdateMemberPermission]
+    [onUpdateMemberPermission, members]
   );
 
   // 检查当前用户是否为空间所有者
   const isSpaceOwner = userInfo?.team.permission.hasManagePer || false;
-
+  const isLoading = useMemo(
+    () => loadingMembers || spaceListLoading || updateMemberLoading || removeMemberLoading,
+    [loadingMembers, spaceListLoading, updateMemberLoading, removeMemberLoading]
+  );
   return (
     <>
       {/* 页面标题和操作区域 */}
@@ -150,7 +167,13 @@ function SpaceManage() {
             </Box>
           </Flex>
           <Flex align={'center'} ml={6}>
-            <SpaceSelector showPersonal={false}></SpaceSelector>
+            <SpaceSelector
+              showPersonal={false}
+              isGlobal={false}
+              list={spaceList}
+              onChange={setCurrentSpaceId}
+              value={currentSpaceId}
+            ></SpaceSelector>
           </Flex>
           <Button
             variant={'primary'}
@@ -218,7 +241,7 @@ function SpaceManage() {
                           onChange={(newRoleId) =>
                             handleUpdateMemberPermission(member._id, newRoleId)
                           }
-                          isOwner={member._id === spaceInfo?.ownerId}
+                          isOwner={member._id === currentSpace?.ownerId}
                           disabled={!canEditPermissions}
                           myRoleList={myRoleList}
                         />
@@ -267,7 +290,7 @@ function SpaceManage() {
       </MyBox>
       {isOpenAdd && userInfo?.team?.teamId && (
         <SpaceAddModal
-          spaceId={spaceInfo?._id as string}
+          spaceId={currentSpace?._id as string}
           onClose={onCloseAdd}
           onSuccess={onRefreshMembers}
         />
@@ -281,9 +304,9 @@ const SpaceManagePage = () => {
 
   return userInfo?.team ? (
     <AccountContainer>
-      <SpaceManageModalContextProvider>
+      <SpaceManageContextProvider>
         <SpaceManage />
-      </SpaceManageModalContextProvider>
+      </SpaceManageContextProvider>
     </AccountContainer>
   ) : null;
 };

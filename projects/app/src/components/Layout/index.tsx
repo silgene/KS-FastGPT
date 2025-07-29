@@ -166,7 +166,7 @@ const Layout = ({ children }: { children: JSX.Element }) => {
       {
         <>
           <NotSufficientModal />
-          <SystemMsgModal />
+          {/* <SystemMsgModal /> */}
           {showUpdateNotification && (
             <UpdateContact onClose={() => setIsUpdateNotification(false)} mode="contact" />
           )}

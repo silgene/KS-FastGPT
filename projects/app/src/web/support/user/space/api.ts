@@ -5,11 +5,20 @@ import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/typ
 import { type PaginationResponse, type PaginationProps } from '@fastgpt/global/common/fetch/type';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import type { TeamMemberListQuery } from '@fastgpt/global/support/user/team/controller.d';
+import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 
 export const getLastUsedSpace = () =>
   GET<SpaceDetailType>('/support/user/space/lastUsedSpace', {}, { maxQuantity: 1 });
 
-export const getAllAccessibleSpaces = () => GET<SpaceDetailType[]>('/support/user/space/list');
+export const getAllAccessibleSpaces = async () => {
+  return (await GET<SpaceDetailType[]>('/support/user/space/list')).map((item) => {
+    const permission = new SpacePermission({ per: item.permission.value });
+    return {
+      ...item,
+      permission
+    };
+  });
+};
 
 // 获取空间成员列表
 export const getSpaceMemberList = ({
