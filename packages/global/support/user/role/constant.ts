@@ -4,7 +4,11 @@ export enum RoleTypeEnum {
   team = 'team',
   space = 'space'
 }
-
+export const RoleTypeNameMap: Record<RoleTypeEnum, string> = {
+  [RoleTypeEnum.system]: 'common:role.type.system',
+  [RoleTypeEnum.team]: 'common:role.type.team',
+  [RoleTypeEnum.space]: 'common:role.type.space'
+};
 export enum RoleStatusEnum {
   active = 'active',
   inactive = 'inactive'

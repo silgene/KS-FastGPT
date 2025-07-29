@@ -63,7 +63,3 @@ export const updateSpaceMemberRole = ({
     tmbId,
     roleId
   });
-
-// 获取角色列表
-export const getRoleList = ({ type }: { type?: string } = {}) =>
-  POST<RoleSchemaType[]>('/support/user/role/list', { type });

@@ -114,3 +114,8 @@ export const DefaultRoleList = [
   }
   // TODO: 后续可以添加系统角色
 ];
+export type AddRoleModalFormType = {
+  name: string;
+  type: RoleTypeEnum;
+  description: string;
+};

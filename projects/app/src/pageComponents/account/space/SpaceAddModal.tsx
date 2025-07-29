@@ -17,7 +17,7 @@ import { useTranslation } from 'next-i18next';
 import { useScrollPagination } from '@fastgpt/web/hooks/useScrollPagination';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { getTeamMembers } from '@/web/support/user/team/api';
-import { addSpaceMembers, getRoleList } from '@/web/support/user/space/api';
+import { addSpaceMembers } from '@/web/support/user/space/api';
 import type { TeamMemberItemType } from '@fastgpt/global/support/user/team/type';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
@@ -27,6 +27,8 @@ import MyModal from '@fastgpt/web/components/common/MyModal';
 import { getAvailableTeamMembers } from '@/web/support/user/space/api';
 import { TeamMemberStatusEnum } from '@fastgpt/global/support/user/team/constant';
 import { ReadPermissionVal } from '@fastgpt/global/support/permission/constant';
+import type { ParseKeys } from '@fastgpt/web/types/i18next';
+import { getRoleList } from '@/web/support/user/role/api';
 
 const HoverBoxStyle = {
   bgColor: 'myGray.50',
@@ -202,11 +204,11 @@ const SpaceAddModal = ({
                     <Box key={role._id}>
                       <Radio value={role._id} mb={1}>
                         <Text fontWeight="medium" fontSize="sm">
-                          {role.defaultRole ? t(role.name as any) : role.name}
+                          {role.defaultRole ? t(role.name as ParseKeys) : role.name}
                         </Text>
                       </Radio>
                       <Text fontSize="xs" color="gray.600" ml={6}>
-                        {role.defaultRole ? t(role.description as any) : role.description}
+                        {role.defaultRole ? t(role.description as ParseKeys) : role.description}
                       </Text>
                     </Box>
                   ))}

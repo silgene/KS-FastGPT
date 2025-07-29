@@ -10,7 +10,8 @@ export type RoleSchemaType = {
   description: string;
   createTime: Date;
   tagColor: string; // 角色标签颜色
-  defaultRole: boolean; // 是否为系统自带角色
+  defaultRole?: boolean; // 是否为系统自带角色
+  ownerRole?: boolean; // 是否为所有者角色
 };
 
 export type RoleDetailType = RoleSchemaType & {};

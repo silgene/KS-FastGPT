@@ -46,6 +46,11 @@ const RoleSchema = new Schema({
   defaultRole: {
     type: Boolean,
     default: false // 是否为系统自带角色
+  },
+  // 所有者角色一定是系统自带角色,不能自主添加
+  ownerRole: {
+    type: Boolean,
+    default: false // 是否为所有者角色
   }
 });
 try {

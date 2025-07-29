@@ -23,4 +23,6 @@ export const SpacePermissionList: PermissionListType = {
   }
 };
 export const SpaceManagePermissionVal = SpacePermissionList[PermissionKeyEnum.manage].value;
+export const SpaceWritePermissionVal = SpacePermissionList[PermissionKeyEnum.write].value;
+export const SpaceReadPermissionVal = SpacePermissionList[PermissionKeyEnum.read].value;
 export const SpaceDefaultPermissionVal = NullPermission;
