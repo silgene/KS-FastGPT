@@ -14,6 +14,7 @@ import {
   Button,
   VStack
 } from '@chakra-ui/react';
+import SpacePermissionSelect from '@/pageComponents/account/space/SpacePermissionSelect';
 import Icon from '@fastgpt/web/components/common/Icon';
 import { useTranslation } from 'next-i18next';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
@@ -25,7 +26,11 @@ import { useScrollPagination } from '@fastgpt/web/hooks/useScrollPagination';
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
 import MyBox from '@fastgpt/web/components/common/MyBox';
 import Avatar from '@fastgpt/web/components/common/Avatar';
-import { getSpaceMemberList, removeSpaceMembers } from '@/web/support/user/space/api';
+import {
+  getSpaceMemberList,
+  removeSpaceMembers,
+  updateSpaceMemberRole
+} from '@/web/support/user/space/api';
 import dynamic from 'next/dynamic';
 import { type PaginationProps, type PaginationResponse } from '@fastgpt/web/common/fetch/type';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
@@ -34,7 +39,9 @@ import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 import { serviceSideProps } from '@/web/common/i18n/utils';
 import AccountContainer from '@/pageComponents/account/AccountContainer';
 import SpaceManageModalContextProvider from '@/pageComponents/account/space/context';
+import { getRoleList } from '@/web/support/user/space/api';
 import { type ParseKeys } from '@fastgpt/web/types/i18next';
+import { type PermissionValueType } from '@fastgpt/global/support/permission/type';
 
 const SpaceAddModal = dynamic(() => import('@/pageComponents/account/space/SpaceAddModal'));
 
@@ -88,6 +95,37 @@ function SpaceManage() {
       onSuccess: onRefreshMembers
     }
   );
+
+  const { data: myRoleList = [] } = useRequest2(() => getRoleList({ type: 'space' }), {
+    manual: false
+  });
+
+  const { runAsync: onUpdateMemberPermission } = useRequest2(
+    ({ memberId, roleId }: { memberId: string; roleId: string }) => {
+      if (!spaceInfo?._id) {
+        throw new Error('Space ID is required');
+      }
+      return updateSpaceMemberRole({
+        spaceId: spaceInfo._id,
+        tmbId: memberId,
+        roleId
+      });
+    },
+    {
+      onSuccess: onRefreshMembers
+    }
+  );
+
+  // 处理权限更新
+  const handleUpdateMemberPermission = useCallback(
+    (memberId: string, newRoleId: string) => {
+      onUpdateMemberPermission({ memberId, roleId: newRoleId });
+    },
+    [onUpdateMemberPermission]
+  );
+
+  // 检查当前用户是否为空间所有者
+  const isSpaceOwner = userInfo?.team.permission.hasManagePer || false;
 
   return (
     <>
@@ -161,67 +199,67 @@ function SpaceManage() {
                 </Tr>
               </Thead>
               <Tbody>
-                {members.map((member) => (
-                  <Tr key={member._id} overflow={'unset'}>
-                    <Td>
-                      <HStack>
-                        <Avatar src={member.avatar} w={['18px', '22px']} borderRadius={'50%'} />
-                        <Box className={'textEllipsis'}>{member.name}</Box>
-                      </HStack>
-                    </Td>
-                    <Td maxW={'300px'}>{member.username || '-'}</Td>
-                    <Td maxWidth="300px">
-                      <Box
-                        display="inline-block"
-                        px={2}
-                        py={1}
-                        borderRadius="md"
-                        bg={member.role.tagColor}
-                        color="white"
-                        fontSize="sm"
-                        fontWeight="medium"
-                      >
-                        {member.role?.defaultRole
-                          ? t(member.role.name as ParseKeys)
-                          : member.role.name || '-'}
-                      </Box>
-                    </Td>
-                    <Td maxW={'300px'}>
-                      <VStack gap={0} align="start">
-                        <Box>{format(new Date(member.createTime), 'yyyy-MM-dd HH:mm:ss')}</Box>
-                        <Box>
-                          {member.updateTime
-                            ? format(new Date(member.updateTime), 'yyyy-MM-dd HH:mm:ss')
-                            : '-'}
-                        </Box>
-                      </VStack>
-                    </Td>
-                    <Td>
-                      {userInfo?.team.permission.hasManagePer &&
-                        member._id !== userInfo?.team.tmbId && (
-                          <HStack>
-                            <PopoverConfirm
-                              Trigger={
-                                <Box>
-                                  <MyIconButton
-                                    icon={'common/trash'}
-                                    hoverColor={'red.500'}
-                                    hoverBg="red.50"
-                                    size={'1rem'}
-                                  />
-                                </Box>
-                              }
-                              type="delete"
-                              content={t('account_team:remove_space_tip', {
-                                username: member.name
-                              })}
-                              onConfirm={() => onRemoveMember(member._id)}
-                            />
-                          </HStack>
-                        )}
-                    </Td>
-                  </Tr>
-                ))}
+                {members.map((member) => {
+                  // 检查是否可以编辑该成员的权限
+                  const canEditPermissions = isSpaceOwner && member._id !== userInfo?.team.tmbId;
+
+                  return (
+                    <Tr key={member._id} overflow={'unset'}>
+                      <Td>
+                        <HStack>
+                          <Avatar src={member.avatar} w={['18px', '22px']} borderRadius={'50%'} />
+                          <Box className={'textEllipsis'}>{member.name}</Box>
+                        </HStack>
+                      </Td>
+                      <Td maxW={'300px'}>{member.username || '-'}</Td>
+                      <Td maxW={'300px'}>
+                        <SpacePermissionSelect
+                          value={member.role._id}
+                          onChange={(newRoleId) =>
+                            handleUpdateMemberPermission(member._id, newRoleId)
+                          }
+                          isOwner={member._id === spaceInfo?.ownerId}
+                          disabled={!canEditPermissions}
+                          myRoleList={myRoleList}
+                        />
+                      </Td>
+                      <Td maxW={'300px'}>
+                        <VStack gap={0} align="start">
+                          <Box>{format(new Date(member.createTime), 'yyyy-MM-dd HH:mm:ss')}</Box>
+                          <Box>
+                            {member.updateTime
+                              ? format(new Date(member.updateTime), 'yyyy-MM-dd HH:mm:ss')
+                              : '-'}
+                          </Box>
+                        </VStack>
+                      </Td>
+                      <Td>
+                        {userInfo?.team.permission.hasManagePer &&
+                          member._id !== userInfo?.team.tmbId && (
+                            <HStack>
+                              <PopoverConfirm
+                                Trigger={
+                                  <Box>
+                                    <MyIconButton
+                                      icon={'common/trash'}
+                                      hoverColor={'red.500'}
+                                      hoverBg="red.50"
+                                      size={'1rem'}
+                                    />
+                                  </Box>
+                                }
+                                type="delete"
+                                content={t('account_team:remove_space_tip', {
+                                  username: member.name
+                                })}
+                                onConfirm={() => onRemoveMember(member._id)}
+                              />
+                            </HStack>
+                          )}
+                      </Td>
+                    </Tr>
+                  );
+                })}
               </Tbody>
             </Table>
           </TableContainer>
