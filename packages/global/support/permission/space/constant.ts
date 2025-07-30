@@ -4,12 +4,12 @@ import { i18nT } from '../../../../web/i18n/utils';
 export enum SpacePermissionKeyEnum {
   // 应用相关权限
   appRead = 'appRead', // 查看/使用应用
-  appCreate = 'appCreate', // 修改/创建应用
+  appEdit = 'appEdit', // 修改/创建应用
   appManage = 'appManage', // 管理应用
 
   // 知识库相关权限
   datasetRead = 'datasetRead', // 查看/使用知识库
-  datasetCreate = 'datasetCreate', // 修改/创建知识库
+  datasetEdit = 'datasetEdit', // 修改/创建知识库
   datasetManage = 'datasetManage', // 管理知识库
 
   // 成员管理权限
@@ -28,7 +28,7 @@ export const SpacePermissionList: SpacePermissionListType = {
     name: i18nT('account_team:permission_appRead'),
     value: 0b000001000
   },
-  [SpacePermissionKeyEnum.appCreate]: {
+  [SpacePermissionKeyEnum.appEdit]: {
     checkBoxType: 'multiple',
     description: '',
     name: i18nT('account_team:permission_appCreate'),
@@ -48,7 +48,7 @@ export const SpacePermissionList: SpacePermissionListType = {
     name: i18nT('account_team:permission_datasetRead'),
     value: 0b001000000
   },
-  [SpacePermissionKeyEnum.datasetCreate]: {
+  [SpacePermissionKeyEnum.datasetEdit]: {
     checkBoxType: 'multiple',
     description: '',
     name: i18nT('account_team:permission_datasetCreate'),
@@ -89,14 +89,13 @@ export const SpacePermissionList: SpacePermissionListType = {
 };
 
 export const SpaceAppReadPermissionVal = SpacePermissionList[SpacePermissionKeyEnum.appRead].value;
-export const SpaceAppCreatePermissionVal =
-  SpacePermissionList[SpacePermissionKeyEnum.appCreate].value;
+export const SpaceAppEditPermissionVal = SpacePermissionList[SpacePermissionKeyEnum.appEdit].value;
 export const SpaceAppManagePermissionVal =
   SpacePermissionList[SpacePermissionKeyEnum.appManage].value;
 export const SpaceDatasetReadPermissionVal =
   SpacePermissionList[SpacePermissionKeyEnum.datasetRead].value;
-export const SpaceDatasetCreatePermissionVal =
-  SpacePermissionList[SpacePermissionKeyEnum.datasetCreate].value;
+export const SpaceDatasetEditPermissionVal =
+  SpacePermissionList[SpacePermissionKeyEnum.datasetEdit].value;
 export const SpaceDatasetManagePermissionVal =
   SpacePermissionList[SpacePermissionKeyEnum.datasetManage].value;
 export const SpaceMemberReadPermissionVal =

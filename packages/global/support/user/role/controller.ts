@@ -22,6 +22,7 @@ export const RolePerResourceTypeMap: Record<RoleTypeEnum, `${PerResourceTypeEnum
   [RoleTypeEnum.team]: PerResourceTypeEnum.team,
   [RoleTypeEnum.system]: PerResourceTypeEnum.system
 };
+// 看后续需求,这个是否要废弃
 export const getCustomRole = (
   type: RoleTypeEnum,
   permission: PermissionValueType
@@ -77,8 +78,8 @@ export const DefaultRoleList = [
     name: 'common:user.role.default.Space Member',
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
-    // 对空间可读可写
-    permission: 0b110,
+    // 对空间智能体，知识库可读可写
+    permission: 0b0001011011000,
     description: 'common:user.role.default.Space Member Description',
     defaultRole: true
   },
@@ -98,7 +99,7 @@ export const DefaultRoleList = [
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
     // 对空间可以管理
-    permission: 0b111,
+    permission: 0b1111111111000,
     description: 'common:user.role.default.Space Manager Description',
     defaultRole: true
   },
@@ -108,7 +109,7 @@ export const DefaultRoleList = [
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
     // 对空间只读
-    permission: 0b100,
+    permission: 0b0000001001000,
     description: 'common:user.role.default.Space Reader Description',
     defaultRole: true
   }
@@ -118,4 +119,11 @@ export type AddRoleModalFormType = {
   name: string;
   type: RoleTypeEnum;
   description: string;
+};
+export type UpdateRoleType = {
+  roleId: string;
+  permission: PermissionValueType;
+  name?: string;
+  description?: string;
+  tagColor?: string;
 };

@@ -1,6 +1,9 @@
 import { RoleStatusEnum, RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { MongoRole } from './roleSchema';
-import { RolePerResourceTypeMap } from '@fastgpt/global/support/user/role/controller';
+import {
+  RolePerResourceTypeMap,
+  type UpdateRoleType
+} from '@fastgpt/global/support/user/role/controller';
 import {
   OwnerPermissionVal,
   PerResourceTypeEnum
@@ -130,16 +133,11 @@ export const addRoleType = async ({
   return role;
 };
 
-export const updateRoleType = async ({
-  roleId,
-  Permission
-}: {
-  roleId: string;
-  Permission: PermissionValueType;
-}) => {
+export const updateRoleType = async ({ roleId, permission, description, name }: UpdateRoleType) => {
+  console.log('Updating role with ID:', roleId, 'and permission:', permission);
   const updatedRole = await MongoRole.findByIdAndUpdate(
     roleId,
-    { permission: Permission },
+    { permission, description, name },
     { new: true }
   ).lean();
   if (!updatedRole) {

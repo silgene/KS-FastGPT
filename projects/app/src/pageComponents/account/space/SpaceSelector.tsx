@@ -61,8 +61,7 @@ const SpaceSelector = ({
     return isGlobal ? mySpaces : list;
   }, [isGlobal, mySpaces, list]);
   const canShowManage = useMemo(() => {
-    // TODO: 在空间权限重构之后需要变hasManagePer
-    return showManage && spaceList.find((item) => item.permission.hasManagePer);
+    return showManage && spaceList.find((item) => item.permission.hasMemberManagePer);
   }, [showManage, spaceList]);
   const teamSpaceList = useMemo(() => {
     return spaceList

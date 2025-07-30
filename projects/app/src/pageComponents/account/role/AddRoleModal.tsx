@@ -1,4 +1,4 @@
-import { addRole } from '@/web/support/user/role/api';
+import { addRole, updateRole } from '@/web/support/user/role/api';
 import {
   Box,
   Button,
@@ -11,6 +11,7 @@ import {
 } from '@chakra-ui/react';
 import { RoleTypeEnum, RoleTypeNameMap } from '@fastgpt/global/support/user/role/constant';
 import { type AddRoleModalFormType } from '@fastgpt/global/support/user/role/controller';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
 import FormLabel from '@fastgpt/web/components/common/MyBox/FormLabel';
 import MyModal from '@fastgpt/web/components/common/MyModal';
@@ -18,17 +19,22 @@ import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import RadioGroup from '@fastgpt/web/components/common/Radio/RadioGroup';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { useToast } from '@fastgpt/web/hooks/useToast';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { useContextSelector } from 'use-context-selector';
+import { RoleManageContext } from './context';
 
 type AddRoleModalProps = {
   open: boolean;
   setOpen: (open: boolean) => void;
+  type: 'add' | 'edit';
+  editRoleData?: RoleSchemaType;
 };
-export const AddRoleModal = ({ open, setOpen }: AddRoleModalProps) => {
+export const AddRoleModal = ({ open, setOpen, type, editRoleData }: AddRoleModalProps) => {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { refreshRoleList } = useContextSelector(RoleManageContext, (context) => context);
   const radioGroupList = Object.keys(RoleTypeNameMap).map((type) => {
     return {
       title: RoleTypeNameMap[type as RoleTypeEnum],
@@ -44,18 +50,40 @@ export const AddRoleModal = ({ open, setOpen }: AddRoleModalProps) => {
   });
   const { run: onSubmit, loading } = useRequest2(
     async (data: AddRoleModalFormType) => {
-      await addRole(data);
+      if (type === 'add') {
+        await addRole(data);
+      } else if (type === 'edit' && editRoleData) {
+        await updateRole({
+          ...editRoleData,
+          roleId: editRoleData._id,
+          name: data.name,
+          description: data.description
+        });
+      }
     },
     {
-      onSuccess: (res) => {
+      onSuccess: () => {
         setOpen(false);
         toast({
-          title: '添加成功',
+          title: type === 'add' ? '添加成功' : '修改成功',
           status: 'success'
         });
+        refreshRoleList?.();
       }
     }
   );
+  useEffect(() => {
+    if (type === 'edit' && editRoleData) {
+      setValue('name', editRoleData.name);
+      setValue('type', editRoleData.type as RoleTypeEnum);
+      setValue('description', editRoleData?.description);
+    }
+    if (type === 'add') {
+      setValue('name', '');
+      setValue('type', RoleTypeEnum.space);
+      setValue('description', '');
+    }
+  }, [type, editRoleData, setValue]);
   const roleType = watch('type');
   return (
     <MyModal
@@ -63,22 +91,30 @@ export const AddRoleModal = ({ open, setOpen }: AddRoleModalProps) => {
       iconSrc="common/userInfo"
       title={
         <Flex alignItems={'center'}>
-          <Box mr={1}>添加角色</Box>
-          <MyTooltip label={'角色创建后默认为无权限角色,请手动为其添加权限'}>
+          <Box mr={1}>{type === 'add' ? '添加角色' : '修改角色'}</Box>
+          <MyTooltip
+            label={
+              type === 'add'
+                ? '角色创建后默认为无权限角色,请手动为其添加权限'
+                : '该弹窗仅修改角色信息,权限请在角色详情中修改'
+            }
+          >
             <MyIconButton icon="common/info"></MyIconButton>
           </MyTooltip>
         </Flex>
       }
     >
       <ModalBody>
-        <Box>
-          <FormLabel mb={1}>角色类型</FormLabel>
-          <RadioGroup
-            list={radioGroupList}
-            value={roleType}
-            onChange={(val) => setValue('type', val as RoleTypeEnum)}
-          ></RadioGroup>
-        </Box>
+        {type === 'add' && (
+          <Box>
+            <FormLabel mb={1}>角色类型</FormLabel>
+            <RadioGroup
+              list={radioGroupList}
+              value={roleType}
+              onChange={(val) => setValue('type', val as RoleTypeEnum)}
+            ></RadioGroup>
+          </Box>
+        )}
         <Box mt={4}>
           <FormLabel mb={1}>角色名称</FormLabel>
           <Input {...register('name')}></Input>

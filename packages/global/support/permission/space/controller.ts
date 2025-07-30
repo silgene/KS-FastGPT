@@ -4,10 +4,10 @@ import {
   SpaceDefaultPermissionVal,
   SpacePermissionList,
   SpaceAppReadPermissionVal,
-  SpaceAppCreatePermissionVal,
+  SpaceAppEditPermissionVal,
   SpaceAppManagePermissionVal,
   SpaceDatasetReadPermissionVal,
-  SpaceDatasetCreatePermissionVal,
+  SpaceDatasetEditPermissionVal,
   SpaceDatasetManagePermissionVal,
   SpaceMemberReadPermissionVal,
   SpaceMemberManagePermissionVal,
@@ -50,10 +50,10 @@ export class SpacePermission extends PermissionBase<SpacePermissionKeyEnum> {
 
     this.setUpdatePermissionCallback(() => {
       this.hasAppReadPer = this.checkPer(SpaceAppReadPermissionVal);
-      this.hasAppCreatePer = this.checkPer(SpaceAppCreatePermissionVal);
+      this.hasAppCreatePer = this.checkPer(SpaceAppEditPermissionVal);
       this.hasAppManagePer = this.checkPer(SpaceAppManagePermissionVal);
       this.hasDatasetReadPer = this.checkPer(SpaceDatasetReadPermissionVal);
-      this.hasDatasetCreatePer = this.checkPer(SpaceDatasetCreatePermissionVal);
+      this.hasDatasetCreatePer = this.checkPer(SpaceDatasetEditPermissionVal);
       this.hasDatasetManagePer = this.checkPer(SpaceDatasetManagePermissionVal);
       this.hasMemberReadPer = this.checkPer(SpaceMemberReadPermissionVal);
       this.hasMemberManagePer = this.checkPer(SpaceMemberManagePermissionVal);

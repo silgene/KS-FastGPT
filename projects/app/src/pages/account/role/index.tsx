@@ -30,6 +30,7 @@ const RoleManage = () => {
     saveRolePermission
   } = useContextSelector(RoleManageContext, (context) => context);
   const [addRoleModalOpen, setAddRoleModalOpen] = useState(false);
+  const [roleModalType, setRoleModalType] = useState<'add' | 'edit'>('add');
 
   return (
     <>
@@ -65,6 +66,7 @@ const RoleManage = () => {
             overflowY={'auto'}
             justifyContent={'flex-start'}
             pt={'1rem'}
+            flexBasis={'200px'}
           >
             <Button
               variant={'primary'}
@@ -73,6 +75,7 @@ const RoleManage = () => {
               mb={2}
               leftIcon={<MyIcon name={'common/addLight'} w={'1.2rem'} />}
               onClick={() => {
+                setRoleModalType('add');
                 setAddRoleModalOpen(true);
               }}
             >
@@ -103,6 +106,7 @@ const RoleManage = () => {
                     color={selectingRole?._id === role._id ? 'blue.500' : 'myGray.600'}
                     justifyContent={'flex-start'}
                     onClick={() => {
+                      if (selectingRole?._id === role._id) return;
                       changeSelectingRole(role);
                     }}
                   >
@@ -126,23 +130,38 @@ const RoleManage = () => {
           </Box>
           <MyDivider mt={0} orientation={'vertical'} />
           <Flex flexDir={'column'} flexGrow={1} py={'1rem'}>
-            <Box fontWeight={'500'} color={'myGray.900'} mb={2}>
-              <Tag color={selectingRole?.tagColor} fontSize={'14px'}>
-                {selectingRole?.defaultRole
-                  ? t(selectingRole?.name as ParseKeys)
-                  : selectingRole?.name}
-              </Tag>
-            </Box>
-            <Flex justifyContent={'space-between'} alignItems={'flex-end'} mb={2}>
-              <Box fontSize={'12px'} ml={2} color={'myGray.500'}>
-                {selectingRole?.defaultRole
-                  ? t(selectingRole?.description as ParseKeys)
-                  : selectingRole?.description}
+            <Flex w={'100%'}>
+              <Box>
+                <Box fontWeight={'500'} color={'myGray.900'} mb={2}>
+                  <Tag color={selectingRole?.tagColor} fontSize={'14px'}>
+                    {selectingRole?.defaultRole
+                      ? t(selectingRole?.name as ParseKeys)
+                      : selectingRole?.name}
+                  </Tag>
+                </Box>
+
+                <Box fontSize={'12px'} ml={2} color={'myGray.500'}>
+                  {selectingRole?.defaultRole
+                    ? t(selectingRole?.description as ParseKeys)
+                    : selectingRole?.description || t('common:no_intro')}
+                </Box>
               </Box>
+
               {selectingRole?.defaultRole ? (
                 <></>
               ) : (
-                <Flex gap={2} alignItems={'center'}>
+                <Flex gap={2} alignItems={'flex-end'} ml={'auto'} mb={1}>
+                  <Button
+                    variant={'solid'}
+                    leftIcon={<MyIcon name={'edit'} w={'1rem'} />}
+                    size={'sm'}
+                    onClick={() => {
+                      setRoleModalType('edit');
+                      setAddRoleModalOpen(true);
+                    }}
+                  >
+                    {t('common:Edit')}
+                  </Button>
                   <Button
                     bg={'red.500'}
                     _hover={{
@@ -174,7 +193,12 @@ const RoleManage = () => {
           </Flex>
         </MyBox>
       </Flex>
-      <AddRoleModal open={addRoleModalOpen} setOpen={setAddRoleModalOpen}></AddRoleModal>
+      <AddRoleModal
+        type={roleModalType}
+        open={addRoleModalOpen}
+        editRoleData={roleList.find((role) => role._id === selectingRole?._id)}
+        setOpen={setAddRoleModalOpen}
+      ></AddRoleModal>
     </>
   );
 };

@@ -19,9 +19,16 @@ import { useContextSelector } from 'use-context-selector';
 import { RoleManageContext } from './context';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 import {
-  SpaceManagePermissionVal,
-  SpaceReadPermissionVal,
-  SpaceWritePermissionVal
+  SpaceAppEditPermissionVal,
+  SpaceAppReadPermissionVal,
+  SpaceAppManagePermissionVal,
+  SpaceDatasetEditPermissionVal,
+  SpaceDatasetReadPermissionVal,
+  SpaceDatasetManagePermissionVal,
+  SpaceMemberReadPermissionVal,
+  SpaceMemberManagePermissionVal,
+  SpaceMemberAdminPermissionVal,
+  SpaceMemberInvitePermissionVal
 } from '@fastgpt/global/support/permission/space/constant';
 import { NullPermission, OwnerPermissionVal } from '@fastgpt/global/support/permission/constant';
 import {
@@ -47,23 +54,22 @@ export type RoleDetailStructureType = {
 
 // TODO: 需要添加国际化
 const SpaceDetailStructure: RoleDetailStructureType = [
-  // TODO: 智能体与知识库的权限需要分开
   {
     label: '智能体',
     permissions: [
       {
         label: '查看/使用智能体',
-        val: SpaceReadPermissionVal
+        val: SpaceAppReadPermissionVal
       },
       {
         label: '修改/创建智能体',
-        val: SpaceWritePermissionVal,
+        val: SpaceAppEditPermissionVal,
         info: '不能删除他人创建的智能体'
       },
       {
         label: '管理智能体',
         info: '可以管理智能体的所有权限，包括删除',
-        val: SpaceManagePermissionVal
+        val: SpaceAppManagePermissionVal
       }
     ]
   },
@@ -72,17 +78,17 @@ const SpaceDetailStructure: RoleDetailStructureType = [
     permissions: [
       {
         label: '查看/使用知识库',
-        val: SpaceReadPermissionVal
+        val: SpaceDatasetReadPermissionVal
       },
       {
         label: '修改/创建知识库',
-        val: SpaceWritePermissionVal,
+        val: SpaceDatasetEditPermissionVal,
         info: '不能删除他人创建的知识库'
       },
       {
         label: '管理知识库',
         info: '可以管理知识库的所有权限，包括删除',
-        val: SpaceManagePermissionVal
+        val: SpaceDatasetManagePermissionVal
       }
     ]
   },
@@ -91,17 +97,17 @@ const SpaceDetailStructure: RoleDetailStructureType = [
     permissions: [
       {
         label: '查看成员',
-        val: SpaceReadPermissionVal
+        val: SpaceMemberReadPermissionVal
       },
       {
         label: '管理成员',
         info: '可以管理成员的所有权限，包括删除',
-        val: SpaceManagePermissionVal
+        val: SpaceMemberManagePermissionVal
       },
       {
         label: '添加管理员',
         info: '可以将其他成员提升为空间管理员',
-        val: OwnerPermissionVal
+        val: SpaceMemberAdminPermissionVal
       }
     ]
   }

@@ -8,6 +8,7 @@ import { getRoleList } from '@/web/support/user/role/api';
 import { type RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { updateRole } from '@/web/support/user/role/api';
 import { useToast } from '@fastgpt/web/hooks/useToast';
+import { type UpdateRoleType } from '@fastgpt/global/support/user/role/controller';
 
 type RoleListMapType = Partial<Record<`${RoleTypeEnum}`, RoleSchemaType[]>>;
 type RoleManageContextType = {
@@ -19,6 +20,7 @@ type RoleManageContextType = {
   selectingRoleEdit: boolean;
   roleListMap: RoleListMapType;
   saveRolePermission: () => Promise<void>;
+  refreshRoleList: () => void;
 };
 
 export const RoleManageContext = createContext<RoleManageContextType>({
@@ -35,6 +37,9 @@ export const RoleManageContext = createContext<RoleManageContextType>({
   roleListMap: {},
   saveRolePermission: async () => {
     throw new Error('function is not implemented');
+  },
+  refreshRoleList: () => {
+    throw new Error('function is not implemented');
   }
 });
 const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
@@ -45,14 +50,21 @@ const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
   const {
     data: roleList,
     refresh: refreshRoleList,
-    loading
+    loading: getRoleListLoading
   } = useRequest2(getRoleList, {
     manual: false,
     refreshDeps: [],
     onSuccess: (data) => {
       if (data.length > 0) {
-        // 默认选择第一个角色
-        setSelectingRole(data[0]);
+        if (selectingRole) {
+          const role = data.find((item) => item._id === selectingRole?._id);
+          if (role) {
+            setSelectingRoleEdit(false);
+            setSelectingRole(role);
+          } else {
+            setSelectingRole(data[0]); // 如果当前选择的角色不存在，则选择第一个角色
+          }
+        }
       }
     }
   });
@@ -79,25 +91,32 @@ const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
     return map;
   }, [roleList]);
 
-  const { run: updateRoleRun } = useRequest2(
-    async (data) => {
+  const { run: updateRoleRun, loading: updateRoleLoading } = useRequest2(
+    async (data: UpdateRoleType) => {
       await updateRole(data);
     },
     {
       onSuccess: (res) => {
         toast({
-          title: '添加成功',
+          title: '更新成功',
           status: 'success'
         });
+        refreshRoleList();
+        setSelectingRoleEdit(false);
       }
     }
   );
 
   const saveRolePermission = async () => {
-    await updateRoleRun({ roleId: selectingRole?._id, permission: selectingRole?.permission });
-    await refreshRoleList();
+    if (!selectingRole) return;
+    updateRoleRun({
+      ...selectingRole,
+      roleId: selectingRole._id
+    });
   };
-
+  const loading = useMemo(() => {
+    return getRoleListLoading || updateRoleLoading;
+  }, [getRoleListLoading, updateRoleLoading]);
   const contextValue: RoleManageContextType = {
     // 实现具体的状态和方法
     roleList: roleList || [],
@@ -107,7 +126,8 @@ const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
     roleListMap,
     editSelectingRole,
     selectingRoleEdit,
-    saveRolePermission
+    saveRolePermission,
+    refreshRoleList
   };
 
   return <RoleManageContext.Provider value={contextValue}>{children}</RoleManageContext.Provider>;
