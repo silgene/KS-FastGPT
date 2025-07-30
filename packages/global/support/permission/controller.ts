@@ -88,6 +88,8 @@ export class Permission extends PermissionBase<PermissionKeyEnum> {
   constructor(props?: PerConstructPros<PermissionKeyEnum>) {
     const { permissionList = PermissionList, ...restProps } = props || {};
     super({ ...restProps, permissionList });
+    // 必须在 super() 调用之后才能访问前面的hasManagePer,hasWritePer,hasReadPer
+    this.updatePermissions();
   }
 
   protected updatePermissions() {

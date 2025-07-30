@@ -103,7 +103,7 @@ const Navbar = ({ unread }: { unread: number }) => {
   const [currentTeamIcon, setCurrentTeamIcon] = useState('');
   const teamTmbsChanged = useCallback((teamTmbs: TeamTmbItemType[]) => {
     const currentTeam = teamTmbs.find((item) => item.teamId === userInfo?.team?.teamId);
-    setCurrentTeamIcon(currentTeam?.teamAvatar || HUMAN_ICON);
+    setCurrentTeamIcon(currentTeam?.teamAvatar || '');
   }, []);
   return (
     <Flex
