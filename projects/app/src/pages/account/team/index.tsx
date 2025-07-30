@@ -65,7 +65,10 @@ const Team = () => {
   }, [subPlans?.standard, level]);
   const { toast } = useToast();
 
-  const { setEditTeamData, teamSize } = useContextSelector(TeamContext, (v) => v);
+  const { setEditTeamData, teamSize, myTeams, currentTeam, onSwitchTeam } = useContextSelector(
+    TeamContext,
+    (v) => v
+  );
 
   const Tabs = useMemo(
     () => (
@@ -123,7 +126,12 @@ const Team = () => {
               </Box>
             </Flex>
             <Flex align={'center'} ml={6}>
-              <TeamSelector height={'28px'} />
+              <TeamSelector
+                list={myTeams}
+                value={currentTeam?.teamId}
+                onChange={onSwitchTeam}
+                height={'28px'}
+              />
             </Flex>
             {userInfo?.team?.role === TeamMemberRoleEnum.owner && (
               <Flex align={'center'} justify={'center'} ml={2} p={'0.44rem'}>

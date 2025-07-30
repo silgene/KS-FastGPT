@@ -15,12 +15,14 @@ import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { useTranslation } from 'next-i18next';
 import { useScrollPagination } from '@fastgpt/web/hooks/useScrollPagination';
 import { useRouter } from 'next/router';
+import { TeamPermission } from '@fastgpt/global/support/permission/user/controller';
 
 const EditInfoModal = dynamic(() => import('./EditInfoModal'));
 
 type TeamModalContextType = {
   myTeams: TeamTmbItemType[];
   isLoading: boolean;
+  currentTeam: TeamTmbItemType | undefined;
   onSwitchTeam: (teamId: string) => void;
   setEditTeamData: React.Dispatch<React.SetStateAction<EditTeamFormDataType | undefined>>;
 
@@ -31,6 +33,7 @@ type TeamModalContextType = {
 
 export const TeamContext = createContext<TeamModalContextType>({
   myTeams: [],
+  currentTeam: undefined,
   isLoading: false,
   onSwitchTeam: function (_teamId: string): void {
     throw new Error('Function not implemented.');
@@ -54,34 +57,65 @@ export const TeamModalContextProvider = ({ children }: { children: ReactNode }) 
   const [editTeamData, setEditTeamData] = useState<EditTeamFormDataType>();
   const { userInfo, initUserInfo } = useUserStore();
 
+  const [currentTeam, setCurrentTeam] = useState<TeamTmbItemType>();
   const {
     data: myTeams = [],
     loading: isLoadingTeams,
     refresh: refetchTeams
-  } = useRequest2(() => getTeamList(TeamMemberStatusEnum.active), {
-    manual: false,
-    refreshDeps: [userInfo?._id]
-  });
-
-  const { data: teamMemberCountData, refresh: refetchTeamSize } = useRequest2(getTeamMemberCount, {
-    manual: false,
-    refreshDeps: [userInfo?.team?.teamId]
-  });
-
-  const { runAsync: onSwitchTeam, loading: isSwitchingTeam } = useRequest2(
-    async (teamId: string) => {
-      await putSwitchTeam(teamId);
-      return initUserInfo();
+  } = useRequest2(
+    async () => {
+      const res = await getTeamList(TeamMemberStatusEnum.active);
+      return res.filter((tmb) => {
+        // TODO: 这里需要判断当前用户的团队是否有权限管理
+        // const permission = new TeamPermission({ per: tmb.permission.value });
+        // return permission.hasManagePer;
+        return true;
+      });
     },
     {
-      onSuccess: () => {
-        router.reload();
-      },
-      errorToast: t('common:user.team.Switch Team Failed')
+      manual: false,
+      refreshDeps: [userInfo?._id],
+      onSuccess: (data) => {
+        if (data.length === 0) return;
+        if (!currentTeam) {
+          const curTeam = data.find((tmb) => tmb.teamId === userInfo?.team?.teamId);
+          setCurrentTeam(curTeam || data[0]);
+        }
+      }
     }
   );
 
-  const isLoading = isLoadingTeams || isSwitchingTeam;
+  const { data: teamMemberCountData, refresh: refetchTeamSize } = useRequest2(
+    async () => {
+      if (currentTeam) return getTeamMemberCount(currentTeam.teamId);
+    },
+    {
+      manual: false,
+      refreshDeps: [currentTeam]
+    }
+  );
+
+  // const { runAsync: onSwitchTeam, loading: isSwitchingTeam } = useRequest2(
+  //   async (teamId: string) => {
+  //     await putSwitchTeam(teamId);
+  //     return initUserInfo();
+  //   },
+  //   {
+  //     onSuccess: () => {
+  //       router.reload();
+  //     },
+  //     errorToast: t('common:user.team.Switch Team Failed')
+  //   }
+  // );
+
+  const onSwitchTeam = useCallback(
+    (teamId: string) => {
+      const team = myTeams.find((tmb) => tmb.teamId === teamId);
+      setCurrentTeam(team);
+    },
+    [myTeams, setCurrentTeam]
+  );
+  const isLoading = isLoadingTeams;
 
   const contextValue = {
     myTeams,
@@ -92,7 +126,8 @@ export const TeamModalContextProvider = ({ children }: { children: ReactNode }) 
     // create | update team
     setEditTeamData,
     teamSize: teamMemberCountData?.count || 0,
-    refetchTeamSize
+    refetchTeamSize,
+    currentTeam
   };
 
   return (

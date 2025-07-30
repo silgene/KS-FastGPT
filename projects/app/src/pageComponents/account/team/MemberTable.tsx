@@ -63,7 +63,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
   const { feConfigs } = useSystemStore();
   //关闭同步模式
   const isSyncMember = feConfigs?.register_method?.includes('sync');
-  const { myTeams, onSwitchTeam } = useContextSelector(TeamContext, (v) => v);
+  const { myTeams, onSwitchTeam, currentTeam } = useContextSelector(TeamContext, (v) => v);
 
   // Member status selector
   const statusOptions = [
@@ -98,18 +98,25 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
   } = useScrollPagination<
     any,
     PaginationResponse<TeamMemberItemType<{ withOrgs: true; withPermission: true }>>
-  >(getTeamMembers, {
-    pageSize: 20,
-    params: {
-      status,
-      withPermission: true,
-      withOrgs: true,
-      searchKey
+  >(
+    async (params) => {
+      if (!currentTeam) return { list: [], total: 0 };
+      return getTeamMembers(params);
     },
-    refreshDeps: [searchKey, status],
-    throttleWait: 500,
-    debounceWait: 200
-  });
+    {
+      pageSize: 20,
+      params: {
+        teamId: currentTeam?.teamId,
+        status,
+        withPermission: true,
+        withOrgs: true,
+        searchKey
+      },
+      refreshDeps: [searchKey, status, currentTeam],
+      throttleWait: 500,
+      debounceWait: 200
+    }
+  );
 
   const onRefreshMembers = useCallback(() => {
     refetchMemberList();

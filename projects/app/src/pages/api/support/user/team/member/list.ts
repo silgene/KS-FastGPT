@@ -3,22 +3,27 @@ import type { PaginationProps, PaginationResponse } from '@fastgpt/global/common
 import { type TeamMemberListQuery } from '@fastgpt/global/support/user/team/controller';
 import { type TeamMemberItemType } from '@fastgpt/global/support/user/team/type';
 import { authSystemAdmin } from '@fastgpt/service/support/permission/user/auth';
-import { getTeamMemberList } from '@fastgpt/service/support/user/team/controller';
+import {
+  getTeamMemberCount,
+  getTeamMemberList
+} from '@fastgpt/service/support/user/team/controller';
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
 
 async function handler(
   req: ApiRequestProps<PaginationProps<TeamMemberListQuery>>,
   res: ApiResponseType<PaginationResponse<TeamMemberItemType>>
 ) {
-  // TODO: 后续将SystemAdmin权限改为团队管理权限
-  const { teamId } = await authSystemAdmin({ req });
+  const { teamId: loginTeamId } = await authSystemAdmin({ req });
+  const { teamId: queryTeamId } = req.body;
+  const teamId = queryTeamId || loginTeamId;
+  // TODO: 鉴权该角色是否对 此teamId 有查看成员权限
   const query = {
     ...req.body,
     teamId
   };
-  const list = await getTeamMemberList(query);
+  const [list, count] = await Promise.all([getTeamMemberList(query), getTeamMemberCount(teamId)]);
   return {
-    total: list.length,
+    total: count,
     list: list
   };
 }

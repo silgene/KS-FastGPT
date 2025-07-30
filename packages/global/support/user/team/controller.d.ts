@@ -46,6 +46,7 @@ export type InviteMemberResponse = Record<
   { username: string; userId: string }[]
 >;
 export type TeamMemberListQuery = {
+  teamId?: string;
   status?: 'active' | 'inactive';
   withOrgs?: boolean;
   withPermission?: boolean;

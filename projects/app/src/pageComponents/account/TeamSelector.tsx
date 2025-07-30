@@ -12,7 +12,10 @@ import type { TeamTmbItemType } from '@fastgpt/global/support/user/team/type';
 
 export type TeamSelectorProps = Omit<ButtonProps, 'onChange'> & {
   showManage?: boolean;
-  onChange?: () => void;
+  isGlobal?: boolean; // 是否全局团队选择器
+  value?: string;
+  list?: TeamTmbItemType[];
+  onChange?: (tmbId: string) => void;
   customButton?: React.ReactNode;
   // 当团队列表发生变化时触发, 初始化时也触发
   onTeamTmbsChanged?: (teamTmbs: TeamTmbItemType[]) => void;
@@ -23,6 +26,9 @@ const TeamSelector = ({
   onChange,
   onTeamTmbsChanged,
   customButton,
+  isGlobal,
+  list = [],
+  value,
   ...buttonProps
 }: TeamSelectorProps) => {
   const { t } = useTranslation();
@@ -50,13 +56,13 @@ const TeamSelector = ({
   );
 
   const teamList = useMemo(() => {
-    return myTmbs.map((tmb) => ({
+    return (isGlobal ? myTmbs : list).map((tmb) => ({
       icon: tmb.teamAvatar,
       iconSize: '1.25rem',
       label: tmb.teamName,
       value: tmb.teamId
     }));
-  }, [myTmbs]);
+  }, [myTmbs, isGlobal, list]);
 
   const formatTeamList = useMemo(() => {
     return [
@@ -79,7 +85,8 @@ const TeamSelector = ({
     if (value === 'manage') {
       router.push('/account/team');
     } else {
-      onSwitchTeam(value);
+      if (isGlobal) onSwitchTeam(value);
+      else onChange?.(value);
     }
   };
   useEffect(() => {
@@ -90,7 +97,7 @@ const TeamSelector = ({
       <MySelect
         {...buttonProps}
         customButton={customButton}
-        value={userInfo?.team?.teamId}
+        value={isGlobal ? userInfo?.team?.teamId : value}
         list={formatTeamList}
         onChange={handleChange}
       />

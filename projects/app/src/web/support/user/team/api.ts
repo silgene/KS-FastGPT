@@ -40,7 +40,8 @@ export const putSwitchTeam = (teamId: string) =>
 /* --------------- team member ---------------- */
 export const getTeamMembers = (props: PaginationProps<TeamMemberListQuery>) =>
   POST<PaginationResponse<TeamMemberItemType>>(`/support/user/team/member/list`, props);
-export const getTeamMemberCount = () => GET<{ count: number }>(`/support/user/team/member/count`);
+export const getTeamMemberCount = (teamId?: string) =>
+  GET<{ count: number }>(`/support/user/team/member/count`, { teamId });
 
 // export const postInviteTeamMember = (data: InviteMemberProps) =>
 //   POST<InviteMemberResponse>(`/proApi/support/user/team/member/invite`, data);
