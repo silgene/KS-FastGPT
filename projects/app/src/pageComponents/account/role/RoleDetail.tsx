@@ -33,6 +33,9 @@ import type { PermissionValueType } from '@fastgpt/global/support/permission/typ
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
 import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import { Permission } from '@fastgpt/global/support/permission/controller';
+import { updateRole } from '@/web/support/user/role/api';
+import { useToast } from '@fastgpt/web/hooks/useToast';
+
 export type RoleDetailStructureType = {
   label: string;
   permissions: {
@@ -144,6 +147,7 @@ const RoleDetailStructureMap: Partial<Record<`${RoleTypeEnum}`, RoleDetailStruct
 
 const RoleDetail = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const selectingRole = useContextSelector(RoleManageContext, (context) => context.selectingRole);
   const editSelectingRole = useContextSelector(
     RoleManageContext,
@@ -152,6 +156,35 @@ const RoleDetail = () => {
   const selectingRolePermission = useMemo(() => {
     return new Permission({ per: selectingRole?.permission || 0 });
   }, [selectingRole]);
+
+  const handlePermissionChange = (permissionVal: PermissionValueType) => {
+    if (!selectingRole) return;
+
+    const currentPermission = selectingRole.permission || 0;
+    const permission = new Permission({ per: currentPermission });
+
+    let newPer: number;
+
+    if (permission.checkPer(permissionVal)) {
+      newPer = currentPermission ^ permissionVal;
+    } else {
+      newPer = currentPermission | permissionVal;
+    }
+
+    const updatedRole = {
+      ...selectingRole,
+      permission: newPer
+    };
+
+    editSelectingRole(updatedRole);
+
+    console.log('权限更新:', {
+      原权限: currentPermission,
+      操作权限: permissionVal,
+      新权限: newPer
+    });
+  };
+
   return (
     <Box w={'100%'} fontWeight={'500'}>
       <TableContainer>
@@ -212,21 +245,8 @@ const RoleDetail = () => {
                               <Checkbox
                                 disabled={selectingRole?.defaultRole}
                                 isChecked={selectingRolePermission.checkPer(per.val)}
-                                onChange={(e) => {
-                                  // TODO: 等待权限位完善之后再检查逻辑是否有问题
-                                  if (!selectingRole || selectingRole?.defaultRole) return;
-                                  let newPer = selectingRole.permission;
-                                  if (selectingRolePermission.checkPer(per.val)) {
-                                    newPer = selectingRole.permission - per.val;
-                                  } else {
-                                    newPer = selectingRole.permission + per.val;
-                                  }
-                                  editSelectingRole({
-                                    ...selectingRole,
-                                    permission: newPer
-                                  });
-                                }}
-                              ></Checkbox>
+                                onChange={() => handlePermissionChange(per.val)}
+                              />
                             </Flex>
                           </Box>
                         );

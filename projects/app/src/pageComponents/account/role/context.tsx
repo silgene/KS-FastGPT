@@ -6,6 +6,8 @@ import { useUserStore } from '@/web/support/user/useUserStore';
 import type { RoleDetailType, RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import { getRoleList } from '@/web/support/user/role/api';
 import { type RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import { updateRole } from '@/web/support/user/role/api';
+import { useToast } from '@fastgpt/web/hooks/useToast';
 
 type RoleListMapType = Partial<Record<`${RoleTypeEnum}`, RoleSchemaType[]>>;
 type RoleManageContextType = {
@@ -16,6 +18,7 @@ type RoleManageContextType = {
   editSelectingRole: (role: RoleSchemaType) => void;
   selectingRoleEdit: boolean;
   roleListMap: RoleListMapType;
+  saveRolePermission: () => Promise<void>;
 };
 
 export const RoleManageContext = createContext<RoleManageContextType>({
@@ -29,11 +32,15 @@ export const RoleManageContext = createContext<RoleManageContextType>({
     throw new Error('function is not implemented');
   },
   selectingRoleEdit: false,
-  roleListMap: {}
+  roleListMap: {},
+  saveRolePermission: async () => {
+    throw new Error('function is not implemented');
+  }
 });
 const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
   // 这里可以添加状态管理逻辑
   const { userInfo } = useUserStore();
+  const { toast } = useToast();
   const [selectingRole, setSelectingRole] = useState<RoleSchemaType>();
   const {
     data: roleList,
@@ -72,6 +79,25 @@ const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
     return map;
   }, [roleList]);
 
+  const { run: updateRoleRun } = useRequest2(
+    async (data) => {
+      await updateRole(data);
+    },
+    {
+      onSuccess: (res) => {
+        toast({
+          title: '添加成功',
+          status: 'success'
+        });
+      }
+    }
+  );
+
+  const saveRolePermission = async () => {
+    await updateRoleRun({ roleId: selectingRole?._id, permission: selectingRole?.permission });
+    await refreshRoleList();
+  };
+
   const contextValue: RoleManageContextType = {
     // 实现具体的状态和方法
     roleList: roleList || [],
@@ -80,7 +106,8 @@ const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
     changeSelectingRole,
     roleListMap,
     editSelectingRole,
-    selectingRoleEdit
+    selectingRoleEdit,
+    saveRolePermission
   };
 
   return <RoleManageContext.Provider value={contextValue}>{children}</RoleManageContext.Provider>;

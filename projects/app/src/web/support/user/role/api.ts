@@ -1,6 +1,7 @@
 import { GET, POST, PUT } from '@/web/common/api/request';
 import { type AddRoleModalFormType } from '@fastgpt/global/support/user/role/controller';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
+import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
 
 // 获取角色列表
 export const getRoleList = ({ type }: { type?: string } = {}) =>
@@ -10,5 +11,7 @@ export const getRoleList = ({ type }: { type?: string } = {}) =>
 export const addRole = (data: AddRoleModalFormType) => POST('/support/user/role/add', data);
 
 // 更新角色
+export const updateRole = (data: { roleId: string; Permission: PermissionValueType }) =>
+  PUT<RoleSchemaType>('/support/user/role/update', data);
 
 // 删除角色

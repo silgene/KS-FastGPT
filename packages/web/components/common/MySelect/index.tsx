@@ -26,6 +26,7 @@ import type { useScrollPagination } from '../../../hooks/useScrollPagination';
 import Avatar from '../Avatar';
 import EmptyTip from '../EmptyTip';
 import { createPortal } from 'react-dom';
+import { useMount } from 'ahooks';
 
 type SelectListItem<T = any> =
   | {
@@ -216,7 +217,11 @@ const MySelect = <T = any,>(
   }, [filterList, onClickChange, value]);
 
   const isSelecting = loading || isLoading;
-
+  // 添加客户端渲染状态
+  const [isClient, setIsClient] = useState(false);
+  useMount(() => {
+    setIsClient(true);
+  });
   return (
     <Box>
       <Menu
@@ -300,35 +305,36 @@ const MySelect = <T = any,>(
             </Flex>
           </MenuButton>
         )}
-        {createPortal(
-          <>
-            <MenuList
-              ref={MenuListRef}
-              className={props.className}
-              w={(() => {
-                const w = ButtonRef.current?.clientWidth;
-                if (w) {
-                  return `${w}px !important`;
+        {isClient &&
+          createPortal(
+            <>
+              <MenuList
+                ref={MenuListRef}
+                className={props.className}
+                w={(() => {
+                  const w = ButtonRef.current?.clientWidth;
+                  if (w) {
+                    return `${w}px !important`;
+                  }
+                  return Array.isArray(width)
+                    ? width.map((item) => `${item} !important`)
+                    : `${width} !important`;
+                })()}
+                px={'6px'}
+                py={'6px'}
+                border={'1px solid #fff'}
+                boxShadow={
+                  '0px 2px 4px rgba(161, 167, 179, 0.25), 0px 0px 1px rgba(121, 141, 159, 0.25);'
                 }
-                return Array.isArray(width)
-                  ? width.map((item) => `${item} !important`)
-                  : `${width} !important`;
-              })()}
-              px={'6px'}
-              py={'6px'}
-              border={'1px solid #fff'}
-              boxShadow={
-                '0px 2px 4px rgba(161, 167, 179, 0.25), 0px 0px 1px rgba(121, 141, 159, 0.25);'
-              }
-              zIndex={10000}
-              maxH={'45vh'}
-              overflowY={'auto'}
-            >
-              {ScrollData ? <ScrollData>{ListRender}</ScrollData> : ListRender}
-            </MenuList>
-          </>,
-          document.body // 渲染到 body
-        )}
+                zIndex={10000}
+                maxH={'45vh'}
+                overflowY={'auto'}
+              >
+                {ScrollData ? <ScrollData>{ListRender}</ScrollData> : ListRender}
+              </MenuList>
+            </>,
+            document.body
+          )}
       </Menu>
     </Box>
   );

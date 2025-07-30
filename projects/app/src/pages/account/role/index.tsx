@@ -20,9 +20,17 @@ import { useState } from 'react';
 
 const RoleManage = () => {
   const { t } = useTranslation();
-  const { loading, roleList, selectingRole, changeSelectingRole, roleListMap, selectingRoleEdit } =
-    useContextSelector(RoleManageContext, (context) => context);
+  const {
+    loading,
+    roleList,
+    selectingRole,
+    changeSelectingRole,
+    roleListMap,
+    selectingRoleEdit,
+    saveRolePermission
+  } = useContextSelector(RoleManageContext, (context) => context);
   const [addRoleModalOpen, setAddRoleModalOpen] = useState(false);
+
   return (
     <>
       <Flex flexDirection={'column'} flex={'1 0 0'} h={'100%'} overflow={'hidden'}>
@@ -150,6 +158,7 @@ const RoleManage = () => {
                       variant={'outline'}
                       leftIcon={<MyIcon name={'save'} w={'1rem'} />}
                       size={'sm'}
+                      onClick={saveRolePermission} // 添加点击事件
                     >
                       {t('common:Save')}
                     </Button>

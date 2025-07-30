@@ -12,6 +12,7 @@ import { MongoTeamMember } from '../team/teamMemberSchema';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
 import type { RoleDetailType, RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import type { PaginationProps } from '@fastgpt/global/common/fetch/type';
+import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
 /**
  * 获取角色列表
  * @param type 角色类型
@@ -107,4 +108,42 @@ export const getRoleByTmbId = async ({
   return {
     ...roleUser.role
   };
+};
+
+export const addRoleType = async ({
+  type,
+  name,
+  description
+}: {
+  type: RoleTypeEnum;
+  name: string;
+  description: string;
+}) => {
+  const role = await MongoRole.create({
+    type,
+    name,
+    description,
+    permission: 0,
+    defaultRole: false,
+    ownerRole: false
+  });
+  return role;
+};
+
+export const updateRoleType = async ({
+  roleId,
+  Permission
+}: {
+  roleId: string;
+  Permission: PermissionValueType;
+}) => {
+  const updatedRole = await MongoRole.findByIdAndUpdate(
+    roleId,
+    { permission: Permission },
+    { new: true }
+  ).lean();
+  if (!updatedRole) {
+    throw new Error('角色不存在或更新失败');
+  }
+  return updatedRole;
 };
