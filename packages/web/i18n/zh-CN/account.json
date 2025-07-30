@@ -5,6 +5,7 @@
   "api_key": "API 密钥",
   "bills_and_invoices": "账单与发票",
   "spacePermission": "空间权限",
+  "rolePermission": "角色权限",
   "space_management": "空间管理",
   "space_management_desc": "管理团队空间中成员的不同权限",
   "channel": "模型渠道",

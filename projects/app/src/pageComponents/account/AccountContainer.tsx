@@ -23,7 +23,8 @@ export enum TabEnum {
   'loginout' = 'loginout',
   'team' = 'team',
   'model' = 'model',
-  'space' = 'space'
+  'space' = 'space',
+  'role' = 'role'
 }
 
 const AccountContainer = ({
@@ -67,6 +68,11 @@ const AccountContainer = ({
             icon: 'common/settingLight',
             label: t('account:spacePermission'),
             value: TabEnum.space
+          },
+          {
+            icon: 'common/settingLight',
+            label: t('account:rolePermission'),
+            value: TabEnum.role
           }
         ]
       : []),

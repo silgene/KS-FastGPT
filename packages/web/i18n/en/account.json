@@ -4,6 +4,7 @@
   "api_key": "API key",
   "bills_and_invoices": "Bills",
   "spacePermission": "Space Permission",
+  "rolePermission": "Role Permission",
   "space_management": "Space Management",
   "space_management_desc": "Manage different permissions of members in the team space",
   "channel": "Channel",

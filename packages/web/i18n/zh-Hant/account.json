@@ -6,6 +6,7 @@
   "space_management": "空間管理",
   "space_management_desc": "管理團隊空間中成員的不同權限",
   "spacePermission": "空間權限",
+  "rolePermission": "角色權限",
   "channel": "模型管道",
   "config_model": "模型設定",
   "confirm_logout": "確認登出登入？",
