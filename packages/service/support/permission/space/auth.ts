@@ -99,7 +99,7 @@ export const authSpace = async ({
   spaceId: string;
   per: PermissionValueType;
 }): Promise<
-  AuthResponseType & {
+  AuthResponseType<SpacePermission> & {
     space: SpaceDetailType;
   }
 > => {

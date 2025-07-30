@@ -1,41 +1,39 @@
-import { type PermissionListType, type PermissionValueType } from './type';
-import { PermissionList, NullPermission, OwnerPermissionVal } from './constant';
+import {
+  type PermissionListType,
+  type PermissionBaseListType,
+  type PermissionValueType
+} from './type';
+import {
+  PermissionList,
+  NullPermission,
+  OwnerPermissionVal,
+  type PermissionKeyEnum
+} from './constant';
 
-export type PerConstructPros = {
+export type PerConstructPros<T = PermissionKeyEnum> = {
   per?: PermissionValueType;
   isOwner?: boolean;
-  permissionList?: PermissionListType;
+  permissionList?: PermissionBaseListType<T>;
   childUpdatePermissionCallback?: () => void;
 };
 
-// the Permission helper class
-export class Permission {
+export class PermissionBase<T = PermissionKeyEnum> {
   value: PermissionValueType;
   isOwner: boolean = false;
-  hasManagePer: boolean = false;
-  hasWritePer: boolean = false;
-  hasReadPer: boolean = false;
-  _permissionList: PermissionListType;
+  _permissionList: PermissionBaseListType<T>;
 
-  constructor(props?: PerConstructPros) {
-    const { per = NullPermission, isOwner = false, permissionList = PermissionList } = props || {};
+  constructor(props?: PerConstructPros<T>) {
+    const { per = NullPermission, isOwner = false, permissionList } = props || {};
     if (isOwner) {
       this.value = OwnerPermissionVal;
     } else {
       this.value = per;
     }
 
-    this._permissionList = permissionList;
+    this._permissionList = permissionList as PermissionBaseListType<T>;
     this.updatePermissions();
   }
 
-  // add permission(s)
-  // it can be chaining called.
-  // @example
-  // const perm = new Permission(permission)
-  // perm.add(PermissionList['read'])
-  // perm.add(PermissionList['read'], PermissionList['write'])
-  // perm.add(PermissionList['read']).add(PermissionList['write'])
   addPer(...perList: PermissionValueType[]) {
     if (this.isOwner) {
       return this;
@@ -59,28 +57,43 @@ export class Permission {
   }
 
   checkPer(perm: PermissionValueType): boolean {
-    // if the permission is owner permission, only owner has this permission.
     if (perm === OwnerPermissionVal) {
       return this.value === OwnerPermissionVal;
     }
     return (this.value & perm) === perm;
   }
 
-  private updatePermissionCallback?: () => void;
+  protected updatePermissionCallback?: () => void;
   setUpdatePermissionCallback(callback: () => void) {
     callback();
     this.updatePermissionCallback = callback;
   }
 
-  private updatePermissions() {
+  protected updatePermissions() {
     this.isOwner = this.value === OwnerPermissionVal;
-    this.hasManagePer = this.checkPer(this._permissionList['manage'].value);
-    this.hasWritePer = this.checkPer(this._permissionList['write'].value);
-    this.hasReadPer = this.checkPer(this._permissionList['read'].value);
     this.updatePermissionCallback?.();
   }
 
   toBinary() {
     return this.value.toString(2);
+  }
+}
+
+// Permission 类继承 PermissionBase，添加 read、write、manage 权限检查
+export class Permission extends PermissionBase<PermissionKeyEnum> {
+  hasManagePer: boolean = false;
+  hasWritePer: boolean = false;
+  hasReadPer: boolean = false;
+
+  constructor(props?: PerConstructPros<PermissionKeyEnum>) {
+    const { permissionList = PermissionList, ...restProps } = props || {};
+    super({ ...restProps, permissionList });
+  }
+
+  protected updatePermissions() {
+    super.updatePermissions();
+    this.hasManagePer = this.checkPer(this._permissionList['manage'].value);
+    this.hasWritePer = this.checkPer(this._permissionList['write'].value);
+    this.hasReadPer = this.checkPer(this._permissionList['read'].value);
   }
 }

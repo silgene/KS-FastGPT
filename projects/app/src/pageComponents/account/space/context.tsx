@@ -6,7 +6,7 @@ import { useUserStore } from '@/web/support/user/useUserStore';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
 import { getAllAccessibleSpaces } from '@/web/support/user/space/api';
 import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
-import { SpaceManagePermissionVal } from '@fastgpt/global/support/permission/space/constant';
+import { SpaceMemberManagePermissionVal } from '@fastgpt/global/support/permission/space/constant';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 type SpaceManageContextType = {
   // 这里可以根据需要添加具体的状态和方法
@@ -57,7 +57,7 @@ export const SpaceManageContextProvider = ({ children }: { children: ReactNode }
       onSuccess: (data) => {
         if (
           spaceInfo?.type === SpaceTypeEnum.team &&
-          spaceInfo?.permission.checkPer(SpaceManagePermissionVal)
+          spaceInfo?.permission.checkPer(SpaceMemberManagePermissionVal)
         ) {
           // 如果当前所处的空间是团队空间，且有管理权限
           setCurrentSpaceId(spaceInfo._id);
@@ -65,7 +65,9 @@ export const SpaceManageContextProvider = ({ children }: { children: ReactNode }
         }
         const targetSpace = data.find((item) => {
           const spacePer = new SpacePermission({ per: item.permission.value });
-          return item.type === SpaceTypeEnum.team && spacePer.checkPer(SpaceManagePermissionVal);
+          return (
+            item.type === SpaceTypeEnum.team && spacePer.checkPer(SpaceMemberManagePermissionVal)
+          );
         });
         targetSpace && setCurrentSpaceId(targetSpace._id);
       }

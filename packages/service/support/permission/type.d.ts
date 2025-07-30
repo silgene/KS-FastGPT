@@ -1,4 +1,4 @@
-import type { Permission } from '@fastgpt/global/support/permission/controller';
+import type { Permission, PermissionBase } from '@fastgpt/global/support/permission/controller';
 import type { ApiRequestProps } from '../../type/next';
 import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
 import type { RequireAtLeastOne } from '@fastgpt/global/common/type/utils';
@@ -23,7 +23,7 @@ type authModeType = {
 
 export type AuthModeType = RequireAtLeastOne<authModeType, 'authApiKey' | 'authRoot' | 'authToken'>;
 
-export type AuthResponseType<T extends Permission = Permission> = {
+export type AuthResponseType<T = PermissionBase> = {
   userId: string;
   teamId: string;
   tmbId: string;

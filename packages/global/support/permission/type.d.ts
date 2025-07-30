@@ -11,15 +11,16 @@ import { AuthUserTypeEnum, type PermissionKeyEnum, type PerResourceTypeEnum } fr
 // The higher bits are advanced permissions or extended permissions, which could be customized.
 export type PermissionValueType = number;
 export type ResourceType = `${PerResourceTypeEnum}`;
-
-export type PermissionListType<T = PermissionKeyEnum> = Record<
-  T | PermissionKeyEnum,
-  {
-    name: string;
-    description: string;
-    value: PermissionValueType;
-    checkBoxType: 'single' | 'multiple';
-  }
+export type PermissionListTypeItem = {
+  name: string;
+  description: string;
+  value: PermissionValueType;
+  checkBoxType: 'single' | 'multiple';
+};
+export type PermissionBaseListType<T> = Record<T, PermissionListTypeItem>;
+export type PermissionListType<T = PermissionKeyEnum, IncludeBase = true> = Record<
+  IncludeBase extends true ? T | PermissionKeyEnum : T,
+  PermissionListTypeItem
 >;
 
 export type ResourcePermissionType = {
