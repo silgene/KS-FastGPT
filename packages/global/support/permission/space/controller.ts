@@ -20,7 +20,7 @@ import {
 export class SpacePermission extends PermissionBase<SpacePermissionKeyEnum> {
   // 应用相关权限
   hasAppReadPer: boolean = false;
-  hasAppCreatePer: boolean = false;
+  hasAppEditPer: boolean = false;
   hasAppManagePer: boolean = false;
 
   // 知识库相关权限
@@ -50,7 +50,7 @@ export class SpacePermission extends PermissionBase<SpacePermissionKeyEnum> {
 
     this.setUpdatePermissionCallback(() => {
       this.hasAppReadPer = this.checkPer(SpaceAppReadPermissionVal);
-      this.hasAppCreatePer = this.checkPer(SpaceAppEditPermissionVal);
+      this.hasAppEditPer = this.checkPer(SpaceAppEditPermissionVal);
       this.hasAppManagePer = this.checkPer(SpaceAppManagePermissionVal);
       this.hasDatasetReadPer = this.checkPer(SpaceDatasetReadPermissionVal);
       this.hasDatasetCreatePer = this.checkPer(SpaceDatasetEditPermissionVal);

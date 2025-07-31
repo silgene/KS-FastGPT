@@ -18,6 +18,7 @@ import { PluginSourceEnum } from '@fastgpt/global/core/plugin/constants';
 import { type AuthModeType, type AuthResponseType } from '../type';
 import { AppDefaultPermissionVal } from '@fastgpt/global/support/permission/app/constant';
 import { authSpaceByTmbId } from '../space/auth';
+import { SpaceAppReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 
 export const authPluginByTmbId = async ({
   tmbId,
@@ -78,7 +79,7 @@ export const authAppByTmbId = async ({
     // 对该app的space进行鉴权
     const {
       space: { permission: spacePer }
-    } = await authSpaceByTmbId({ tmbId, spaceId: app.spaceId, per: ReadPermissionVal });
+    } = await authSpaceByTmbId({ tmbId, spaceId: app.spaceId, per: SpaceAppReadPermissionVal });
     // teamOwner,app创建者,该app所属的空间的owner都为owner
     const isOwner = tmbPer.isOwner || String(app.tmbId) === String(tmbId) || spacePer.isOwner;
     const { Per } = await (async () => {

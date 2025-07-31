@@ -183,12 +183,6 @@ const RoleDetail = () => {
     };
 
     editSelectingRole(updatedRole);
-
-    console.log('权限更新:', {
-      原权限: currentPermission,
-      操作权限: permissionVal,
-      新权限: newPer
-    });
   };
 
   return (

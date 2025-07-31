@@ -55,17 +55,16 @@ const RoleManageContextProvider = ({ children }: { children: ReactNode }) => {
     manual: false,
     refreshDeps: [],
     onSuccess: (data) => {
-      if (data.length > 0) {
-        if (selectingRole) {
-          const role = data.find((item) => item._id === selectingRole?._id);
-          if (role) {
-            setSelectingRoleEdit(false);
-            setSelectingRole(role);
-          } else {
-            setSelectingRole(data[0]); // 如果当前选择的角色不存在，则选择第一个角色
-          }
+      if (data.length === 0) return;
+      if (selectingRole) {
+        const role = data.find((item) => item._id === selectingRole?._id);
+        if (role) {
+          setSelectingRoleEdit(false);
+          setSelectingRole(role);
+          return;
         }
       }
+      setSelectingRole(data[0]); // 如果当前选择的角色不存在，则选择第一个角色
     }
   });
 
