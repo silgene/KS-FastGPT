@@ -5,13 +5,17 @@ import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
 import { authCert } from '@fastgpt/service/support/permission/auth/common';
 import { type UpdateRoleType } from '@fastgpt/global/support/user/role/controller';
+import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 
 async function handler(req: ApiRequestProps<UpdateRoleType>, res: ApiResponseType<RoleSchemaType>) {
   await authCert({ req, authToken: true });
   const body = req.body;
-
-  const updatedRole = await updateRoleType({
-    ...body
+  const updatedRole = await mongoSessionRun(async (session) => {
+    const updatedRole = await updateRoleType({
+      ...body,
+      session
+    });
+    return updatedRole;
   });
 
   return updatedRole;
