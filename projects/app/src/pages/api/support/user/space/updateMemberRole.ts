@@ -7,7 +7,7 @@ import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
 import type { TeamSchema } from '@fastgpt/global/support/user/team/type';
 import { authSpace } from '@fastgpt/service/support/permission/space/auth';
-import { SpaceManagePermissionVal } from '@fastgpt/global/support/permission/space/constant';
+import { SpaceMemberManagePermissionVal } from '@fastgpt/global/support/permission/space/constant';
 import {
   addSpaceMembers,
   updateSpaceMemberRole
@@ -23,7 +23,7 @@ async function handler(
   res: ApiResponseType
 ) {
   const { spaceId, tmbId, roleId } = req.body;
-  await authSpace({ spaceId, req, authToken: true, per: SpaceManagePermissionVal });
+  await authSpace({ spaceId, req, authToken: true, per: SpaceMemberManagePermissionVal });
   await mongoSessionRun(async (session) => {
     await updateSpaceMemberRole({
       spaceId,

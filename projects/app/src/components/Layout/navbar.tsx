@@ -238,6 +238,7 @@ const Navbar = ({ unread }: { unread: number }) => {
       <Box>
         <MyTooltip label={t('common:user.team.Select Team')} placement={'right-end'}>
           <TeamSelector
+            isGlobal
             customButton={
               <Avatar
                 src={currentTeamIcon}

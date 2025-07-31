@@ -6,7 +6,7 @@ import type { TeamMemberSchema } from '@fastgpt/global/support/user/team/type';
 import type { PaginationProps, PaginationResponse } from '@fastgpt/global/common/fetch/type';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
 import { authSpace } from '@fastgpt/service/support/permission/space/auth';
-import { SpaceManagePermissionVal } from '@fastgpt/global/support/permission/space/constant';
+import { SpaceMemberReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 
 async function handler(
   req: ApiRequestProps<
@@ -25,7 +25,7 @@ async function handler(
   // 身份验证
   const { tmbId } = await authSpace({
     spaceId,
-    per: SpaceManagePermissionVal,
+    per: SpaceMemberReadPermissionVal,
     req,
     authToken: true
   });
