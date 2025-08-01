@@ -59,6 +59,7 @@ export type DatasetSchemaType = {
   userId: string;
   teamId: string;
   tmbId: string;
+  spaceId: string;
   updateTime: Date;
 
   avatar: string;

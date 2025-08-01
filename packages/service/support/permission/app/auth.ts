@@ -19,6 +19,7 @@ import { type AuthModeType, type AuthResponseType } from '../type';
 import { AppDefaultPermissionVal } from '@fastgpt/global/support/permission/app/constant';
 import { authSpaceByTmbId } from '../space/auth';
 import { SpaceAppReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
+import { SpacePerToAppPer } from '@fastgpt/global/support/permission/space/controller';
 
 export const authPluginByTmbId = async ({
   tmbId,
@@ -97,15 +98,16 @@ export const authAppByTmbId = async ({
         // 1. is a folder. (Folders have compeletely permission)
         // 2. inheritPermission is false.
         // 3. is root folder/app.
-        const rp = await getResourcePermission({
-          teamId,
-          tmbId,
-          resourceId: appId,
-          resourceType: PerResourceTypeEnum.app
-        });
-        const Per = new AppPermission({ per: rp ?? AppDefaultPermissionVal, isOwner });
+        const appPer = SpacePerToAppPer(spacePer.value);
+        // 这里的rp是协作者的权限,看后续要不要单独对每个app做权限
+        // const rp = await getResourcePermission({
+        //   teamId,
+        //   tmbId,
+        //   resourceId: appId,
+        //   resourceType: PerResourceTypeEnum.app
+        // });
         return {
-          Per
+          Per: appPer
         };
       } else {
         // is not folder and inheritPermission is true and is not root folder.

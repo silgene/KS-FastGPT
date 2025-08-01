@@ -1,5 +1,7 @@
+import { AppPermission } from '../app/controller';
+import { ManagePermissionVal, ReadPermissionVal, WritePermissionVal } from '../constant';
 import { type PerConstructPros, Permission, PermissionBase } from '../controller';
-import { PermissionListType } from '../type';
+import type { PermissionListType, PermissionValueType } from '../type';
 import {
   SpaceDefaultPermissionVal,
   SpacePermissionList,
@@ -64,3 +66,42 @@ export class SpacePermission extends PermissionBase<SpacePermissionKeyEnum> {
     });
   }
 }
+export const SpacePerToAppPer = (spacePermission: PermissionValueType) => {
+  const spacePer = new SpacePermission({ per: spacePermission });
+  if (spacePer.isOwner) {
+    return new AppPermission({ isOwner: true });
+  }
+  const appPer = new AppPermission();
+  const perList: PermissionValueType[] = [];
+  if (spacePer.hasAppReadPer) {
+    perList.push(ReadPermissionVal);
+  }
+  if (spacePer.hasAppEditPer) {
+    perList.push(WritePermissionVal);
+  }
+  if (spacePer.hasAppManagePer) {
+    perList.push(ManagePermissionVal);
+  }
+  appPer.addPer(...perList);
+  return appPer;
+};
+
+export const SpacePerToDatasetPer = (spacePermission: PermissionValueType) => {
+  const spacePer = new SpacePermission({ per: spacePermission });
+  if (spacePer.isOwner) {
+    return new AppPermission({ isOwner: true });
+  }
+  const datasetPer = new AppPermission();
+  const perList: PermissionValueType[] = [];
+  if (spacePer.hasDatasetReadPer) {
+    perList.push(ReadPermissionVal);
+  }
+  if (spacePer.hasDatasetCreatePer) {
+    perList.push(WritePermissionVal);
+  }
+  if (spacePer.hasDatasetManagePer) {
+    perList.push(ManagePermissionVal);
+  }
+  datasetPer.addPer(...perList);
+  return datasetPer;
+};

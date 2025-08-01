@@ -35,5 +35,5 @@ export type AuthResponseType<T = Permission> = {
   appId?: string;
   apikey?: string;
   isRoot: boolean;
-  permission: T extends PermissionBase<infer U> ? PermissionBase<U> : T;
+  permission: T extends PermissionBase<infer U> ? T : never;
 };

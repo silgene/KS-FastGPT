@@ -17,6 +17,9 @@ import { DatasetTypeEnum } from '@fastgpt/global/core/dataset/constants';
 import { type ParentIdType } from '@fastgpt/global/common/parentFolder/type';
 import { DatasetDefaultPermissionVal } from '@fastgpt/global/support/permission/dataset/constant';
 import { getDatasetImagePreviewUrl } from '../../../core/dataset/image/utils';
+import { SpacePerToDatasetPer } from '@fastgpt/global/support/permission/space/controller';
+import { authSpaceByTmbId } from '../space/auth';
+import { SpaceDatasetReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 
 export const authDatasetByTmbId = async ({
   tmbId,
@@ -42,7 +45,14 @@ export const authDatasetByTmbId = async ({
     if (!dataset) {
       return Promise.reject(DatasetErrEnum.unExist);
     }
-
+    const {
+      space: { permission: spacePer }
+    } = await authSpaceByTmbId({
+      tmbId,
+      spaceId: dataset.spaceId,
+      per: SpaceDatasetReadPermissionVal,
+      isRoot
+    });
     if (isRoot) {
       return {
         ...dataset,
@@ -73,18 +83,17 @@ export const authDatasetByTmbId = async ({
         // 1. is a folder. (Folders have compeletely permission)
         // 2. inheritPermission is false.
         // 3. is root folder/dataset.
-        const rp = await getResourcePermission({
-          teamId,
-          tmbId,
-          resourceId: datasetId,
-          resourceType: PerResourceTypeEnum.dataset
-        });
-        const Per = new DatasetPermission({
-          per: rp ?? DatasetDefaultPermissionVal,
-          isOwner
-        });
+        const datasetPer = SpacePerToDatasetPer(spacePer.value);
+        // 这里的rp是协作者的权限,看后续要不要单独对每个app做权限
+        // const rp = await getResourcePermission({
+        //   teamId,
+        //   tmbId,
+        //   resourceId: datasetId,
+        //   resourceType: PerResourceTypeEnum.dataset
+        // });
+
         return {
-          Per
+          Per: datasetPer
         };
       } else {
         // is not folder and inheritPermission is true and is not root folder.

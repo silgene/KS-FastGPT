@@ -20,6 +20,8 @@ import { getGroupsByTmbId } from '@fastgpt/service/support/permission/memberGrou
 import { getOrgIdSetWithParentByTmbId } from '@fastgpt/service/support/permission/org/controllers';
 import { addSourceMember } from '@fastgpt/service/support/user/utils';
 import { authSpace } from '@fastgpt/service/support/permission/space/auth';
+import { SpaceAppReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
+import { SpacePerToAppPer } from '@fastgpt/global/support/permission/space/controller';
 
 export type ListAppBody = {
   parentId?: ParentIdType;
@@ -50,7 +52,7 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
     //   authApiKey: true,
     //   per: ReadPermissionVal
     // }),
-    authSpace({ spaceId, per: ReadPermissionVal, authToken: true, req }),
+    authSpace({ spaceId, per: SpaceAppReadPermissionVal, authToken: true, req }),
     ...(parentId
       ? [
           authApp({
@@ -65,36 +67,39 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
   ]);
 
   // Get team all app permissions
-  const [perList, myGroupMap, myOrgSet] = await Promise.all([
+  const [
+    perList
+    // , myGroupMap, myOrgSet
+  ] = await Promise.all([
     MongoResourcePermission.find({
       resourceType: PerResourceTypeEnum.app,
       teamId,
       resourceId: {
         $exists: true
       }
-    }).lean(),
-    getGroupsByTmbId({
-      tmbId,
-      teamId
-    }).then((item) => {
-      const map = new Map<string, 1>();
-      item.forEach((item) => {
-        map.set(String(item._id), 1);
-      });
-      return map;
-    }),
-    getOrgIdSetWithParentByTmbId({
-      teamId,
-      tmbId
-    })
+    }).lean()
+    // getGroupsByTmbId({
+    //   tmbId,
+    //   teamId
+    // }).then((item) => {
+    //   const map = new Map<string, 1>();
+    //   item.forEach((item) => {
+    //     map.set(String(item._id), 1);
+    //   });
+    //   return map;
+    // }),
+    // getOrgIdSetWithParentByTmbId({
+    //   teamId,
+    //   tmbId
+    // })
   ]);
-  // Get my permissions
-  const myPerList = perList.filter(
-    (item) =>
-      String(item.tmbId) === String(tmbId) ||
-      myGroupMap.has(String(item.groupId)) ||
-      myOrgSet.has(String(item.orgId))
-  );
+  // // Get my permissions
+  // const myPerList = perList.filter(
+  //   (item) =>
+  //     String(item.tmbId) === String(tmbId) ||
+  //     myGroupMap.has(String(item.groupId)) ||
+  //     myOrgSet.has(String(item.orgId))
+  // );
 
   const findAppsQuery = (() => {
     if (getRecentlyChat) {
@@ -106,15 +111,14 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
       };
     }
 
-    // Filter apps by permission, if not owner, only get apps that I have permission to access
-    const idList = { _id: { $in: myPerList.map((item) => item.resourceId) } };
+    // 获取所有该空间下的app
     const appPerQuery = spacePer.isOwner
       ? {}
       : parentId
         ? {
-            $or: [idList, parseParentIdInMongo(parentId)]
+            $or: [parseParentIdInMongo(parentId)]
           }
-        : { $or: [idList, { parentId: null }] };
+        : { $or: [{ parentId: null }] };
 
     const searchMatch = searchKey
       ? {
@@ -165,28 +169,17 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
     .map((app) => {
       const { Per, privateApp } = (() => {
         const getPer = (appId: string) => {
-          const tmbPer = myPerList.find(
-            (item) => String(item.resourceId) === appId && !!item.tmbId
-          )?.permission;
-          const groupPer = concatPer(
-            myPerList
-              .filter(
-                (item) => String(item.resourceId) === appId && (!!item.groupId || !!item.orgId)
-              )
-              .map((item) => item.permission)
-          );
-
-          return new AppPermission({
-            per: tmbPer ?? groupPer ?? AppDefaultPermissionVal,
-            isOwner: String(app.tmbId) === String(tmbId) || spacePer.isOwner
-          });
+          // 获取对该 app 的权限
+          if (String(app.tmbId) === String(tmbId) || spacePer.isOwner)
+            return new AppPermission({ isOwner: true });
+          return SpacePerToAppPer(spacePer.value);
         };
-
+        // 这里是处理协作者关系的,后续再改
         const getClbCount = (appId: string) => {
           return perList.filter((item) => String(item.resourceId) === String(appId)).length;
         };
 
-        // Inherit app, check parent folder clb
+        // 处理文件夹权限继承关系
         if (!AppFolderTypeList.includes(app.type) && app.parentId && app.inheritPermission) {
           return {
             Per: getPer(String(app.parentId)),
