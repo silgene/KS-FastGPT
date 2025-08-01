@@ -1,11 +1,12 @@
 import { GET, POST, PUT } from '@/web/common/api/request';
-import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
+import type { SpaceDetailType, SpaceSchemaType } from '@fastgpt/global/support/user/space/type';
 import type { TeamMemberItemType } from '@fastgpt/global/support/user/team/type.d';
 import type { SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
 import { type PaginationResponse, type PaginationProps } from '@fastgpt/global/common/fetch/type';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import type { TeamMemberListQuery } from '@fastgpt/global/support/user/team/controller.d';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
+import type { AddUpdateSpacePropsType } from '@fastgpt/global/support/user/space/controller';
 
 export const getLastUsedSpace = () =>
   GET<SpaceDetailType>('/support/user/space/lastUsedSpace', {}, { maxQuantity: 1 });
@@ -72,3 +73,8 @@ export const updateSpaceMemberRole = ({
     tmbId,
     roleId
   });
+
+export const addTeamSpace = (data: AddUpdateSpacePropsType) =>
+  POST<SpaceSchemaType>('/support/user/space/add', data, { maxQuantity: 1 });
+export const updateTeamSpaceInfo = (data: AddUpdateSpacePropsType) =>
+  PUT<SpaceSchemaType>('/support/user/space/update', data, { maxQuantity: 1 });

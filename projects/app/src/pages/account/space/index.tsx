@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box,
   Flex,
@@ -49,13 +49,21 @@ import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 
+const SpaceAddMemberModal = dynamic(
+  () => import('@/pageComponents/account/space/SpaceAddMemberModal')
+);
 const SpaceAddModal = dynamic(() => import('@/pageComponents/account/space/SpaceAddModal'));
-
 function SpaceManage() {
   const { t } = useTranslation();
   const { userInfo } = useUserStore();
-  const { spaceList, currentSpaceId, setCurrentSpaceId, currentSpace, spaceListLoading } =
-    useContextSelector(SpaceManageContext, (context) => context);
+  const {
+    spaceList,
+    currentSpaceId,
+    setCurrentSpaceId,
+    currentSpace,
+    spaceListLoading,
+    refreshSpaceList
+  } = useContextSelector(SpaceManageContext, (context) => context);
   const { toast } = useToast();
   const {
     data: members = [],
@@ -83,7 +91,17 @@ function SpaceManage() {
     }
   );
 
-  const { isOpen: isOpenAdd, onOpen: onOpenAdd, onClose: onCloseAdd } = useDisclosure();
+  const {
+    isOpen: isOpenAddMemberModal,
+    onOpen: onOpenAddMemberModal,
+    onClose: onCloseAddMemberModal
+  } = useDisclosure();
+  const {
+    isOpen: isOpenAddSpaceModal,
+    onOpen: onOpenAddSpaceModal,
+    onClose: onCloseAddSpaceModal
+  } = useDisclosure();
+  const [addSpaceModalType, setAddSpaceModalType] = useState<'add' | 'edit'>('add');
   const onRefreshMembers = useCallback(() => {
     refetchMemberList();
   }, [refetchMemberList]);
@@ -156,10 +174,9 @@ function SpaceManage() {
         borderColor={'myGray.200'}
         bg={'myGray.25'}
         align={'center'}
-        gap={6}
-        justify={'space-between'}
+        gap={1}
       >
-        <Flex align={'center'}>
+        <Flex align={'center'} flexShrink={0}>
           <Flex gap={2} color={'myGray.900'}>
             <Icon name="support/user/usersLight" w={'1.25rem'} h={'1.25rem'} />
             <Box fontWeight={'500'} fontSize={'1rem'}>
@@ -175,20 +192,43 @@ function SpaceManage() {
               value={currentSpaceId}
             ></SpaceSelector>
           </Flex>
-          <Button
-            variant={'primary'}
-            size="md"
-            borderRadius={'md'}
-            ml={3}
-            leftIcon={<MyIcon name="common/inviteLight" w={'16px'} color={'white'} />}
-            onClick={onOpenAdd}
-          >
-            {t('account_team:user_team_invite_member')}
-          </Button>
         </Flex>
+        <Button
+          variant={'primary'}
+          size="md"
+          borderRadius={'md'}
+          leftIcon={<MyIcon name="common/inviteLight" w={'16px'} />}
+          ml={'auto'}
+          onClick={onOpenAddMemberModal}
+        >
+          {t('account_team:user_team_invite_member')}
+        </Button>
+        <Button
+          variant={'outline'}
+          size="md"
+          borderRadius={'md'}
+          leftIcon={<MyIcon name="common/addCircleLight" w={'16px'} />}
+          onClick={() => {
+            onOpenAddSpaceModal();
+            setAddSpaceModalType('add');
+          }}
+        >
+          {'添加空间'}
+        </Button>
+        <Button
+          variant={'outline'}
+          size="md"
+          borderRadius={'md'}
+          leftIcon={<MyIcon name="common/edit" w={'16px'} />}
+          onClick={() => {
+            onOpenAddSpaceModal();
+            setAddSpaceModalType('edit');
+          }}
+        >
+          {'修改空间信息'}
+        </Button>
 
         <Box
-          float={'right'}
           color={'myGray.900'}
           h={'1.25rem'}
           px={'0.5rem'}
@@ -288,11 +328,21 @@ function SpaceManage() {
           </TableContainer>
         </MemberScrollData>
       </MyBox>
-      {isOpenAdd && userInfo?.team?.teamId && (
-        <SpaceAddModal
+      {isOpenAddMemberModal && userInfo?.team?.teamId && (
+        <SpaceAddMemberModal
           spaceId={currentSpace?._id as string}
-          onClose={onCloseAdd}
+          onClose={onCloseAddMemberModal}
           onSuccess={onRefreshMembers}
+        />
+      )}
+      {isOpenAddSpaceModal && (
+        <SpaceAddModal
+          type={addSpaceModalType}
+          onClose={onCloseAddSpaceModal}
+          spaceInfo={currentSpace}
+          onSuccess={() => {
+            refreshSpaceList();
+          }}
         />
       )}
     </>

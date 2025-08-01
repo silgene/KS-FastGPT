@@ -21,6 +21,7 @@ type SpaceManageContextType = {
   setCurrentSpaceId: (spaceId: string) => void;
   currentSpace: SpaceDetailType | null;
   spaceListLoading: boolean;
+  refreshSpaceList: () => void;
 };
 
 export const SpaceManageContext = createContext<SpaceManageContextType>({
@@ -35,12 +36,16 @@ export const SpaceManageContext = createContext<SpaceManageContextType>({
     throw new Error('Function not implemented.');
   },
   currentSpace: null,
-  spaceListLoading: false
+  spaceListLoading: false,
+  refreshSpaceList: () => {
+    throw new Error('Function not implemented.');
+  }
 });
 
 export const SpaceManageContextProvider = ({ children }: { children: ReactNode }) => {
   // 这里可以添加状态管理逻辑
   const { userInfo, spaceInfo } = useUserStore();
+  const [currentSpaceId, setCurrentSpaceId] = useState<string>('');
   const {
     data: teamMemberCountData,
     refresh: refetchTeamSize,
@@ -49,31 +54,26 @@ export const SpaceManageContextProvider = ({ children }: { children: ReactNode }
     manual: false,
     refreshDeps: [userInfo?.team?.teamId]
   });
-  const { data: spaceList = [], loading: spaceListLoading } = useRequest2(
-    () => getAllAccessibleSpaces(),
-    {
-      manual: false,
-      refreshDeps: [userInfo?.team?.teamId],
-      onSuccess: (data) => {
-        if (
-          spaceInfo?.type === SpaceTypeEnum.team &&
-          spaceInfo?.permission.checkPer(SpaceMemberManagePermissionVal)
-        ) {
-          // 如果当前所处的空间是团队空间，且有管理权限
-          setCurrentSpaceId(spaceInfo._id);
-          return;
-        }
-        const targetSpace = data.find((item) => {
-          const spacePer = new SpacePermission({ per: item.permission.value });
-          return (
-            item.type === SpaceTypeEnum.team && spacePer.checkPer(SpaceMemberManagePermissionVal)
-          );
-        });
-        targetSpace && setCurrentSpaceId(targetSpace._id);
+  const {
+    data: spaceList = [],
+    loading: spaceListLoading,
+    refreshAsync: refreshSpaceList
+  } = useRequest2(() => getAllAccessibleSpaces(), {
+    manual: false,
+    refreshDeps: [userInfo?.team?.teamId],
+    onSuccess: (data) => {
+      if (spaceInfo?.type === SpaceTypeEnum.team && spaceInfo?.permission.hasMemberReadPer) {
+        // 如果当前所处的空间是团队空间，且有查看成员权限，则设置当前空间ID为该空间
+        return;
       }
+      const targetSpace = data.find((item) => {
+        const spacePer = new SpacePermission({ per: item.permission.value });
+        return item.type === SpaceTypeEnum.team && spacePer.hasMemberReadPer;
+      });
+      targetSpace && setCurrentSpaceId(targetSpace._id);
     }
-  );
-  const [currentSpaceId, setCurrentSpaceId] = useState<string>('');
+  });
+
   const loading = useMemo(() => {
     return spaceListLoading || teamMemberCountLoading;
   }, [spaceListLoading, teamMemberCountLoading]);
@@ -88,7 +88,8 @@ export const SpaceManageContextProvider = ({ children }: { children: ReactNode }
     currentSpaceId,
     setCurrentSpaceId,
     currentSpace,
-    spaceListLoading: loading
+    spaceListLoading: loading,
+    refreshSpaceList
   };
 
   return <SpaceManageContext.Provider value={contextValue}>{children}</SpaceManageContext.Provider>;

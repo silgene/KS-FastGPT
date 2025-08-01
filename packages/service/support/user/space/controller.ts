@@ -10,7 +10,11 @@ import {
 } from '@fastgpt/global/support/permission/constant';
 import team, { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
-import type { SpaceDetailType, SpaceMemberItemType } from '@fastgpt/global/support/user/space/type';
+import type {
+  SpaceDetailType,
+  SpaceMemberItemType,
+  SpaceSchemaType
+} from '@fastgpt/global/support/user/space/type';
 import { MongoRoleUser } from '../role/roleUser/roleUserSchema';
 import { RoleCollectionName, RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
@@ -19,7 +23,10 @@ import type { PaginationProps, PaginationResponse } from '@fastgpt/global/common
 import { getRoleByTmbId } from '../role/controller';
 import { MongoRole } from '../role/roleSchema';
 import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
-import type { AddMembersPropsType } from '@fastgpt/global/support/user/space/controller';
+import type {
+  AddMembersPropsType,
+  AddUpdateSpacePropsType
+} from '@fastgpt/global/support/user/space/controller';
 
 // 获取空间中成员的列表
 export const getSpaceMemberList = async ({
@@ -165,20 +172,19 @@ export const createDefaultPersonalSpace = async ({
 };
 
 // 创建团队空间
-export const createTeamSpace = async ({
+export const addTeamSpace = async ({
   name,
   teamId,
   tmbId,
   avatar = '/icon/logo.svg',
+  description = '',
   session
-}: {
-  name: string;
-  teamId: string;
+}: AddUpdateSpacePropsType & {
   tmbId: string;
-  avatar?: string;
+  teamId: string;
   session?: ClientSession;
 }) => {
-  const [{ _id: insertedId }] = await MongoSpace.create(
+  const [space] = await MongoSpace.create(
     [
       {
         name,
@@ -186,13 +192,39 @@ export const createTeamSpace = async ({
         teamId: teamId,
         type: SpaceTypeEnum.team,
         createTime: new Date(),
-        ownerId: tmbId
+        ownerId: tmbId,
+        description
       }
     ],
     { session }
   );
-  return insertedId;
+  return space as SpaceSchemaType;
 };
+// 修改团队空间的信息,需要对该空间有成员管理权限
+export const updateTeamSpaceInfo = async ({
+  _id: spaceId,
+  name,
+  avatar = '/icon/logo.svg',
+  description = '',
+  session
+}: AddUpdateSpacePropsType & {
+  session: ClientSession;
+}) => {
+  await MongoSpace.updateOne(
+    {
+      _id: spaceId
+    },
+    {
+      name,
+      avatar,
+      description
+    },
+    {
+      session
+    }
+  );
+};
+
 // 获取某个团队成员的空间列表
 export const getSpaceList = async (tmbId: string): Promise<SpaceDetailType[]> => {
   // 先获取用户所有的tmbId, 再根据tmbId获取空间列表(根据createTime排序)
