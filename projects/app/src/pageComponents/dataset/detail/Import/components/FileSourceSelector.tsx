@@ -4,7 +4,7 @@ import { ModalBody, ModalFooter, Button } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import LeftRadio from '@fastgpt/web/components/common/Radio/LeftRadio';
 import { useRouter } from 'next/router';
-import { TabEnum } from '../../../../../pages/dataset/detail';
+import { TabEnum } from '../../../../../pages/dashboard/dataset/detail/index';
 import { ImportDataSourceEnum } from '@fastgpt/global/core/dataset/constants';
 
 const FileModeSelector = ({ onClose }: { onClose: () => void }) => {

@@ -16,7 +16,7 @@ import { downloadFetch } from '@/web/common/system/utils';
 import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import dynamic from 'next/dynamic';
 import { useContextSelector } from 'use-context-selector';
-import { DatasetsContext } from '../../../pages/dataset/list/context';
+import { DatasetsContext } from '../../../pages/dashboard/dataset/list/context';
 import { DatasetPermissionList } from '@fastgpt/global/support/permission/dataset/constant';
 import ConfigPerModal from '@/components/support/permission/ConfigPerModal';
 import {
@@ -204,14 +204,14 @@ function List() {
                     if (dataset.type === DatasetTypeEnum.folder) {
                       setSearchKey('');
                       router.push({
-                        pathname: '/dataset/list',
+                        pathname: '/dashboard/dataset/list',
                         query: {
                           parentId: dataset._id
                         }
                       });
                     } else {
                       router.push({
-                        pathname: '/dataset/detail',
+                        pathname: '/dashboard/dataset/detail',
                         query: {
                           datasetId: dataset._id
                         }
@@ -405,7 +405,10 @@ function List() {
         <EditResourceModal
           {...editedDataset}
           title={t('common:dataset.Edit Info')}
-          onClose={() => setEditedDataset(undefined)}
+          onClose={() => {
+            console.log(editedDataset);
+            setEditedDataset(undefined);
+          }}
           onEdit={async (data) => {
             await onUpdateDataset({
               id: editedDataset.id,

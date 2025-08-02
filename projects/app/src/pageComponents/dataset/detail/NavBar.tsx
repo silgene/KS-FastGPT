@@ -169,7 +169,7 @@ const NavBar = ({ currentTab }: { currentTab: TabEnum }) => {
               <ParentPaths
                 paths={paths}
                 onClick={(e) => {
-                  router.push(`/dataset/list?parentId=${e}`);
+                  router.push(`/dashboard/dataset/list?parentId=${e}`);
                 }}
               />
             </Flex>

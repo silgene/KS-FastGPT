@@ -20,6 +20,7 @@ import { DatasetTypeEnum } from '@fastgpt/global/core/dataset/constants';
 import { type DatasetItemType, type DatasetListItemType } from '@fastgpt/global/core/dataset/type';
 import { type EditResourceInfoFormType } from '@/components/common/Modal/EditResourceModal';
 import { useTranslation } from 'next-i18next';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 const MoveModal = dynamic(() => import('@/components/common/folder/MoveModal'));
 
@@ -68,6 +69,7 @@ export const DatasetsContext = createContext<DatasetContextType>({
 function DatasetContextProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { t } = useTranslation();
+  const spaceInfo = useUserStore((state) => state.spaceInfo);
   const [moveDatasetId, setMoveDatasetId] = useState<string>();
   const [searchKey, setSearchKey] = useState('');
   const { parentId = null } = router.query as { parentId?: string | null };
@@ -80,11 +82,12 @@ function DatasetContextProvider({ children }: { children: React.ReactNode }) {
     () =>
       getDatasets({
         searchKey,
-        parentId
+        parentId,
+        spaceId: spaceInfo?._id || ''
       }),
     {
       manual: false,
-      refreshDeps: [parentId, searchKey]
+      refreshDeps: [parentId, searchKey, spaceInfo]
     }
   );
 
@@ -119,19 +122,23 @@ function DatasetContextProvider({ children }: { children: React.ReactNode }) {
     [moveDatasetId, onUpdateDataset]
   );
 
-  const getDatasetFolderList = useCallback(async ({ parentId }: GetResourceFolderListProps) => {
-    return (
-      await getDatasets({
-        parentId,
-        type: DatasetTypeEnum.folder
-      })
-    )
-      .filter((item) => item.permission.hasManagePer)
-      .map((item) => ({
-        id: item._id,
-        name: item.name
-      }));
-  }, []);
+  const getDatasetFolderList = useCallback(
+    async ({ parentId }: GetResourceFolderListProps) => {
+      return (
+        await getDatasets({
+          parentId,
+          type: DatasetTypeEnum.folder,
+          spaceId: spaceInfo?._id || ''
+        })
+      )
+        .filter((item) => item.permission.hasManagePer)
+        .map((item) => ({
+          id: item._id,
+          name: item.name
+        }));
+    },
+    [spaceInfo]
+  );
 
   const [editedDataset, setEditedDataset] = useState<EditResourceInfoFormType>();
 

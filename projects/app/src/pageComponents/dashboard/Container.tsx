@@ -22,7 +22,8 @@ import SpaceSelector from '../account/space/SpaceSelector';
 export enum TabEnum {
   apps = 'apps',
   app_templates = 'templateMarket',
-  mcp_server = 'mcpServer'
+  mcp_server = 'mcpServer',
+  dataset = 'dataset/list'
 }
 type TabEnumType = `${keyof typeof TabEnum}` | string;
 
@@ -192,6 +193,12 @@ const DashboardContainer = ({
         groupId: TabEnum.mcp_server,
         groupAvatar: 'key',
         groupName: t('common:mcp_server'),
+        children: []
+      },
+      {
+        groupId: TabEnum.dataset,
+        groupAvatar: 'core/dataset/datasetLight',
+        groupName: t('common:dataset'),
         children: []
       }
     ];

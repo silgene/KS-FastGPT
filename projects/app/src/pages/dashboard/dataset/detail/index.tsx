@@ -20,6 +20,7 @@ import { useContextSelector } from 'use-context-selector';
 import NextHead from '@/components/common/NextHead';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
+import DashboardContainer from '@/pageComponents/dashboard/Container';
 
 const CollectionCard = dynamic(
   () => import('@/pageComponents/dataset/detail/CollectionCard/index')
@@ -55,7 +56,7 @@ const Detail = ({ datasetId, currentTab }: Props) => {
 
   useRequest2(() => loadDatasetDetail(datasetId), {
     onError(err: any) {
-      router.replace(`/dataset/list`);
+      router.replace(`/dashboard/dataset/list`);
       toast({
         title: t(getErrText(err, t('common:load_failed')) as any),
         status: 'error'
@@ -65,61 +66,75 @@ const Detail = ({ datasetId, currentTab }: Props) => {
   });
 
   return (
-    <>
-      <NextHead title={datasetDetail?.name} icon={datasetDetail?.avatar} />
+    <DashboardContainer>
+      {({ MenuIcon }) => (
+        <>
+          <NextHead title={datasetDetail?.name} icon={datasetDetail?.avatar} />
 
-      {isPc ? (
-        <Flex h={'100%'} py={3} pl={1} pr={3} gap={2}>
-          <Flex flex={1} w={0} bg={'white'} flexDir={'column'} boxShadow={'2'} borderRadius={'md'}>
-            {currentTab !== TabEnum.import && <NavBar currentTab={currentTab} />}
-            <Box flex={'1'} overflowY={'auto'}>
-              {currentTab === TabEnum.collectionCard && (
-                <CollectionPageContextProvider>
-                  <CollectionCard />
-                </CollectionPageContextProvider>
-              )}
-              {currentTab === TabEnum.test && <Test datasetId={datasetId} />}
-              {currentTab === TabEnum.dataCard && <DataCard />}
-              {currentTab === TabEnum.import && <Import />}
-            </Box>
-          </Flex>
-
-          {/* Slider */}
-          <>
-            {currentTab === TabEnum.dataCard && (
-              <Flex {...sliderStyles} flex={'0 0 20rem'}>
-                <MetaDataCard datasetId={datasetId} />
+          {isPc ? (
+            <Flex h={'100%'} py={3} pl={1} pr={3} gap={2}>
+              <Flex
+                flex={1}
+                w={0}
+                bg={'white'}
+                flexDir={'column'}
+                boxShadow={'2'}
+                borderRadius={'md'}
+              >
+                {currentTab !== TabEnum.import && <NavBar currentTab={currentTab} />}
+                <Box flex={'1'} overflowY={'auto'}>
+                  {currentTab === TabEnum.collectionCard && (
+                    <CollectionPageContextProvider>
+                      <CollectionCard />
+                    </CollectionPageContextProvider>
+                  )}
+                  {currentTab === TabEnum.test && <Test datasetId={datasetId} />}
+                  {currentTab === TabEnum.dataCard && <DataCard />}
+                  {currentTab === TabEnum.import && <Import />}
+                </Box>
               </Flex>
-            )}
-            {[TabEnum.collectionCard, TabEnum.test].includes(currentTab) && (
-              <Flex {...sliderStyles} flex={'0 0 17rem'}>
-                <Info datasetId={datasetId} />
-              </Flex>
-            )}
-          </>
-        </Flex>
-      ) : (
-        <PageContainer insertProps={{ bg: 'white' }}>
-          <MyBox display={'flex'} flexDirection={'column'} h={'100%'} pt={1}>
-            <NavBar currentTab={currentTab} />
 
-            {!!datasetDetail._id && (
-              <Box flex={'1 0 0'} pb={0} overflow={'auto'}>
-                {currentTab === TabEnum.collectionCard && (
-                  <CollectionPageContextProvider>
-                    <CollectionCard />
-                  </CollectionPageContextProvider>
+              {/* Slider */}
+              <>
+                {currentTab === TabEnum.dataCard && (
+                  <Flex {...sliderStyles} flex={'0 0 20rem'}>
+                    <MetaDataCard datasetId={datasetId} />
+                  </Flex>
                 )}
-                {currentTab === TabEnum.dataCard && <DataCard />}
-                {currentTab === TabEnum.test && <Test datasetId={datasetId} />}
-                {currentTab === TabEnum.info && <Info datasetId={datasetId} />}
-                {currentTab === TabEnum.import && <Import />}
-              </Box>
-            )}
-          </MyBox>
-        </PageContainer>
+                {[TabEnum.collectionCard, TabEnum.test].includes(currentTab) && (
+                  <Flex {...sliderStyles} flex={'0 0 17rem'}>
+                    <Info datasetId={datasetId} />
+                  </Flex>
+                )}
+              </>
+            </Flex>
+          ) : (
+            <PageContainer insertProps={{ bg: 'white' }}>
+              <MyBox display={'flex'} flexDirection={'column'} h={'100%'} pt={1}>
+                <Flex alignItems={'center'} mb={2}>
+                  {MenuIcon}
+                  <NavBar currentTab={currentTab} />
+                </Flex>
+
+                {!!datasetDetail._id && (
+                  <Box flex={'1 0 0'} pb={0} overflow={'auto'}>
+                    {currentTab === TabEnum.collectionCard && (
+                      <CollectionPageContextProvider>
+                        <CollectionCard />
+                      </CollectionPageContextProvider>
+                    )}
+                    {currentTab === TabEnum.dataCard && <DataCard />}
+                    {currentTab === TabEnum.test && <Test datasetId={datasetId} />}
+                    {currentTab === TabEnum.info && <Info datasetId={datasetId} />}
+                    {currentTab === TabEnum.import && <Import />}
+                  </Box>
+                )}
+              </MyBox>
+            </PageContainer>
+          )}
+        </>
       )}
-    </>
+    </DashboardContainer>
   );
 };
 

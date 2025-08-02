@@ -30,6 +30,7 @@ import { DatasetTypeEnum } from '@fastgpt/global/core/dataset/constants';
 import { useToast } from '@fastgpt/web/hooks/useToast';
 import MyBox from '@fastgpt/web/components/common/MyBox';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
+import DashboardContainer from '@/pageComponents/dashboard/Container';
 
 const EditFolderModal = dynamic(
   () => import('@fastgpt/web/components/common/MyModal/EditFolderModal')
@@ -62,7 +63,6 @@ const Dataset = () => {
   const { toast } = useToast();
   const [editFolderData, setEditFolderData] = useState<EditFolderFormType>();
   const [createDatasetType, setCreateDatasetType] = useState<CreateDatasetType>();
-
   const onSelectDatasetType = useCallback(
     (e: CreateDatasetType) => {
       if (!feConfigs?.isPlus && [DatasetTypeEnum.websiteDataset].includes(e)) {
@@ -277,7 +277,10 @@ const Dataset = () => {
       {!!editFolderData && (
         <EditFolderModal
           {...editFolderData}
-          onClose={() => setEditFolderData(undefined)}
+          onClose={() => {
+            console.log(editFolderData);
+            setEditFolderData(undefined);
+          }}
           onCreate={async ({ name, intro }) => {
             try {
               await postCreateDatasetFolder({
@@ -314,6 +317,7 @@ const Dataset = () => {
     </MyBox>
   );
 };
+
 export async function getServerSideProps(content: any) {
   return {
     props: {
@@ -324,9 +328,13 @@ export async function getServerSideProps(content: any) {
 
 function DatasetContextWrapper() {
   return (
-    <DatasetContextProvider>
-      <Dataset />
-    </DatasetContextProvider>
+    <DashboardContainer>
+      {({ MenuIcon }) => (
+        <DatasetContextProvider>
+          <Dataset />
+        </DatasetContextProvider>
+      )}
+    </DashboardContainer>
   );
 }
 
