@@ -48,8 +48,10 @@ const DashboardContainer = ({
   const currentTab = useMemo(() => {
     const path = router.asPath.split('?')[0]; // 移除查询参数
     const segments = path.split('/').filter(Boolean); // 过滤空字符串
-
-    return (segments.pop() as TabEnumType) || TabEnum.apps;
+    // 过滤掉dashboard
+    segments.shift();
+    const tab = segments[0];
+    return (tab as TabEnumType) || TabEnum.apps;
   }, [router.asPath]);
 
   // Sub tab
@@ -250,7 +252,7 @@ const DashboardContainer = ({
         >
           <SpaceSelector isGlobal showManage mb={3}></SpaceSelector>
           {groupList.map((group) => {
-            const selected = currentTab === group.groupId;
+            const selected = currentTab === group.groupId.split('/')[0];
 
             return (
               <Box key={group.groupId}>

@@ -4,6 +4,7 @@ import { useSelectFile } from '@/web/common/file/hooks/useSelectFile';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/router';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
+import { useUserStore } from '@/web/support/user/useUserStore';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import Avatar from '@fastgpt/web/components/common/Avatar';
 import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
@@ -40,6 +41,7 @@ const CreateModal = ({
   const { t } = useTranslation();
   const router = useRouter();
   const { defaultModels, embeddingModelList, datasetModelList, getVlmModelList } = useSystemStore();
+  const { spaceInfo } = useUserStore();
   const { isPc } = useSystem();
 
   const filterNotHiddenVectorModelList = embeddingModelList.filter((item) => !item.hidden);
@@ -57,7 +59,8 @@ const CreateModal = ({
         defaultModels.embedding?.model || getWebDefaultEmbeddingModel(embeddingModelList)?.model,
       agentModel:
         defaultModels.datasetTextLLM?.model || getWebDefaultLLMModel(datasetModelList)?.model,
-      vlmModel: defaultModels.datasetImageLLM?.model
+      vlmModel: defaultModels.datasetImageLLM?.model,
+      spaceId: spaceInfo?._id || ''
     }
   });
   const { register, setValue, handleSubmit, watch } = form;
@@ -77,12 +80,18 @@ const CreateModal = ({
 
   /* create a new kb and router to it */
   const { run: onclickCreate, loading: creating } = useRequest2(
-    async (data: CreateDatasetParams) => await postCreateDataset(data),
+    async (data: CreateDatasetParams) => {
+      const createData = {
+        ...data,
+        spaceId: data.spaceId || spaceInfo?._id || ''
+      };
+      return await postCreateDataset(createData);
+    },
     {
       successToast: t('common:create_success'),
       errorToast: t('common:create_failed'),
       onSuccess(id) {
-        router.push(`/dataset/detail?datasetId=${id}`);
+        router.push(`/dashboard/dataset/detail?datasetId=${id}`);
       }
     }
   );

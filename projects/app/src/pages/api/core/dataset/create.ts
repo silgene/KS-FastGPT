@@ -38,7 +38,8 @@ async function handler(
     vectorModel = getDefaultEmbeddingModel()?.model,
     agentModel = getDatasetModel()?.model,
     vlmModel,
-    apiDatasetServer
+    apiDatasetServer,
+    spaceId
   } = req.body;
 
   // auth
@@ -79,6 +80,7 @@ async function handler(
           intro,
           teamId,
           tmbId,
+          spaceId,
           vectorModel,
           agentModel,
           vlmModel,

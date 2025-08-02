@@ -2,7 +2,7 @@ import { type DatasetTypeEnum } from '@fastgpt/global/core/dataset/constants';
 import { MongoDataset } from '@fastgpt/service/core/dataset/schema';
 // import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
 import { NextAPI } from '@/service/middleware/entry';
-// import { DatasetPermission } from '@fastgpt/global/support/permission/dataset/controller';
+import { DatasetPermission } from '@fastgpt/global/support/permission/dataset/controller';
 import {
   // PerResourceTypeEnum,
   ReadPermissionVal
@@ -21,7 +21,7 @@ import { addSourceMember } from '@fastgpt/service/support/user/utils';
 import { getEmbeddingModel } from '@fastgpt/service/core/ai/model';
 import { SpaceDatasetReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 import { authSpace } from '@fastgpt/service/support/permission/space/auth';
-// import { SpacePerToDatasetPer } from '@fastgpt/global/support/permission/space/controller';
+import { SpacePerToDatasetPer } from '@fastgpt/global/support/permission/space/controller';
 
 export type GetDatasetListBody = {
   parentId: ParentIdType;
@@ -168,10 +168,10 @@ async function handler(req: ApiRequestProps<GetDatasetListBody>) {
 
       const getPer = () => {
         if (String(dataset.tmbId) === String(tmbId) || spacePer.isOwner) {
-          return { hasReadPer: true, isOwner: true };
+          return new DatasetPermission({ isOwner: true });
         }
-        // 这里可以根据需要添加 SpacePerToDatasetPer 的转换
-        return { hasReadPer: true, isOwner: false };
+        // 根据空间权限转换为知识库权限
+        return SpacePerToDatasetPer(spacePer.value);
       };
 
       return {

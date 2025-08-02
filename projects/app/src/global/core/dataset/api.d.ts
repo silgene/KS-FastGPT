@@ -33,6 +33,7 @@ export type CreateDatasetParams = {
   agentModel?: string;
   vlmModel?: string;
   apiDatasetServer?: ApiDatasetServerType;
+  spaceId: string;
 };
 
 export type RebuildEmbeddingProps = {
@@ -49,12 +50,14 @@ export type CreateCollectionResponse = Promise<{
 /* ================= data ===================== */
 export type InsertOneDatasetDataProps = PushDatasetDataChunkProps & {
   collectionId: string;
+  spaceId?: string;
 };
 
 /* -------------- search ---------------- */
 export type SearchTestProps = {
   datasetId: string;
   text: string;
+  spaceId?: string;
   [NodeInputKeyEnum.datasetSimilarity]?: number;
   [NodeInputKeyEnum.datasetMaxTokens]?: number;
 

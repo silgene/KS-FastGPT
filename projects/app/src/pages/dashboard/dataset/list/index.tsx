@@ -43,6 +43,7 @@ const Dataset = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const { parentId } = router.query as { parentId: string };
+  const spaceInfo = useUserStore((state) => state.spaceInfo);
 
   const {
     myDatasets,
@@ -286,7 +287,8 @@ const Dataset = () => {
               await postCreateDatasetFolder({
                 parentId: parentId || undefined,
                 name,
-                intro: intro ?? ''
+                intro: intro ?? '',
+                spaceId: spaceInfo?._id || ''
               });
               loadMyDatasets();
               refetchPaths();

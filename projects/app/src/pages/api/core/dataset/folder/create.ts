@@ -24,13 +24,14 @@ export type DatasetFolderCreateBody = {
   parentId?: string;
   name: string;
   intro: string;
+  spaceId: string;
 };
 export type DatasetFolderCreateResponse = {};
 async function handler(
   req: ApiRequestProps<DatasetFolderCreateBody, DatasetFolderCreateQuery>,
   _res: ApiResponseType<any>
 ): Promise<DatasetFolderCreateResponse> {
-  const { parentId, name, intro } = req.body;
+  const { parentId, name, intro, spaceId } = req.body;
 
   if (!name) {
     return Promise.reject(CommonErrEnum.missingParams);
@@ -59,6 +60,7 @@ async function handler(
       intro,
       teamId,
       tmbId,
+      spaceId,
       type: DatasetTypeEnum.folder
     });
 
