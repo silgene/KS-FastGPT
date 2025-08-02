@@ -193,16 +193,19 @@ function SpaceManage() {
             ></SpaceSelector>
           </Flex>
         </Flex>
-        <Button
-          variant={'primary'}
-          size="md"
-          borderRadius={'md'}
-          leftIcon={<MyIcon name="common/inviteLight" w={'16px'} />}
-          ml={'auto'}
-          onClick={onOpenAddMemberModal}
-        >
-          {t('account_team:user_team_invite_member')}
-        </Button>
+        <Box ml={'auto'}></Box>
+        {currentSpace?.permission.hasMemberManagePer && (
+          <Button
+            variant={'primary'}
+            size="md"
+            borderRadius={'md'}
+            leftIcon={<MyIcon name="common/inviteLight" w={'16px'} />}
+            onClick={onOpenAddMemberModal}
+          >
+            {t('account_team:user_team_invite_member')}
+          </Button>
+        )}
+        {/* TODO: TeamPermission需要有添加空间的权限 */}
         <Button
           variant={'outline'}
           size="md"
@@ -215,18 +218,20 @@ function SpaceManage() {
         >
           {'添加空间'}
         </Button>
-        <Button
-          variant={'outline'}
-          size="md"
-          borderRadius={'md'}
-          leftIcon={<MyIcon name="common/edit" w={'16px'} />}
-          onClick={() => {
-            onOpenAddSpaceModal();
-            setAddSpaceModalType('edit');
-          }}
-        >
-          {'修改空间信息'}
-        </Button>
+        {currentSpace?.permission.isOwner && (
+          <Button
+            variant={'outline'}
+            size="md"
+            borderRadius={'md'}
+            leftIcon={<MyIcon name="common/edit" w={'16px'} />}
+            onClick={() => {
+              onOpenAddSpaceModal();
+              setAddSpaceModalType('edit');
+            }}
+          >
+            {'修改空间信息'}
+          </Button>
+        )}
 
         <Box
           color={'myGray.900'}
@@ -328,6 +333,7 @@ function SpaceManage() {
           </TableContainer>
         </MemberScrollData>
       </MyBox>
+      {/* TODO: 这里需要对该空间有MemberManage权限 */}
       {isOpenAddMemberModal && userInfo?.team?.teamId && (
         <SpaceAddMemberModal
           spaceId={currentSpace?._id as string}

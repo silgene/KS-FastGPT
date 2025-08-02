@@ -62,9 +62,20 @@ export const SpaceManageContextProvider = ({ children }: { children: ReactNode }
     manual: false,
     refreshDeps: [userInfo?.team?.teamId],
     onSuccess: (data) => {
+      if (currentSpaceId) {
+        const targetSpace = data.find((item) => String(item._id) === String(currentSpaceId));
+        if (targetSpace) {
+          setCurrentSpaceId(targetSpace._id);
+          return;
+        }
+      }
       if (spaceInfo?.type === SpaceTypeEnum.team && spaceInfo?.permission.hasMemberReadPer) {
         // 如果当前所处的空间是团队空间，且有查看成员权限，则设置当前空间ID为该空间
-        return;
+        const targetSpace = data.find((item) => String(item._id) === String(spaceInfo._id));
+        if (targetSpace) {
+          setCurrentSpaceId(spaceInfo._id);
+          return;
+        }
       }
       const targetSpace = data.find((item) => {
         const spacePer = new SpacePermission({ per: item.permission.value });

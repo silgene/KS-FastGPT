@@ -159,7 +159,7 @@ export const updateRoleType = async ({
   if (role.defaultRole) {
     return Promise.reject('不能修改系统角色');
   }
-  // TODO: 应该放到异步任务中，计算量有点大
+
   const updatedRole = await MongoRole.findByIdAndUpdate(
     roleId,
     { permission, description, name },

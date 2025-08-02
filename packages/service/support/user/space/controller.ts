@@ -200,7 +200,7 @@ export const addTeamSpace = async ({
   );
   return space as SpaceSchemaType;
 };
-// 修改团队空间的信息,需要对该空间有成员管理权限
+// 修改团队空间的信息,需要是该空间的所有者
 export const updateTeamSpaceInfo = async ({
   _id: spaceId,
   name,

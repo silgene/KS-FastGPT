@@ -11,6 +11,8 @@ import { parsePaginationRequest } from '@fastgpt/service/common/api/pagination';
 import { type UserModelSchema } from '@fastgpt/global/support/user/type';
 import { MongoSpace } from '@fastgpt/service/support/user/space/spaceSchema';
 import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
+import { authSpace } from '@fastgpt/service/support/permission/space/auth';
+import { SpaceMemberReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 
 type availableMember = {
   userId: string;
@@ -25,7 +27,12 @@ async function handler(
   req: ApiRequestProps<PaginationProps<TeamMemberListQuery> & { spaceId: string }>,
   res: ApiResponseType<PaginationResponse<availableMember[]>>
 ) {
-  const { teamId } = await authSystemAdmin({ req });
+  const { teamId } = await authSpace({
+    req,
+    spaceId: req.body.spaceId,
+    authToken: true,
+    per: SpaceMemberReadPermissionVal
+  });
   const { offset, pageSize } = parsePaginationRequest(req);
   const { searchKey, spaceId } = req.body; // 获取搜索关键字
 
@@ -52,17 +59,19 @@ async function handler(
   if (searchKey?.trim().length) {
     userMatch.username = { $regex: searchKey, $options: 'i' };
   }
-
   // 并行执行查询和计数
-  const availableMembers = await MongoTeamMember.find(query)
-    .populate<{ user: UserModelSchema }>({
-      path: 'user',
-      select: 'username avatar contact',
-      match: userMatch // 添加用户名搜索条件
-    })
-    .skip(offset)
-    .limit(pageSize)
-    .lean();
+  const [availableMembers, total] = await Promise.all([
+    MongoTeamMember.find(query)
+      .populate<{ user: UserModelSchema }>({
+        path: 'user',
+        select: 'username avatar contact',
+        match: userMatch // 添加用户名搜索条件
+      })
+      .skip(offset)
+      .limit(pageSize)
+      .lean(),
+    MongoTeamMember.countDocuments(query)
+  ]);
 
   // 使用 map 转换数据结构
   const Members = availableMembers
@@ -78,7 +87,7 @@ async function handler(
 
   return {
     list: Members,
-    total: Members.length // 注意：由于使用了 populate match，实际返回数量可能小于 total
+    total: total // 注意：由于使用了 populate match，实际返回数量可能小于 total
   };
 }
 

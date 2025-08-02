@@ -109,7 +109,7 @@ export const DefaultRoleList = [
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
     // 对空间只读
-    permission: 0b0000001001000,
+    permission: 0b0001001001000,
     description: 'common:user.role.default.Space Reader Description',
     defaultRole: true
   }
