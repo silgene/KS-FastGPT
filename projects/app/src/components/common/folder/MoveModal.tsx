@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MyModal from '@fastgpt/web/components/common/MyModal';
 import { useTranslation } from 'next-i18next';
 import { Box, Button, Flex, ModalBody, ModalFooter } from '@chakra-ui/react';
@@ -12,6 +12,9 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import { FolderIcon } from '@fastgpt/global/common/file/image/constants';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import LightTip from '@fastgpt/web/components/common/LightTip';
+import SpaceSelector from '@/pageComponents/account/space/SpaceSelector';
+import { getAllAccessibleSpaces } from '@/web/support/user/space/api';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 type FolderItemType = {
   id: string;
@@ -37,30 +40,45 @@ const MoveModal = ({ moveResourceId, title, server, onConfirm, onClose, moveHint
   const [requestingIdList, setRequestingIdList] = useState<ParentIdType[]>([]);
   const [folderList, setFolderList] = useState<FolderItemType[]>([]);
 
-  const { runAsync: requestServer } = useRequest2((e: GetResourceFolderListProps) => {
-    if (requestingIdList.includes(e.parentId)) return Promise.reject(null);
+  const { runAsync: requestServer, loading: isLoading } = useRequest2(
+    (e: GetResourceFolderListProps) => {
+      if (requestingIdList.includes(e.parentId)) return Promise.reject(null);
 
-    setRequestingIdList((state) => [...state, e.parentId]);
-    return server(e).finally(() =>
-      setRequestingIdList((state) => state.filter((id) => id !== e.parentId))
-    );
-  }, {});
+      setRequestingIdList((state) => [...state, e.parentId]);
+      return server(e).finally(() =>
+        setRequestingIdList((state) => state.filter((id) => id !== e.parentId))
+      );
+    },
+    {}
+  );
 
-  useMount(async () => {
-    const data = await requestServer({ parentId: null });
-    setFolderList([
-      {
-        id: rootId,
-        name: t('common:root_folder'),
-        open: true,
-        children: data.map((item) => ({
-          id: item.id,
-          name: item.name,
-          open: false
-        }))
-      }
-    ]);
+  const { data: spaceList = [] } = useRequest2(() => getAllAccessibleSpaces(), {
+    manual: false
   });
+  const userInfo = useUserStore();
+  const [currentSpaceId, setCurrentSpaceID] = useState<string>(userInfo?.spaceInfo?._id || '');
+
+  const OnChangeSetCurrentSpaceID = (spaceId: string) => {
+    setCurrentSpaceID(spaceId);
+  };
+  useEffect(() => {
+    const fetchFolderList = async () => {
+      const data = await requestServer({ parentId: null, spaceId: currentSpaceId });
+      setFolderList([
+        {
+          id: rootId,
+          name: t('common:root_folder'),
+          open: true,
+          children: data.map((item) => ({
+            id: item.id,
+            name: item.name,
+            open: false
+          }))
+        }
+      ]);
+    };
+    fetchFolderList();
+  }, [currentSpaceId, requestServer, t]);
 
   const RenderList = useMemoizedFn(
     ({ list, index = 0 }: { list: FolderItemType[]; index?: number }) => {
@@ -164,7 +182,7 @@ const MoveModal = ({ moveResourceId, title, server, onConfirm, onClose, moveHint
 
   return (
     <MyModal
-      isLoading={folderList.length === 0}
+      isLoading={folderList.length === 0 || isLoading}
       iconSrc="/imgs/modal/move.svg"
       isOpen
       w={'30rem'}
@@ -177,6 +195,13 @@ const MoveModal = ({ moveResourceId, title, server, onConfirm, onClose, moveHint
             <LightTip text={moveHint} />
           </Box>
         )}
+        <SpaceSelector
+          showPersonal={true}
+          isGlobal={false}
+          list={spaceList}
+          onChange={OnChangeSetCurrentSpaceID}
+          value={currentSpaceId}
+        ></SpaceSelector>
         <RenderList list={folderList} />
       </ModalBody>
       <ModalFooter>

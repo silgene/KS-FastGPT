@@ -60,7 +60,8 @@ const MyApps = ({ MenuIcon }: { MenuIcon: JSX.Element }) => {
     setSearchKey
   } = useContextSelector(AppListContext, (v) => v);
   const { userInfo } = useUserStore();
-
+  const { spaceInfo } = useUserStore();
+  const spaceId = spaceInfo?._id || '';
   const [createAppType, setCreateAppType] = useState<CreateAppType>();
   const {
     isOpen: isOpenCreateHttpPlugin,
@@ -306,7 +307,7 @@ const MyApps = ({ MenuIcon }: { MenuIcon: JSX.Element }) => {
         <EditFolderModal
           {...editFolder}
           onClose={() => setEditFolder(undefined)}
-          onCreate={(data) => onCreateFolder({ ...data, parentId })}
+          onCreate={(data) => onCreateFolder({ ...data, parentId, spaceId })}
           onEdit={({ id, ...data }) => onUpdateApp(id, data)}
         />
       )}

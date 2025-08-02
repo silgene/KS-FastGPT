@@ -11,6 +11,7 @@ export type ParentIdType = string | null | undefined;
 
 export type GetResourceFolderListProps = {
   parentId: ParentIdType;
+  spaceId?: string;
 };
 export type GetResourceFolderListItemResponse = {
   name: string;

@@ -33,6 +33,7 @@ import {
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import FillRowTabs from '@fastgpt/web/components/common/Tabs/FillRowTabs';
 import { appTypeMap } from '@/pageComponents/app/constants';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 type FormType = {
   avatar: string;
@@ -49,6 +50,7 @@ const CreateModal = ({ onClose, type }: { type: CreateAppType; onClose: () => vo
   const { isPc } = useSystem();
   const { feConfigs } = useSystemStore();
 
+  const { spaceInfo } = useUserStore();
   const [currentCreateType, setCurrentCreateType] = useState<'template' | 'curl'>('template');
   const isTemplateMode = currentCreateType === 'template';
 
@@ -89,7 +91,8 @@ const CreateModal = ({ onClose, type }: { type: CreateAppType; onClose: () => vo
           type,
           modules: emptyTemplates[type].nodes,
           edges: emptyTemplates[type].edges,
-          chatConfig: emptyTemplates[type].chatConfig
+          chatConfig: emptyTemplates[type].chatConfig,
+          spaceId: spaceInfo?._id || ''
         });
       }
 
@@ -117,7 +120,8 @@ const CreateModal = ({ onClose, type }: { type: CreateAppType; onClose: () => vo
         type,
         modules: workflow.nodes || [],
         edges: workflow.edges || [],
-        chatConfig: workflow.chatConfig || {}
+        chatConfig: workflow.chatConfig || {},
+        spaceId: spaceInfo?._id || ''
       });
     },
     {

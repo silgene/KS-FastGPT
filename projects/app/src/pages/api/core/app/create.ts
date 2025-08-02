@@ -32,10 +32,11 @@ export type CreateAppBody = {
   edges?: AppSchema['edges'];
   chatConfig?: AppSchema['chatConfig'];
   utmParams?: ShortUrlParams;
+  spaceId: string;
 };
 
 async function handler(req: ApiRequestProps<CreateAppBody>) {
-  const { parentId, name, avatar, type, modules, edges, chatConfig, utmParams } = req.body;
+  const { parentId, name, avatar, type, modules, edges, chatConfig, utmParams, spaceId } = req.body;
 
   if (!name || !type || !Array.isArray(modules)) {
     return Promise.reject(CommonErrEnum.inheritPermissionError);
@@ -64,7 +65,8 @@ async function handler(req: ApiRequestProps<CreateAppBody>) {
     teamId,
     tmbId,
     userAvatar: tmb?.avatar,
-    username: tmb?.user?.username
+    username: tmb?.user?.username,
+    spaceId
   });
 
   pushTrack.createApp({
@@ -95,7 +97,8 @@ export const onCreateApp = async ({
   pluginData,
   username,
   userAvatar,
-  session
+  session,
+  spaceId
 }: {
   parentId?: ParentIdType;
   name?: string;
@@ -111,6 +114,7 @@ export const onCreateApp = async ({
   username?: string;
   userAvatar?: string;
   session?: ClientSession;
+  spaceId: string;
 }) => {
   const create = async (session: ClientSession) => {
     const [{ _id: appId }] = await MongoApp.create(
@@ -127,7 +131,8 @@ export const onCreateApp = async ({
           chatConfig,
           type,
           version: 'v2',
-          pluginData
+          pluginData,
+          spaceId
         }
       ],
       { session, ordered: true }

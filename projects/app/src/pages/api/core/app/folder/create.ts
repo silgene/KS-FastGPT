@@ -24,10 +24,11 @@ export type CreateAppFolderBody = {
   parentId?: ParentIdType;
   name: string;
   intro?: string;
+  spaceId: string;
 };
 
 async function handler(req: ApiRequestProps<CreateAppFolderBody>) {
-  const { name, intro, parentId } = req.body;
+  const { name, intro, parentId, spaceId } = req.body;
 
   if (!name) {
     Promise.reject(CommonErrEnum.missingParams);
@@ -47,6 +48,7 @@ async function handler(req: ApiRequestProps<CreateAppFolderBody>) {
       intro,
       teamId,
       tmbId,
+      spaceId,
       type: AppTypeEnum.folder
     });
 

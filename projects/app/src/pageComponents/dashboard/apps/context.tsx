@@ -126,11 +126,11 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
     [moveAppId, onUpdateApp]
   );
 
-  const getAppFolderList = useCallback(({ parentId }: GetResourceFolderListProps) => {
+  const getAppFolderList = useCallback(({ parentId, spaceId }: GetResourceFolderListProps) => {
     return getMyApps({
       parentId,
       type: AppTypeEnum.folder,
-      spaceId: spaceInfo?._id || ''
+      spaceId: spaceId || ''
     }).then((res) =>
       res
         .filter((item) => item.permission.hasWritePer)
