@@ -61,6 +61,7 @@ export const AppListContext = createContext<AppListContextType>({
 const AppListContextProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
   const spaceInfo = useUserStore((state) => state.spaceInfo);
+  const spaceId = spaceInfo?._id || '';
   const router = useRouter();
   const { parentId = null, type = 'all' } = router.query as {
     parentId?: string | null;
@@ -81,7 +82,7 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
 
         return [AppTypeEnum.folder, type];
       })();
-      return getMyApps({ parentId, type: formatType, searchKey, spaceId: spaceInfo?._id || '' });
+      return getMyApps({ parentId, type: formatType, searchKey, spaceId });
     },
     {
       manual: false,
@@ -119,9 +120,9 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
 
   const [moveAppId, setMoveAppId] = useState<string>();
   const onMoveApp = useCallback(
-    async (parentId: ParentIdType) => {
+    async (parentId: ParentIdType, spaceId: string) => {
       if (!moveAppId) return;
-      await onUpdateApp(moveAppId, { parentId });
+      await onUpdateApp(moveAppId, { parentId, spaceId });
     },
     [moveAppId, onUpdateApp]
   );

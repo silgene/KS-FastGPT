@@ -29,7 +29,7 @@ type Props = {
   moveResourceId: string;
   title: string;
   server: (e: GetResourceFolderListProps) => Promise<GetResourceFolderListItemResponse[]>;
-  onConfirm: (id: ParentIdType) => Promise<any>;
+  onConfirm: (id: ParentIdType, spaceId: string) => Promise<any>;
   onClose: () => void;
   moveHint?: string;
 };
@@ -168,7 +168,7 @@ const MoveModal = ({ moveResourceId, title, server, onConfirm, onClose, moveHint
   const { runAsync: onConfirmSelect, loading: confirming } = useRequest2(
     () => {
       if (selectedId) {
-        return onConfirm(selectedId === rootId ? null : selectedId);
+        return onConfirm(selectedId === rootId ? null : selectedId, currentSpaceId);
       }
       return Promise.reject('');
     },

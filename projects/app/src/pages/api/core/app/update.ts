@@ -47,7 +47,8 @@ export type AppUpdateBody = AppUpdateParams;
 //  (2) 目标目录的管理权限
 //  (3) 如果从根目录移动或移动到根目录，需要有团队的应用创建权限
 async function handler(req: ApiRequestProps<AppUpdateBody, AppUpdateQuery>) {
-  const { parentId, name, avatar, type, intro, nodes, edges, chatConfig, teamTags } = req.body;
+  const { parentId, name, avatar, type, intro, nodes, edges, chatConfig, teamTags, spaceId } =
+    req.body;
 
   const { appId } = req.query;
 
@@ -133,6 +134,7 @@ async function handler(req: ApiRequestProps<AppUpdateBody, AppUpdateQuery>) {
         ...(avatar && { avatar }),
         ...(intro !== undefined && { intro }),
         ...(teamTags && { teamTags }),
+        ...(spaceId && { spaceId }),
         ...(nodes && {
           modules: nodes
         }),

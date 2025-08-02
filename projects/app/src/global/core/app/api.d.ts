@@ -4,6 +4,7 @@ import type { AppSchema } from '@fastgpt/global/core/app/type';
 
 export type AppUpdateParams = {
   parentId?: ParentIdType;
+  spaceId?: string;
   name?: string;
   type?: AppTypeEnum;
   avatar?: string;
