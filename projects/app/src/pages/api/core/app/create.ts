@@ -16,15 +16,18 @@ import { MongoApp } from '@fastgpt/service/core/app/schema';
 import { MongoAppVersion } from '@fastgpt/service/core/app/version/schema';
 import { authApp } from '@fastgpt/service/support/permission/app/auth';
 import { checkTeamAppLimit } from '@fastgpt/service/support/permission/teamLimit';
-import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
 import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
 import { type ApiRequestProps } from '@fastgpt/service/type/next';
 import { addOperationLog } from '@fastgpt/service/support/operationLog/addOperationLog';
 import { OperationLogEventEnum } from '@fastgpt/global/support/operationLog/constants';
 import { getI18nAppType } from '@fastgpt/service/support/operationLog/util';
+import { authSpace } from '@fastgpt/service/support/permission/space/auth';
+import { SpaceAppEditPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 
 export type CreateAppBody = {
   parentId?: ParentIdType;
+  spaceId: string;
   name?: string;
   avatar?: string;
   type?: AppTypeEnum;
@@ -32,7 +35,6 @@ export type CreateAppBody = {
   edges?: AppSchema['edges'];
   chatConfig?: AppSchema['chatConfig'];
   utmParams?: ShortUrlParams;
-  spaceId: string;
 };
 
 async function handler(req: ApiRequestProps<CreateAppBody>) {
@@ -41,14 +43,19 @@ async function handler(req: ApiRequestProps<CreateAppBody>) {
   if (!name || !type || !Array.isArray(modules)) {
     return Promise.reject(CommonErrEnum.inheritPermissionError);
   }
+  // 校验这个tmb是否有权限在这个空间创建app
+  const { teamId, tmbId, userId } = await authSpace({
+    req,
+    spaceId,
+    per: SpaceAppEditPermissionVal,
+    authToken: true
+  });
+  // const { teamId, tmbId, userId } = parentId
+  //   ? await authApp({ req, appId: parentId, per: WritePermissionVal, authToken: true })
+  //   : await authTeamPer({ req, authToken: true, per: TeamAppCreatePermissionVal });
 
-  // 凭证校验
-  const { teamId, tmbId, userId } = parentId
-    ? await authApp({ req, appId: parentId, per: WritePermissionVal, authToken: true })
-    : await authUserPer({ req, authToken: true, per: TeamAppCreatePermissionVal });
-
-  // 上限校验
-  await checkTeamAppLimit(teamId);
+  // 上限校验（先取消）
+  // await checkTeamAppLimit(teamId);
   const tmb = await MongoTeamMember.findById({ _id: tmbId }, 'userId').populate<{
     user: { username: string };
   }>('user', 'username');
@@ -56,6 +63,7 @@ async function handler(req: ApiRequestProps<CreateAppBody>) {
   // 创建app
   const appId = await onCreateApp({
     parentId,
+    spaceId,
     name,
     avatar,
     type,
@@ -65,8 +73,7 @@ async function handler(req: ApiRequestProps<CreateAppBody>) {
     teamId,
     tmbId,
     userAvatar: tmb?.avatar,
-    username: tmb?.user?.username,
-    spaceId
+    username: tmb?.user?.username
   });
 
   pushTrack.createApp({
@@ -85,6 +92,7 @@ export default NextAPI(handler);
 
 export const onCreateApp = async ({
   parentId,
+  spaceId,
   name,
   intro,
   avatar,
@@ -97,10 +105,10 @@ export const onCreateApp = async ({
   pluginData,
   username,
   userAvatar,
-  session,
-  spaceId
+  session
 }: {
   parentId?: ParentIdType;
+  spaceId: string;
   name?: string;
   avatar?: string;
   type?: AppTypeEnum;
@@ -114,13 +122,13 @@ export const onCreateApp = async ({
   username?: string;
   userAvatar?: string;
   session?: ClientSession;
-  spaceId: string;
 }) => {
   const create = async (session: ClientSession) => {
     const [{ _id: appId }] = await MongoApp.create(
       [
         {
           ...parseParentIdInMongo(parentId),
+          spaceId,
           avatar,
           name,
           intro,
@@ -131,8 +139,7 @@ export const onCreateApp = async ({
           chatConfig,
           type,
           version: 'v2',
-          pluginData,
-          spaceId
+          pluginData
         }
       ],
       { session, ordered: true }

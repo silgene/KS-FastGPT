@@ -25,6 +25,7 @@ import SearchInput from '@fastgpt/web/components/common/Input/SearchInput';
 import MySelect from '@fastgpt/web/components/common/MySelect';
 import EmptyTip from '@fastgpt/web/components/common/EmptyTip';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
+import { useUserStore } from '@/web/support/user/useUserStore';
 const UseGuideModal = dynamic(() => import('@/components/common/Modal/UseGuideModal'), {
   ssr: false
 });
@@ -42,6 +43,7 @@ const TemplateMarket = ({
   const { t } = useTranslation();
   const { feConfigs } = useSystemStore();
   const { isPc } = useSystem();
+  const { spaceInfo } = useUserStore();
   const containerRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -69,6 +71,7 @@ const TemplateMarket = ({
 
       return postCreateApp({
         parentId,
+        spaceId: spaceInfo?._id || '',
         avatar: template.avatar,
         name: template.name,
         type: template.type as AppTypeEnum,

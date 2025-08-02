@@ -23,6 +23,7 @@ import {
   removeUtmParams,
   removeUtmWorkflow
 } from '@/web/support/marketing/utils';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 type FormType = {
   avatar: string;
@@ -33,6 +34,7 @@ type FormType = {
 const JsonImportModal = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
   const { parentId, loadMyApps } = useContextSelector(AppListContext, (v) => v);
+  const { spaceInfo } = useUserStore();
   const router = useRouter();
 
   const { register, setValue, watch, handleSubmit } = useForm<FormType>({
@@ -120,6 +122,7 @@ const JsonImportModal = ({ onClose }: { onClose: () => void }) => {
 
       return postCreateApp({
         parentId,
+        spaceId: spaceInfo?._id || '',
         avatar: selectedAvatar,
         name,
         type: appType,

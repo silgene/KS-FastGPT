@@ -71,16 +71,16 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
         title: t('user:register.success')
       });
 
-      // auto register template app
+      // 在注册后创建模板app, 先注释掉
       setTimeout(() => {
         Object.entries(emptyTemplates).map(([type, emptyTemplate]) => {
-          postCreateApp({
-            avatar: emptyTemplate.avatar,
-            name: t(emptyTemplate.name as any),
-            modules: emptyTemplate.nodes,
-            edges: emptyTemplate.edges,
-            type: type as AppTypeEnum
-          });
+          // postCreateApp({
+          //   avatar: emptyTemplate.avatar,
+          //   name: t(emptyTemplate.name as any),
+          //   modules: emptyTemplate.nodes,
+          //   edges: emptyTemplate.edges,
+          //   type: type as AppTypeEnum
+          // });
         });
       }, 100);
     },

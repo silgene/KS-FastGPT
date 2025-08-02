@@ -11,7 +11,7 @@ import { ERROR_ENUM } from '@fastgpt/global/common/error/errorCode';
 import { type ApiRequestProps } from '../../../type/next';
 
 /* auth user role  */
-export async function authUserPer(props: AuthModeType): Promise<
+export async function authTeamPer(props: AuthModeType): Promise<
   AuthResponseType<TeamPermission> & {
     tmb: TeamTmbItemType;
   }

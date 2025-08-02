@@ -1,6 +1,6 @@
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
 import { NextAPI } from '@/service/middleware/entry';
-import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
 import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
 import { getResourcePermission } from '@fastgpt/service/support/permission/controller';
 import { PerResourceTypeEnum } from '@fastgpt/global/support/permission/constant';
@@ -26,7 +26,7 @@ async function handler(
   const { status = TeamMemberStatusEnum.active } = req.query;
 
   // 验证用户权限
-  const { userId } = await authUserPer({
+  const { userId } = await authTeamPer({
     req,
     authToken: true,
     per: undefined // 获取自己的团队列表不需要特殊权限

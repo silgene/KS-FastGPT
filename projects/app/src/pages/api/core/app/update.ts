@@ -19,7 +19,7 @@ import { AppFolderTypeList, AppTypeEnum } from '@fastgpt/global/core/app/constan
 import { type ClientSession } from 'mongoose';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { getResourceClbsAndGroups } from '@fastgpt/service/support/permission/controller';
-import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
 import { TeamAppCreatePermissionVal } from '@fastgpt/global/support/permission/user/constant';
 import { AppErrEnum } from '@fastgpt/global/common/error/code/app';
 import { refreshSourceAvatar } from '@fastgpt/service/common/file/image/controller';
@@ -92,7 +92,7 @@ async function handler(req: ApiRequestProps<AppUpdateBody, AppUpdateQuery>) {
     }
     if (parentId === null || !app.parentId) {
       // move to root or move from root
-      await authUserPer({
+      await authTeamPer({
         req,
         authToken: true,
         per: TeamAppCreatePermissionVal

@@ -1,7 +1,7 @@
 import { TeamPermission } from '@fastgpt/global/support/permission/user/controller';
 import { type AuthModeType, type AuthResponseType } from '../type';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
-import { authUserPer } from '../user/auth';
+import { authTeamPer } from '../user/auth';
 import { TeamManagePermissionVal } from '@fastgpt/global/support/permission/user/constant';
 
 /*
@@ -13,7 +13,7 @@ export const authOrgMember = async ({
 }: {
   orgIds?: string | string[];
 } & AuthModeType): Promise<AuthResponseType> => {
-  const result = await authUserPer({
+  const result = await authTeamPer({
     ...props,
     per: TeamManagePermissionVal
   });

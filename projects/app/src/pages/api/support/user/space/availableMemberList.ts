@@ -87,7 +87,7 @@ async function handler(
 
   return {
     list: Members,
-    total: total // 注意：由于使用了 populate match，实际返回数量可能小于 total
+    total: total
   };
 }
 

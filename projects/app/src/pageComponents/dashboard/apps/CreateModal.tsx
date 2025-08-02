@@ -49,7 +49,6 @@ const CreateModal = ({ onClose, type }: { type: CreateAppType; onClose: () => vo
   const { parentId, loadMyApps } = useContextSelector(AppListContext, (v) => v);
   const { isPc } = useSystem();
   const { feConfigs } = useSystemStore();
-
   const { spaceInfo } = useUserStore();
   const [currentCreateType, setCurrentCreateType] = useState<'template' | 'curl'>('template');
   const isTemplateMode = currentCreateType === 'template';
@@ -86,13 +85,13 @@ const CreateModal = ({ onClose, type }: { type: CreateAppType; onClose: () => vo
       if (!templateId && currentCreateType !== 'curl') {
         return postCreateApp({
           parentId,
+          spaceId: spaceInfo?._id || '',
           avatar: avatar,
           name: name,
           type,
           modules: emptyTemplates[type].nodes,
           edges: emptyTemplates[type].edges,
-          chatConfig: emptyTemplates[type].chatConfig,
-          spaceId: spaceInfo?._id || ''
+          chatConfig: emptyTemplates[type].chatConfig
         });
       }
 
@@ -115,13 +114,13 @@ const CreateModal = ({ onClose, type }: { type: CreateAppType; onClose: () => vo
 
       return postCreateApp({
         parentId,
+        spaceId: spaceInfo?._id || '',
         avatar: appAvatar,
         name: name,
         type,
         modules: workflow.nodes || [],
         edges: workflow.edges || [],
-        chatConfig: workflow.chatConfig || {},
-        spaceId: spaceInfo?._id || ''
+        chatConfig: workflow.chatConfig || {}
       });
     },
     {

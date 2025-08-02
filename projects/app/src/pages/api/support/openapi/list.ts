@@ -1,6 +1,6 @@
 import { MongoOpenApi } from '@fastgpt/service/support/openapi/schema';
 import type { GetApiKeyProps } from '@/global/support/openapi/api';
-import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
 import { authApp } from '@fastgpt/service/support/permission/app/auth';
 import { ManagePermissionVal } from '@fastgpt/global/support/permission/constant';
 import type { ApiRequestProps } from '@fastgpt/service/type/next';
@@ -25,7 +25,7 @@ async function handler(req: ApiRequestProps<any, GetApiKeyProps>) {
     return findResponse.map((item) => item.toObject());
   }
   // global apikey
-  const { teamId, tmbId, permission } = await authUserPer({
+  const { teamId, tmbId, permission } = await authTeamPer({
     req,
     authToken: true
   });
