@@ -30,7 +30,7 @@ import type {
 } from '@/pages/api/core/app/plugin/getVersionList';
 
 /* ============ team plugin ============== */
-export const getTeamPlugTemplates = (data?: ListAppBody) =>
+export const getTeamPlugTemplates = (data: ListAppBody) =>
   getMyApps(data).then((res) =>
     res.map((app) => ({
       tmbId: app.tmbId,

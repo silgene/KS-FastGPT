@@ -24,18 +24,8 @@ import { OperationLogEventEnum } from '@fastgpt/global/support/operationLog/cons
 import { getI18nAppType } from '@fastgpt/service/support/operationLog/util';
 import { authSpace } from '@fastgpt/service/support/permission/space/auth';
 import { SpaceAppEditPermissionVal } from '@fastgpt/global/support/permission/space/constant';
-
-export type CreateAppBody = {
-  parentId?: ParentIdType;
-  spaceId: string;
-  name?: string;
-  avatar?: string;
-  type?: AppTypeEnum;
-  modules: AppSchema['modules'];
-  edges?: AppSchema['edges'];
-  chatConfig?: AppSchema['chatConfig'];
-  utmParams?: ShortUrlParams;
-};
+import { onCreateApp } from '@fastgpt/service/core/app/controller';
+import type { CreateAppBody } from '@fastgpt/global/core/app/controller';
 
 async function handler(req: ApiRequestProps<CreateAppBody>) {
   const { parentId, name, avatar, type, modules, edges, chatConfig, utmParams, spaceId } = req.body;
@@ -89,100 +79,3 @@ async function handler(req: ApiRequestProps<CreateAppBody>) {
 }
 
 export default NextAPI(handler);
-
-export const onCreateApp = async ({
-  parentId,
-  spaceId,
-  name,
-  intro,
-  avatar,
-  type,
-  modules,
-  edges,
-  chatConfig,
-  teamId,
-  tmbId,
-  pluginData,
-  username,
-  userAvatar,
-  session
-}: {
-  parentId?: ParentIdType;
-  spaceId: string;
-  name?: string;
-  avatar?: string;
-  type?: AppTypeEnum;
-  modules?: AppSchema['modules'];
-  edges?: AppSchema['edges'];
-  chatConfig?: AppSchema['chatConfig'];
-  intro?: string;
-  teamId: string;
-  tmbId: string;
-  pluginData?: AppSchema['pluginData'];
-  username?: string;
-  userAvatar?: string;
-  session?: ClientSession;
-}) => {
-  const create = async (session: ClientSession) => {
-    const [{ _id: appId }] = await MongoApp.create(
-      [
-        {
-          ...parseParentIdInMongo(parentId),
-          spaceId,
-          avatar,
-          name,
-          intro,
-          teamId,
-          tmbId,
-          modules,
-          edges,
-          chatConfig,
-          type,
-          version: 'v2',
-          pluginData
-        }
-      ],
-      { session, ordered: true }
-    );
-
-    if (!AppFolderTypeList.includes(type!)) {
-      await MongoAppVersion.create(
-        [
-          {
-            tmbId,
-            appId,
-            nodes: modules,
-            edges,
-            chatConfig,
-            versionName: name,
-            username,
-            avatar: userAvatar,
-            isPublish: true
-          }
-        ],
-        { session, ordered: true }
-      );
-    }
-    (async () => {
-      addOperationLog({
-        tmbId,
-        teamId,
-        event: OperationLogEventEnum.CREATE_APP,
-        params: {
-          appName: name!,
-          appType: getI18nAppType(type!)
-        }
-      });
-    })();
-
-    await refreshSourceAvatar(avatar, undefined, session);
-
-    return appId;
-  };
-
-  if (session) {
-    return create(session);
-  } else {
-    return await mongoSessionRun(create);
-  }
-};

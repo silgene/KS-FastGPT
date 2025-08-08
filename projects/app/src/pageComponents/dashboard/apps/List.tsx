@@ -37,6 +37,7 @@ import { useChatStore } from '@/web/core/chat/context/useChatStore';
 import { type RequireOnlyOne } from '@fastgpt/global/common/type/utils';
 import UserBox from '@fastgpt/web/components/common/UserBox';
 import { type PermissionValueType } from '@fastgpt/global/support/permission/type';
+import { useUserStore } from '@/web/support/user/useUserStore';
 const HttpEditModal = dynamic(() => import('./HttpPluginEditModal'));
 
 const ListItem = () => {
@@ -44,6 +45,7 @@ const ListItem = () => {
   const router = useRouter();
   const { parentId = null } = router.query;
   const { isPc } = useSystem();
+  const { spaceInfo } = useUserStore();
 
   const { openConfirm: openMoveConfirm, ConfirmModal: MoveConfirmModal } = useConfirm({
     type: 'common',
@@ -51,10 +53,8 @@ const ListItem = () => {
     content: t('app:move.hint')
   });
 
-  const { myApps, loadMyApps, onUpdateApp, setMoveAppId, folderDetail } = useContextSelector(
-    AppListContext,
-    (v) => v
-  );
+  const { myApps, loadMyApps, onUpdateApp, setMoveAppId, folderDetail, setCopyAppId } =
+    useContextSelector(AppListContext, (v) => v);
 
   const [editedApp, setEditedApp] = useState<EditResourceInfoFormType>();
   const [editHttpPlugin, setEditHttpPlugin] = useState<EditHttpPluginProps>();
@@ -356,7 +356,18 @@ const ListItem = () => {
                                         type: 'grayBg' as MenuItemType,
                                         label: t('app:copy_one_app'),
                                         onClick: () =>
-                                          openConfirmCopy(() => onclickCopy({ appId: app._id }))()
+                                          openConfirmCopy(() =>
+                                            onclickCopy({
+                                              appId: app._id,
+                                              spaceId: spaceInfo?._id || ''
+                                            })
+                                          )()
+                                      },
+                                      {
+                                        icon: 'copy',
+                                        type: 'grayBg' as MenuItemType,
+                                        label: '复制到',
+                                        onClick: () => setCopyAppId(app._id)
                                       }
                                     ]
                                   }

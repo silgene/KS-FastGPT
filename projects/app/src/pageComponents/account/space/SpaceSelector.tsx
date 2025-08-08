@@ -48,6 +48,7 @@ const SpaceSelector = ({
       setLoading(true);
       const space = mySpaces.find((s: SpaceDetailType) => s._id === spaceId);
       setSpaceInfo(space);
+      onChange?.(spaceId);
     },
     {
       onFinally: () => {

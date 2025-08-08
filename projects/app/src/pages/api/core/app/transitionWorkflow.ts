@@ -4,7 +4,7 @@ import { authApp } from '@fastgpt/service/support/permission/app/auth';
 import { OwnerPermissionVal } from '@fastgpt/global/support/permission/constant';
 import { MongoApp } from '@fastgpt/service/core/app/schema';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
-import { onCreateApp } from './create';
+import { onCreateApp } from '@fastgpt/service/core/app/controller';
 
 export type transitionWorkflowQuery = {};
 

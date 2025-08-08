@@ -32,9 +32,18 @@ type Props = {
   onConfirm: (id: ParentIdType, spaceId: string) => Promise<any>;
   onClose: () => void;
   moveHint?: string;
+  successToast?: string;
 };
 
-const MoveModal = ({ moveResourceId, title, server, onConfirm, onClose, moveHint }: Props) => {
+const MoveModal = ({
+  moveResourceId,
+  title,
+  server,
+  onConfirm,
+  onClose,
+  moveHint,
+  successToast
+}: Props) => {
   const { t } = useTranslation();
   const [selectedId, setSelectedId] = React.useState<string>();
   const [requestingIdList, setRequestingIdList] = useState<ParentIdType[]>([]);
@@ -125,7 +134,10 @@ const MoveModal = ({ moveResourceId, title, server, onConfirm, onClose, moveHint
                         if (requestingIdList.includes(item.id)) return;
 
                         if (!item.children) {
-                          const data = await requestServer({ parentId: item.id });
+                          const data = await requestServer({
+                            parentId: item.id,
+                            spaceId: currentSpaceId
+                          });
                           item.children = data.map((item) => ({
                             id: item.id,
                             name: item.name,
@@ -176,7 +188,7 @@ const MoveModal = ({ moveResourceId, title, server, onConfirm, onClose, moveHint
       onSuccess: () => {
         onClose();
       },
-      successToast: t('common:move_success')
+      successToast: successToast || t('common:move_success')
     }
   );
 

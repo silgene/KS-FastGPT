@@ -22,3 +22,14 @@ export type CreateHttpPluginChildrenPros = Omit<CreateAppProps, 'type'> & {
     pluginUniId: string;
   };
 };
+export type CreateAppBody = {
+  parentId?: ParentIdType;
+  spaceId: string;
+  name?: string;
+  avatar?: string;
+  type?: AppTypeEnum;
+  modules: AppSchema['modules'];
+  edges?: AppSchema['edges'];
+  chatConfig?: AppSchema['chatConfig'];
+  utmParams?: ShortUrlParams;
+};

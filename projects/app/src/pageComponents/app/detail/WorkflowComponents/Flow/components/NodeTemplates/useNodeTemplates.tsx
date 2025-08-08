@@ -8,9 +8,11 @@ import { TemplateTypeEnum } from './header';
 import { useContextSelector } from 'use-context-selector';
 import { WorkflowContext } from '../../../context';
 import type { ParentIdType } from '@fastgpt/global/common/parentFolder/type';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 export const useNodeTemplates = () => {
   const { feConfigs } = useSystemStore();
+  const { spaceInfo } = useUserStore();
   const [templateType, setTemplateType] = useState(TemplateTypeEnum.basic);
   const [parentId, setParentId] = useState<ParentIdType>('');
 
@@ -83,6 +85,7 @@ export const useNodeTemplates = () => {
       if (type === TemplateTypeEnum.teamPlugin) {
         return getTeamPlugTemplates({
           parentId,
+          spaceId: spaceInfo?._id || '',
           searchKey: searchVal
         }).then((res) => res.filter((app) => app.id !== appId));
       }

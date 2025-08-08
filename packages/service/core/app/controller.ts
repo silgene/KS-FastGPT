@@ -4,6 +4,16 @@ import { FlowNodeTypeEnum } from '@fastgpt/global/core/workflow/node/constant';
 import { MongoApp } from './schema';
 import type { StoreNodeItemType } from '@fastgpt/global/core/workflow/type/node';
 import { storeSecretValue } from '../../common/secret/utils';
+import { parseParentIdInMongo } from '@fastgpt/global/common/parentFolder/utils';
+import type { ParentIdType } from '@fastgpt/global/common/parentFolder/type';
+import { AppFolderTypeList, type AppTypeEnum } from '@fastgpt/global/core/app/constants';
+import { type ClientSession } from 'mongoose';
+import { MongoAppVersion } from './version/schema';
+import { addOperationLog } from '../../support/operationLog/addOperationLog';
+import { OperationLogEventEnum } from '@fastgpt/global/support/operationLog/constants';
+import { getI18nAppType } from '../../support/operationLog/util';
+import { refreshSourceAvatar } from '../../common/file/image/controller';
+import { mongoSessionRun } from '../../common/mongo/sessionRun';
 
 export const beforeUpdateAppFormat = ({ nodes }: { nodes?: StoreNodeItemType[] }) => {
   if (!nodes) return;
@@ -97,4 +107,100 @@ export const getAppBasicInfoByIds = async ({ teamId, ids }: { teamId: string; id
     name: item.name,
     avatar: item.avatar
   }));
+};
+export const onCreateApp = async ({
+  parentId,
+  spaceId,
+  name,
+  intro,
+  avatar,
+  type,
+  modules,
+  edges,
+  chatConfig,
+  teamId,
+  tmbId,
+  pluginData,
+  username,
+  userAvatar,
+  session
+}: {
+  parentId?: ParentIdType;
+  spaceId: string;
+  name?: string;
+  avatar?: string;
+  type?: AppTypeEnum;
+  modules?: AppSchema['modules'];
+  edges?: AppSchema['edges'];
+  chatConfig?: AppSchema['chatConfig'];
+  intro?: string;
+  teamId: string;
+  tmbId: string;
+  pluginData?: AppSchema['pluginData'];
+  username?: string;
+  userAvatar?: string;
+  session?: ClientSession;
+}) => {
+  const create = async (session: ClientSession) => {
+    const [{ _id: appId }] = await MongoApp.create(
+      [
+        {
+          ...parseParentIdInMongo(parentId),
+          spaceId,
+          avatar,
+          name,
+          intro,
+          teamId,
+          tmbId,
+          modules,
+          edges,
+          chatConfig,
+          type,
+          version: 'v2',
+          pluginData
+        }
+      ],
+      { session, ordered: true }
+    );
+
+    if (!AppFolderTypeList.includes(type!)) {
+      await MongoAppVersion.create(
+        [
+          {
+            tmbId,
+            appId,
+            nodes: modules,
+            edges,
+            chatConfig,
+            versionName: name,
+            username,
+            avatar: userAvatar,
+            isPublish: true
+          }
+        ],
+        { session, ordered: true }
+      );
+    }
+    (async () => {
+      addOperationLog({
+        tmbId,
+        teamId,
+        event: OperationLogEventEnum.CREATE_APP,
+        params: {
+          appName: name!,
+          appType: getI18nAppType(type!)
+        }
+      });
+    })();
+
+    await refreshSourceAvatar(avatar, undefined, session);
+
+    return appId;
+  };
+
+  if (session) {
+    return create(session);
+  } else {
+    return await mongoSessionRun(create);
+  }
 };

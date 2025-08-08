@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { getAppDetailById, getMyApps, putAppById } from '@/web/core/app/api';
 import { type AppDetailType, type AppListItemType } from '@fastgpt/global/core/app/type';
-import { getAppFolderPath } from '@/web/core/app/api/app';
+import { getAppFolderPath, postCopyApp } from '@/web/core/app/api/app';
 import {
   type GetResourceFolderListProps,
   type ParentIdType,
@@ -16,6 +16,7 @@ import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { useTranslation } from 'next-i18next';
 import { useUserStore } from '@/web/support/user/useUserStore';
+import { type copyAppBody } from '@/pages/api/core/app/copy';
 const MoveModal = dynamic(() => import('@/components/common/folder/MoveModal'));
 
 type AppListContextType = {
@@ -31,6 +32,7 @@ type AppListContextType = {
   refetchFolderDetail: () => Promise<AppDetailType | null>;
   searchKey: string;
   setSearchKey: React.Dispatch<React.SetStateAction<string>>;
+  setCopyAppId: React.Dispatch<React.SetStateAction<string | undefined>>;
 };
 
 export const AppListContext = createContext<AppListContextType>({
@@ -54,6 +56,9 @@ export const AppListContext = createContext<AppListContextType>({
   },
   searchKey: '',
   setSearchKey: function (value: React.SetStateAction<string>): void {
+    throw new Error('Function not implemented.');
+  },
+  setCopyAppId: function (value: React.SetStateAction<string | undefined>): void {
     throw new Error('Function not implemented.');
   }
 });
@@ -127,6 +132,22 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
     [moveAppId, onUpdateApp]
   );
 
+  const { runAsync: fetchCopyApp } = useRequest2(
+    async (data: copyAppBody) => {
+      return postCopyApp(data);
+    },
+    { manual: true }
+  );
+
+  const [copyAppId, setCopyAppId] = useState<string>();
+  const onCopyApp = useCallback(
+    async (parentId: ParentIdType, spaceId: string) => {
+      if (!copyAppId) return;
+      await fetchCopyApp({ appId: copyAppId, spaceId, parentId });
+    },
+    [copyAppId, fetchCopyApp]
+  );
+
   const getAppFolderList = useCallback(({ parentId, spaceId }: GetResourceFolderListProps) => {
     return getMyApps({
       parentId,
@@ -159,7 +180,8 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
     onUpdateApp,
     setMoveAppId,
     searchKey,
-    setSearchKey
+    setSearchKey,
+    setCopyAppId
   };
   return (
     <AppListContext.Provider value={contextValue}>
@@ -172,6 +194,17 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
           onClose={() => setMoveAppId(undefined)}
           onConfirm={onMoveApp}
           moveHint={t('app:move.hint')}
+        />
+      )}
+      {!!copyAppId && (
+        <MoveModal
+          moveResourceId={copyAppId}
+          server={getAppFolderList}
+          title={'复制应用到'}
+          onClose={() => setCopyAppId(undefined)}
+          onConfirm={onCopyApp}
+          moveHint={'复制应用到其他文件夹，可复制到其他空间'}
+          successToast="复制成功"
         />
       )}
     </AppListContext.Provider>

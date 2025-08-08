@@ -8,7 +8,7 @@ import type {
   transitionWorkflowBody,
   transitionWorkflowResponse
 } from '@/pages/api/core/app/transitionWorkflow';
-import type { copyAppQuery, copyAppResponse } from '@/pages/api/core/app/copy';
+import type { copyAppBody, copyAppQuery, copyAppResponse } from '@/pages/api/core/app/copy';
 
 /* folder */
 export const postCreateAppFolder = (data: CreateAppFolderBody) =>
@@ -24,4 +24,4 @@ export const getAppFolderPath = (data: GetPathProps) => {
 export const postTransition2Workflow = (data: transitionWorkflowBody) =>
   POST<transitionWorkflowResponse>('/core/app/transitionWorkflow', data);
 
-export const postCopyApp = (data: copyAppQuery) => POST<copyAppResponse>('/core/app/copy', data);
+export const postCopyApp = (data: copyAppBody) => POST<copyAppResponse>('/core/app/copy', data);

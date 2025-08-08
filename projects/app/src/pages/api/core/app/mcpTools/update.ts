@@ -9,7 +9,6 @@ import { isEqual } from 'lodash';
 import { type ClientSession } from 'mongoose';
 import { MongoApp } from '@fastgpt/service/core/app/schema';
 import { onDelOneApp } from '../del';
-import { onCreateApp } from '../create';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 
 import {
@@ -20,6 +19,7 @@ import { type MCPToolSetData } from '@/pageComponents/dashboard/apps/MCPToolsEdi
 import { MongoAppVersion } from '@fastgpt/service/core/app/version/schema';
 import { type StoreSecretValueType } from '@fastgpt/global/common/secret/type';
 import { storeSecretValue } from '@fastgpt/service/common/secret/utils';
+import { onCreateApp } from '@fastgpt/service/core/app/controller';
 
 export type updateMCPToolsQuery = {};
 

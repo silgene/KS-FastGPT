@@ -9,9 +9,9 @@ import { authApp } from '@fastgpt/service/support/permission/app/auth';
 import { ManagePermissionVal } from '@fastgpt/global/support/permission/constant';
 import { MongoApp } from '@fastgpt/service/core/app/schema';
 import { isEqual } from 'lodash';
-import { onCreateApp } from '../create';
 import { onDelOneApp } from '../del';
 import { refreshSourceAvatar } from '@fastgpt/service/common/file/image/controller';
+import { onCreateApp } from '@fastgpt/service/core/app/controller';
 
 export type UpdateHttpPluginBody = {
   appId: string;
@@ -67,12 +67,14 @@ export default NextAPI(handler);
 const updateHttpChildrenPlugin = async ({
   teamId,
   tmbId,
+  spaceId,
   parentId,
   pluginData,
   session
 }: {
   teamId: string;
   tmbId: string;
+  spaceId: string;
   parentId: string;
   pluginData?: AppSchema['pluginData'];
   session: ClientSession;

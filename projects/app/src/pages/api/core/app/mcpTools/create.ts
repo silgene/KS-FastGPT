@@ -3,7 +3,6 @@ import { NextAPI } from '@/service/middleware/entry';
 import { TeamAppCreatePermissionVal } from '@fastgpt/global/support/permission/user/constant';
 import { authApp } from '@fastgpt/service/support/permission/app/auth';
 import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
-import { type CreateAppBody, onCreateApp } from '../create';
 import { type McpToolConfigType } from '@fastgpt/global/core/app/type';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
@@ -16,6 +15,8 @@ import { checkTeamAppLimit } from '@fastgpt/service/support/permission/teamLimit
 import { WritePermissionVal } from '@fastgpt/global/support/permission/constant';
 import { type StoreSecretValueType } from '@fastgpt/global/common/secret/type';
 import { storeSecretValue } from '@fastgpt/service/common/secret/utils';
+import { onCreateApp } from '@fastgpt/service/core/app/controller';
+import type { CreateAppBody } from '@fastgpt/global/core/app/controller';
 
 export type createMCPToolsQuery = {};
 
@@ -34,8 +35,8 @@ async function handler(
   req: ApiRequestProps<createMCPToolsBody, createMCPToolsQuery>,
   res: ApiResponseType<createMCPToolsResponse>
 ): Promise<createMCPToolsResponse> {
-  const { name, avatar, toolList, url, headerSecret = {}, parentId } = req.body;
-
+  const { name, avatar, toolList, url, headerSecret = {}, parentId, spaceId } = req.body;
+  // TODO: 鉴权空间
   const { teamId, tmbId, userId } = parentId
     ? await authApp({ req, appId: parentId, per: WritePermissionVal, authToken: true })
     : await authTeamPer({ req, authToken: true, per: TeamAppCreatePermissionVal });
@@ -46,6 +47,7 @@ async function handler(
 
   const mcpToolsId = await mongoSessionRun(async (session) => {
     const mcpToolsId = await onCreateApp({
+      spaceId,
       name,
       avatar,
       parentId,
@@ -67,6 +69,7 @@ async function handler(
     for (const tool of toolList) {
       await onCreateApp({
         name: tool.name,
+        spaceId,
         avatar,
         parentId: mcpToolsId,
         teamId,

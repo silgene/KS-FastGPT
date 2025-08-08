@@ -250,7 +250,20 @@ const DashboardContainer = ({
           zIndex={100}
           userSelect={'none'}
         >
-          <SpaceSelector isGlobal showManage mb={3}></SpaceSelector>
+          <SpaceSelector
+            isGlobal
+            showManage
+            mb={3}
+            onChange={() => {
+              router.push({
+                pathname: router.pathname,
+                query: {
+                  ...router.query,
+                  parentId: undefined
+                }
+              });
+            }}
+          ></SpaceSelector>
           {groupList.map((group) => {
             const selected = currentTab === group.groupId.split('/')[0];
 

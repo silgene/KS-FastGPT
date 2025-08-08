@@ -48,6 +48,7 @@ import { useToast } from '@fastgpt/web/hooks/useToast';
 import type { LLMModelItemType } from '@fastgpt/global/core/ai/model.d';
 import { workflowStartNodeId } from '@/web/core/app/constants';
 import ConfigToolModal from './ConfigToolModal';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 type Props = {
   selectedTools: FlowNodeTemplateType[];
@@ -72,6 +73,7 @@ enum TemplateTypeEnum {
 const ToolSelectModal = ({ onClose, ...props }: Props & { onClose: () => void }) => {
   const { t } = useTranslation();
   const { appDetail } = useContextSelector(AppContext, (v) => v);
+  const { spaceInfo } = useUserStore();
 
   const [templateType, setTemplateType] = useState(TemplateTypeEnum.systemPlugin);
   const [parentId, setParentId] = useState<ParentIdType>('');
@@ -96,6 +98,7 @@ const ToolSelectModal = ({ onClose, ...props }: Props & { onClose: () => void })
       } else if (type === TemplateTypeEnum.teamPlugin) {
         return getTeamPlugTemplates({
           parentId,
+          spaceId: spaceInfo?._id || '',
           searchKey: searchVal
         }).then((res) => res.filter((app) => app.id !== appDetail._id));
       }
