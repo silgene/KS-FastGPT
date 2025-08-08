@@ -7,6 +7,8 @@ import { Box } from '@chakra-ui/react';
 import ParentPaths from '@/components/common/ParentPaths';
 import MyBox from '@fastgpt/web/components/common/MyBox';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
+import { useUserStore } from '@/web/support/user/useUserStore';
+import { stringConditionList } from '@fastgpt/global/core/workflow/template/system/ifElse/constant';
 
 type PathItemType = {
   parentId: string;
@@ -31,7 +33,6 @@ const DatasetSelectContainer = ({
   children: React.ReactNode;
 }) => {
   const { t } = useTranslation();
-
   return (
     <MyModal
       iconSrc="/imgs/workflow/db.png"
@@ -70,11 +71,12 @@ const DatasetSelectContainer = ({
 
 export function useDatasetSelect() {
   const [parentId, setParentId] = useState<string>('');
-
+  const spaceId = useUserStore().spaceInfo?._id || '';
   const { data, loading: isFetching } = useRequest2(
     () =>
       Promise.all([
-        getDatasets({ parentId }),
+        getDatasets({ parentId, spaceId }),
+
         getDatasetPaths({ sourceId: parentId, type: 'current' })
       ]),
     {

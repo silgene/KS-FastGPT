@@ -112,11 +112,12 @@ function DatasetContextProvider({ children }: { children: React.ReactNode }) {
   });
 
   const onMoveDataset = useCallback(
-    async (parentId: ParentIdType) => {
+    async (parentId: ParentIdType, spaceId: string) => {
       if (!moveDatasetId) return;
       await onUpdateDataset({
         id: moveDatasetId,
-        parentId
+        parentId,
+        spaceId
       });
     },
     [moveDatasetId, onUpdateDataset]
@@ -173,7 +174,7 @@ function DatasetContextProvider({ children }: { children: React.ReactNode }) {
           server={getDatasetFolderList}
           title={t('common:Move')}
           onClose={() => setMoveDatasetId(undefined)}
-          onConfirm={(parentId) => onMoveDataset(parentId)}
+          onConfirm={(parentId, spaceId) => onMoveDataset(parentId, spaceId)}
           moveHint={t('dataset:move.hint')}
         />
       )}

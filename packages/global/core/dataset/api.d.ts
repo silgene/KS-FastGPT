@@ -17,7 +17,7 @@ import type { ParentIdType } from '../../common/parentFolder/type';
 /* ================= dataset ===================== */
 export type DatasetUpdateBody = {
   id: string;
-
+  spaceId?: string;
   apiDatasetServer?: DatasetSchemaType['apiDatasetServer'];
 
   parentId?: ParentIdType;

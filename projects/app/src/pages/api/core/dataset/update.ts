@@ -62,6 +62,7 @@ async function handler(
   _res: ApiResponseType<any>
 ): Promise<DatasetUpdateResponse> {
   let {
+    spaceId,
     id,
     parentId,
     name,
@@ -213,6 +214,7 @@ async function handler(
         ...(avatar && { avatar }),
         ...(agentModel && { agentModel }),
         ...(vlmModel && { vlmModel }),
+        ...(spaceId && { spaceId }),
         ...(websiteConfig && { websiteConfig }),
         ...(chunkSettings && { chunkSettings }),
         ...(intro !== undefined && { intro }),
