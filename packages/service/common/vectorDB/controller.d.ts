@@ -17,7 +17,7 @@ export type InsertVectorProps = {
   collectionId: string;
 };
 export type InsertVectorControllerProps = InsertVectorProps & {
-  vector: number[];
+  vector: number[] | string;
   retry?: number;
 };
 

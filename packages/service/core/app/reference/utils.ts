@@ -16,6 +16,7 @@ import { MongoDataset } from '../../../core/dataset/schema';
 import { MongoDatasetCollection } from '../../../core/dataset/collection/schema';
 import { MongoDatasetData } from '../../../core/dataset/data/schema';
 import { MongoDatasetDataText } from '../../../core/dataset/data/dataTextSchema';
+import { getVectorByCollectionId, vectorInsert } from '../../../common/vectorDB/controller';
 
 const dfsFindAppReference = async ({
   appId,
@@ -163,6 +164,20 @@ export const createAppReferenceTo = async (params: {
     for (let j = 0; j < collections.length; j++) {
       const collection = collections[j];
       const newCollectionId = new Types.ObjectId().toHexString();
+      const vectorIdsMap = new Map<string, string>();
+      const vectors = await getVectorByCollectionId(String(collection._id));
+      // TODO: 在这里可以考虑批量插入向量数据
+      // TODO: 这里的向量数据插入后在函数抛异常时需要删除
+      for (const vector of vectors) {
+        const { insertId } = await vectorInsert({
+          datasetId: newDatasetId,
+          collectionId: newCollectionId,
+          vector: vector.vector,
+          teamId: vector.team_id
+        });
+        vectorIdsMap.set(vector.id, insertId);
+      }
+
       const collectionData = await MongoDatasetData.find({ collectionId: collection._id }).lean();
       const collectionDataIdsMap = new Map<string, string>(
         collectionData.map((data) => [String(data._id), new Types.ObjectId().toHexString()])
@@ -186,11 +201,17 @@ export const createAppReferenceTo = async (params: {
         ...collectionData.map((data) => {
           return {
             ...data,
+            indexes: data.indexes.map((idx) => {
+              return {
+                ...idx,
+                // 向量索引
+                dataId: vectorIdsMap.get(idx.dataId)!
+              };
+            }),
             _id: new Types.ObjectId().toHexString(),
             datasetId: newDatasetId,
             collectionId: newCollectionId,
             tmbId,
-            dataId: collectionDataIdsMap.get(String(data._id))!,
             updateTime: new Date()
           };
         })

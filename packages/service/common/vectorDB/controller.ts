@@ -16,11 +16,11 @@ import {
 } from '../redis/cache';
 import { throttle } from 'lodash';
 import { retryFn } from '@fastgpt/global/common/system/utils';
-
+// PG作为默认的向量存储，其余两个先注释掉
 const getVectorObj = () => {
-  if (PG_ADDRESS) return new PgVectorCtrl();
-  if (OCEANBASE_ADDRESS) return new ObVectorCtrl();
-  if (MILVUS_ADDRESS) return new MilvusCtrl();
+  // if (PG_ADDRESS) return new PgVectorCtrl();
+  // if (OCEANBASE_ADDRESS) return new ObVectorCtrl();
+  // if (MILVUS_ADDRESS) return new MilvusCtrl();
 
   return new PgVectorCtrl();
 };
@@ -89,3 +89,5 @@ export const deleteDatasetDataVector = async (props: DelDatasetVectorCtrlProps) 
   onDelCache(props.teamId);
   return result;
 };
+export const getVectorByCollectionId = Vector.getVectorByCollectionId;
+export const vectorInsert = Vector.insert;

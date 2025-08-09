@@ -72,7 +72,7 @@ export class PgVectorCtrl {
       const { rowCount, rows } = await PgClient.insert(DatasetVectorTableName, {
         values: [
           [
-            { key: 'vector', value: `[${vector}]` },
+            { key: 'vector', value: typeof vector === 'string' ? vector : `[${vector}]` },
             { key: 'team_id', value: String(teamId) },
             { key: 'dataset_id', value: String(datasetId) },
             { key: 'collection_id', value: String(collectionId) }
@@ -273,5 +273,19 @@ export class PgVectorCtrl {
     });
 
     return total;
+  };
+  getVectorByCollectionId = async (collectionId: string) => {
+    const { rows } = await PgClient.query<{
+      id: string;
+      vector: string;
+      team_id: string;
+      dataset_id: string;
+      collection_id: string;
+    }>(
+      `
+      SELECT * FROM ${DatasetVectorTableName} WHERE collection_id = '${collectionId}';
+      `
+    );
+    return rows;
   };
 }
