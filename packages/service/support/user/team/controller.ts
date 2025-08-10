@@ -28,7 +28,6 @@ import { createRootOrg } from '../../permission/org/controllers';
 import { refreshSourceAvatar } from '../../../common/file/image/controller';
 import { type PaginationProps } from '@fastgpt/global/common/fetch/type';
 import { MongoUser } from '../schema';
-import { MongoOrgModel } from 'support/permission/org/orgSchema';
 import { type UserModelSchema } from '@fastgpt/global/support/user/type';
 
 async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemType> {

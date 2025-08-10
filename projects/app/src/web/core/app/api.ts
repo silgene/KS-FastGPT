@@ -2,11 +2,11 @@ import { GET, POST, DELETE, PUT } from '@/web/common/api/request';
 import type { AppDetailType, AppListItemType } from '@fastgpt/global/core/app/type.d';
 import type { GetAppChatLogsParams } from '@/global/core/api/appReq.d';
 import type { AppUpdateParams, AppChangeOwnerBody } from '@/global/core/app/api';
-import type { CreateAppBody } from '@/pages/api/core/app/create';
 import type { ListAppBody } from '@/pages/api/core/app/list';
 import type { AppLogsListItemType } from '@/types/app';
 import type { PaginationResponse } from '@fastgpt/web/common/fetch/type';
 import type { getBasicInfoResponse } from '@/pages/api/core/app/getBasicInfo';
+import type { CreateAppBody } from '@fastgpt/global/core/app/controller';
 
 /**
  * 获取应用列表

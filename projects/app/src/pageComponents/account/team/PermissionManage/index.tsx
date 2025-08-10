@@ -216,13 +216,13 @@ function PermissionManage({
                 <Th bg="myGray.100">
                   <Box mx="auto" w="fit-content">
                     {t('account_team:permission_appCreate')}
-                    <QuestionTip ml="1" label={t('account_team:permission_appCreate_tip')} />
+                    <QuestionTip ml="1" label={'account_team:permission_appCreate_tip'} />
                   </Box>
                 </Th>
                 <Th bg="myGray.100">
                   <Box mx="auto" w="fit-content">
                     {t('account_team:permission_datasetCreate')}
-                    <QuestionTip ml="1" label={t('account_team:permission_datasetCreate_Tip')} />
+                    <QuestionTip ml="1" label={'account_team:permission_datasetCreate_Tip'} />
                   </Box>
                 </Th>
                 <Th bg="myGray.100">

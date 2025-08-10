@@ -5,13 +5,15 @@ import { WritePermissionVal } from '@fastgpt/global/support/permission/constant'
 
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
 import { NextAPI } from '@/service/middleware/entry';
-import { onCreateApp, type CreateAppBody } from '../create';
+
 import { type AppSchema } from '@fastgpt/global/core/app/type';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import { pushTrack } from '@fastgpt/service/common/middle/tracks/utils';
 import { authApp } from '@fastgpt/service/support/permission/app/auth';
 import { TeamAppCreatePermissionVal } from '@fastgpt/global/support/permission/user/constant';
 import { checkTeamAppLimit } from '@fastgpt/service/support/permission/teamLimit';
+import { type CreateAppBody } from '@fastgpt/global/core/app/controller';
+import { onCreateApp } from '@fastgpt/service/core/app/controller';
 
 export type createHttpPluginQuery = {};
 
@@ -26,7 +28,7 @@ async function handler(
   req: ApiRequestProps<createHttpPluginBody, createHttpPluginQuery>,
   res: ApiResponseType<any>
 ): Promise<createHttpPluginResponse> {
-  const { parentId, name, intro, avatar, pluginData } = req.body;
+  const { parentId, name, intro, avatar, pluginData, spaceId } = req.body;
 
   if (!name || !pluginData) {
     return Promise.reject('缺少参数');
@@ -49,6 +51,7 @@ async function handler(
       tmbId,
       type: AppTypeEnum.httpPlugin,
       pluginData,
+      spaceId,
       session
     });
 
@@ -65,6 +68,7 @@ async function handler(
         ...item,
         teamId,
         tmbId,
+        spaceId,
         session
       });
     }

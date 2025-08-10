@@ -36,6 +36,7 @@ import { type OpenApiJsonSchema } from '@fastgpt/global/core/app/httpPlugin/type
 import { type AppSchema } from '@fastgpt/global/core/app/type';
 import { useContextSelector } from 'use-context-selector';
 import { AppListContext } from './context';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 export type EditHttpPluginProps = {
   id?: string;
@@ -66,6 +67,7 @@ const HttpPluginEditModal = ({
   const isEdit = !!defaultPlugin.id;
 
   const { parentId, loadMyApps } = useContextSelector(AppListContext, (v) => v);
+  const { spaceInfo } = useUserStore();
 
   const [schemaUrl, setSchemaUrl] = useState('');
   const [customHeaders, setCustomHeaders] = useState<{ key: string; value: string }[]>(() => {
@@ -91,7 +93,8 @@ const HttpPluginEditModal = ({
         pluginData: {
           apiSchemaStr: data.pluginData?.apiSchemaStr,
           customHeaders: data.pluginData?.customHeaders
-        }
+        },
+        spaceId: spaceInfo?._id || ''
       });
     },
     onSuccess() {

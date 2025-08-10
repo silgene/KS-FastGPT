@@ -22,7 +22,8 @@ export const defaultApp: AppDetailType = {
   edges: [],
   version: 'v2',
   permission: new AppPermission(),
-  inheritPermission: false
+  inheritPermission: false,
+  spaceId: ''
 };
 
 export const defaultOutLinkForm: OutLinkEditType = {

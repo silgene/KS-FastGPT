@@ -40,7 +40,8 @@ async function handler(
       edges: app.edges,
       chatConfig: app.chatConfig,
       teamId: app.teamId,
-      tmbId
+      tmbId,
+      spaceId: app.spaceId
     });
 
     return { id: appId };

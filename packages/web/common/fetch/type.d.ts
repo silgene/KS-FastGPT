@@ -13,7 +13,7 @@ import type { RequireOnlyOne } from '@fastgpt/global/common/type/utils';
 // };
 export type { PaginationProps, PaginationResponse } from '@fastgpt/global/common/fetch/type';
 
-type LinkedPaginationProps<T = {}> = T & {
+export type LinkedPaginationProps<T = {}> = T & {
   pageSize: number;
 } & RequireOnlyOne<{
     initialId: string;
@@ -26,7 +26,7 @@ type LinkedPaginationProps<T = {}> = T & {
     prevIndex: number;
   }>;
 
-type LinkedListResponse<T = {}> = {
+export type LinkedListResponse<T = {}> = {
   list: Array<T & { _id: string; index: number }>;
   hasMorePrev: boolean;
   hasMoreNext: boolean;

@@ -28,6 +28,7 @@ import { type McpToolConfigType } from '@fastgpt/global/core/app/type';
 import type { getMCPToolsBody } from '@/pages/api/support/mcp/client/getTools';
 import HeaderAuthConfig from '@/components/common/secret/HeaderAuthConfig';
 import { type StoreSecretValueType } from '@fastgpt/global/common/secret/type';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 export type MCPToolSetData = {
   url: string;
@@ -43,7 +44,7 @@ export type EditMCPToolsProps = {
 
 const MCPToolsEditModal = ({ onClose }: { onClose: () => void }) => {
   const { t } = useTranslation();
-
+  const { spaceInfo } = useUserStore();
   const { parentId, loadMyApps } = useContextSelector(AppListContext, (v) => v);
 
   const { register, setValue, handleSubmit, watch } = useForm<EditMCPToolsProps>({
@@ -68,7 +69,8 @@ const MCPToolsEditModal = ({ onClose }: { onClose: () => void }) => {
         toolList: data.mcpData.toolList,
         url: data.mcpData.url,
         headerSecret: data.mcpData.headerSecret,
-        parentId
+        parentId,
+        spaceId: spaceInfo?._id || ''
       });
     },
     {

@@ -112,7 +112,7 @@ const updateMCPChildrenTool = async ({
   };
   session: ClientSession;
 }) => {
-  const { teamId, tmbId } = parentApp;
+  const { teamId, tmbId, spaceId } = parentApp;
   const dbTools = await MongoApp.find({
     parentId: parentApp._id,
     teamId
@@ -147,6 +147,7 @@ const updateMCPChildrenTool = async ({
             headerSecret: toolSetData.headerSecret
           })
         ],
+        spaceId,
         session
       });
     }

@@ -43,6 +43,7 @@ async function handler(req: ApiRequestProps<UpdateHttpPluginBody>, res: NextApiR
         tmbId: app.tmbId,
         parentId: app._id,
         pluginData,
+        spaceId: app.spaceId,
         session
       });
     }
@@ -111,6 +112,7 @@ const updateHttpChildrenPlugin = async ({
         ...plugin,
         teamId,
         tmbId,
+        spaceId,
         session
       });
     }
