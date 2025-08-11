@@ -36,7 +36,7 @@ const AccountContainer = ({
 }) => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { userInfo, setUserInfo } = useUserStore();
+  const { userInfo, setUserInfo, spaceInfo } = useUserStore();
   const { feConfigs, systemVersion } = useSystemStore();
   const router = useRouter();
   const { isPc } = useSystem();
@@ -64,15 +64,20 @@ const AccountContainer = ({
             label: t('account:usage_records'),
             value: TabEnum.usage
           },
-          {
-            icon: 'common/settingLight',
-            label: t('account:spacePermission'),
-            value: TabEnum.space
-          },
+
           {
             icon: 'common/settingLight',
             label: t('account:rolePermission'),
             value: TabEnum.role
+          }
+        ]
+      : []),
+    ...(spaceInfo?.permission.hasMemberManagePer
+      ? [
+          {
+            icon: 'common/settingLight',
+            label: t('account:spacePermission'),
+            value: TabEnum.space
           }
         ]
       : []),

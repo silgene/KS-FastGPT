@@ -73,7 +73,7 @@ export const findAppReference = async (params: {
   const appSet = new Set<string>();
   const datasetSet = new Set<string>();
   await dfsFindAppReference({
-    appId: params.appId,
+    appId: String(params.appId),
     appSet,
     datasetSet
   });
