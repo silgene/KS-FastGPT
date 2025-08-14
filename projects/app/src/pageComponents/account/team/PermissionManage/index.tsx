@@ -26,14 +26,7 @@ import QuestionTip from '@fastgpt/web/components/common/MyTooltip/QuestionTip';
 import Avatar from '@fastgpt/web/components/common/Avatar';
 import MemberTag from '../../../../components/support/user/team/Info/MemberTag';
 import { DefaultGroupName } from '@fastgpt/global/support/user/team/group/constant';
-import {
-  TeamApikeyCreatePermissionVal,
-  TeamAppCreatePermissionVal,
-  TeamDatasetCreatePermissionVal,
-  TeamManagePermissionVal,
-  TeamPermissionList,
-  TeamWritePermissionVal
-} from '@fastgpt/global/support/permission/user/constant';
+import { TeamPermissionList } from '@fastgpt/global/support/permission/user/constant';
 import { TeamPermission } from '@fastgpt/global/support/permission/user/controller';
 import { useToggle } from 'ahooks';
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
@@ -136,7 +129,7 @@ function PermissionManage({
   const { runAsync: onDeleteMemberPermission, loading: deleteLoading } =
     useRequest2(onDelOneCollaborator);
 
-  const userManage = userInfo?.permission.hasManagePer;
+  const userManage = userInfo?.permission.hasManageMemberPer;
   const hasDeletePer = (per: Permission) => {
     if (userInfo?.permission.isOwner) return true;
     if (userManage && !per.hasManagePer) return true;
@@ -191,7 +184,7 @@ function PermissionManage({
             onChange={(e) => setSearchKey(e.target.value)}
           />
         </Box>
-        {userInfo?.team.permission.hasManagePer && (
+        {userInfo?.team.permission.hasManageMemberPer && (
           <Button
             variant={'primary'}
             size="md"
@@ -264,7 +257,7 @@ function PermissionManage({
                           <Box>{member.name}</Box>
                         </HStack>
                       </Td>
-                      <PermissionCheckBox
+                      {/* <PermissionCheckBox
                         isDisabled={member.permission.isOwner || !userManage}
                         per={TeamAppCreatePermissionVal}
                         clbPer={member.permission}
@@ -287,7 +280,7 @@ function PermissionManage({
                         per={TeamManagePermissionVal}
                         clbPer={member.permission}
                         id={member.tmbId!}
-                      />
+                      /> */}
                       <Td>
                         {hasDeletePer(member.permission) &&
                           userInfo?.team.tmbId !== member.tmbId && (
@@ -321,7 +314,7 @@ function PermissionManage({
                       <Td pl={10}>
                         <MemberTag name={org.name} avatar={org.avatar} />
                       </Td>
-                      <PermissionCheckBox
+                      {/* <PermissionCheckBox
                         isDisabled={org.permission.isOwner || !userManage}
                         per={TeamAppCreatePermissionVal}
                         clbPer={org.permission}
@@ -344,7 +337,7 @@ function PermissionManage({
                         per={TeamManagePermissionVal}
                         clbPer={org.permission}
                         id={org.orgId!}
-                      />
+                      /> */}
                       <Td>
                         {hasDeletePer(org.permission) && (
                           <Box mx="auto" w="fit-content">
@@ -383,7 +376,7 @@ function PermissionManage({
                           avatar={group.avatar}
                         />
                       </Td>
-                      <PermissionCheckBox
+                      {/* <PermissionCheckBox
                         isDisabled={group.permission.isOwner || !userManage}
                         per={TeamAppCreatePermissionVal}
                         clbPer={group.permission}
@@ -406,7 +399,7 @@ function PermissionManage({
                         per={TeamManagePermissionVal}
                         clbPer={group.permission}
                         id={group.groupId!}
-                      />
+                      /> */}
                       <Td>
                         {hasDeletePer(group.permission) && (
                           <Box mx="auto" w="fit-content">

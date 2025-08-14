@@ -3,6 +3,7 @@ import type { TeamMemberRoleEnum, TeamMemberStatusEnum } from './constant';
 import type { LafAccountType } from './type';
 import { PermissionValueType, ResourcePermissionType } from '../../permission/type';
 import type { TeamPermission } from '../../permission/user/controller';
+import type { RoleSchemaType } from '../role/type';
 
 export type ThirdPartyAccountType = {
   lafAccount?: LafAccountType;
@@ -70,38 +71,23 @@ export type TeamTmbItemType = {
   permission: TeamPermission;
 } & ThirdPartyAccountType;
 
-export type TeamMemberItemType<
-  Options extends {
-    withPermission?: boolean;
-    withOrgs?: boolean;
-    withGroupRole?: boolean;
-  } = { withPermission: true; withOrgs: true; withGroupRole: false }
-> = {
+export type TeamMemberItemType = {
   userId: string;
   tmbId: string;
   teamId: string;
   memberName: string;
+  username: string;
   avatar: string;
-  role: `${TeamMemberRoleEnum}`;
+  role: RoleSchemaType;
   status: `${TeamMemberStatusEnum}`;
   contact?: string;
   createTime: Date;
   updateTime?: Date;
-} & (Options extends { withPermission: true }
-  ? {
-      permission: TeamPermission;
-    }
-  : {}) &
-  (Options extends { withOrgs: true }
-    ? {
-        orgs?: string[]; // full path name, pattern: /teamName/orgname1/orgname2
-      }
-    : {}) &
-  (Options extends { withGroupRole: true }
-    ? {
-        groupRole?: `${GroupMemberRole}`;
-      }
-    : {});
+  permission: TeamPermission;
+  // 已废弃
+  orgs?: string[];
+  groupRole?: `${GroupMemberRole}`;
+};
 
 export type TeamTagItemType = {
   label: string;

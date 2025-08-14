@@ -7,7 +7,7 @@ import type { UserType } from '@fastgpt/global/support/user/type.d';
 import type { ClientTeamPlanStatusType } from '@fastgpt/global/support/wallet/sub/type';
 import { getTeamPlanStatus } from './team/api';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
-import { getLastUsedSpace } from './space/api';
+import { getAllAccessibleSpaces, getLastUsedSpace } from './space/api';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 
 type State = {
@@ -69,7 +69,7 @@ export const useUserStore = create<State>()(
         setUserInfo(user: UserType | null) {
           set((state) => {
             state.userInfo = user ? user : null;
-            state.isTeamAdmin = !!user?.team?.permission?.hasManagePer;
+            // state.isTeamAdmin = !!user?.team?.permission?.hasManagePer;
           });
         },
         async updateUserInfo(user: UserUpdateParams) {
@@ -109,9 +109,9 @@ export const useUserStore = create<State>()(
           });
         },
         async initSpaceInfo() {
-          const space = await getLastUsedSpace();
-          get().setSpaceInfo(space);
-          return space;
+          const spaceList = await getAllAccessibleSpaces();
+          get().setSpaceInfo(spaceList[0]);
+          return spaceList[0];
         }
       })),
       {

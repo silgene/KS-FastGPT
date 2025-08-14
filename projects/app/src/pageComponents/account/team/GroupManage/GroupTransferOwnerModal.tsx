@@ -43,18 +43,15 @@ export function ChangeOwnerModal({
     data: members = [],
     ScrollData: MemberScrollData,
     refreshList
-  } = useScrollPagination<any, PaginationResponse<TeamMemberItemType<{ withGroupRole: true }>>>(
-    getTeamMembers,
-    {
-      pageSize: 20,
-      params: {
-        searchKey
-      },
-      refreshDeps: [searchKey],
-      debounceWait: 200,
-      throttleWait: 500
-    }
-  );
+  } = useScrollPagination<any, PaginationResponse<TeamMemberItemType>>(getTeamMembers, {
+    pageSize: 20,
+    params: {
+      searchKey
+    },
+    refreshDeps: [searchKey],
+    debounceWait: 200,
+    throttleWait: 500
+  });
 
   const {
     isOpen: isOpenMemberListMenu,

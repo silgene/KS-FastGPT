@@ -2,7 +2,7 @@ import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/nex
 import { NextAPI } from '@/service/middleware/entry';
 import { TeamAppCreatePermissionVal } from '@fastgpt/global/support/permission/user/constant';
 import { authApp } from '@fastgpt/service/support/permission/app/auth';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { type McpToolConfigType } from '@fastgpt/global/core/app/type';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
@@ -39,7 +39,7 @@ async function handler(
   // TODO: 鉴权空间
   const { teamId, tmbId, userId } = parentId
     ? await authApp({ req, appId: parentId, per: WritePermissionVal, authToken: true })
-    : await authTeamPer({ req, authToken: true, per: TeamAppCreatePermissionVal });
+    : await authTeam({ req, authToken: true, per: TeamAppCreatePermissionVal });
 
   await checkTeamAppLimit(teamId);
 

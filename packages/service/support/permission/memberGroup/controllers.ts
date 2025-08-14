@@ -90,7 +90,7 @@ export const authGroupMemberRole = async ({
 }: {
   groupId: string;
   role: `${GroupMemberRole}`[];
-} & AuthModeType): Promise<AuthResponseType> => {
+} & AuthModeType): Promise<AuthResponseType<TeamPermission>> => {
   const result = await parseHeaderCert(props);
   const { teamId, tmbId, isRoot } = result;
   if (isRoot) {
@@ -109,7 +109,7 @@ export const authGroupMemberRole = async ({
   ]);
 
   // Team admin or role check
-  if (tmb.permission.hasManagePer || (groupMember && role.includes(groupMember.role))) {
+  if (tmb.permission.hasManageMemberPer || (groupMember && role.includes(groupMember.role))) {
     return {
       ...result,
       permission: tmb.permission,

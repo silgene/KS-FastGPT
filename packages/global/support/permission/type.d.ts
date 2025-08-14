@@ -15,6 +15,7 @@ export type PermissionListTypeItem = {
   name: string;
   description: string;
   value: PermissionValueType;
+  // TODO: checkBoxType不使用了，可以删除
   checkBoxType: 'single' | 'multiple';
 };
 export type PermissionBaseListType<T> = Record<T, PermissionListTypeItem>;

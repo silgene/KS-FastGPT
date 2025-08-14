@@ -53,10 +53,7 @@ function GroupEditModal({
     data: allMembers = [],
     ScrollData: MemberScrollData,
     refreshList
-  } = useScrollPagination<
-    any,
-    PaginationResponse<TeamMemberItemType<{ withOrgs: true; withPermission: true }>>
-  >(getTeamMembers, {
+  } = useScrollPagination<any, PaginationResponse<TeamMemberItemType>>(getTeamMembers, {
     pageSize: 20,
     params: {
       status: 'active',
@@ -72,9 +69,7 @@ function GroupEditModal({
 
   const { data: groupMembers = [], ScrollData: GroupScrollData } = useScrollPagination<
     any,
-    PaginationResponse<
-      TeamMemberItemType<{ withOrgs: true; withPermission: true; withGroupRole: true }>
-    >
+    PaginationResponse<TeamMemberItemType>
   >(getTeamMembers, {
     pageSize: 100000,
     params: {
@@ -115,7 +110,7 @@ function GroupEditModal({
   };
 
   const myRole = useMemo(() => {
-    if (userInfo?.team.permission.hasManagePer) {
+    if (userInfo?.team.permission.isOwner) {
       return 'owner';
     }
     return groupMembers.find((item) => item.tmbId === userInfo?.team.tmbId)?.groupRole ?? 'member';
@@ -124,7 +119,7 @@ function GroupEditModal({
   const handleToggleSelect = (memberId: string) => {
     if (
       myRole === 'owner' &&
-      memberId === groupMembers.find((item) => item.role === 'owner')?.tmbId
+      memberId === groupMembers.find((item) => item.role.ownerRole)?.tmbId
     ) {
       toast({
         title: t('user:team.group.toast.can_not_delete_owner'),

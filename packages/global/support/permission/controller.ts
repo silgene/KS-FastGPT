@@ -12,6 +12,7 @@ import {
 
 export type PerConstructPros<T = PermissionKeyEnum> = {
   per?: PermissionValueType;
+  allPer?: boolean;
   isOwner?: boolean;
   permissionList?: PermissionBaseListType<T>;
   childUpdatePermissionCallback?: () => void;
@@ -20,11 +21,12 @@ export type PerConstructPros<T = PermissionKeyEnum> = {
 export class PermissionBase<T = PermissionKeyEnum> {
   value: PermissionValueType;
   isOwner: boolean = false;
+  allPer: boolean = false;
   _permissionList: PermissionBaseListType<T>;
 
   constructor(props?: PerConstructPros<T>) {
-    const { per = NullPermission, isOwner = false, permissionList } = props || {};
-    if (isOwner) {
+    const { per = NullPermission, isOwner = false, permissionList, allPer = false } = props || {};
+    if (isOwner || allPer) {
       this.value = OwnerPermissionVal;
     } else {
       this.value = per;

@@ -1,7 +1,7 @@
 import { type PermissionValueType } from '@fastgpt/global/support/permission/type';
 import { type AuthModeType, type AuthResponseType } from '../type';
 import { type McpKeyType } from '@fastgpt/global/support/mcp/type';
-import { authTeamPer } from '../user/auth';
+import { authTeam } from '../user/auth';
 import { MongoMcpKey } from '../../mcp/schema';
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
@@ -18,7 +18,7 @@ export const authMcp = async ({
     mcp: McpKeyType;
   }
 > => {
-  const { userId, teamId, tmbId, permission, isRoot } = await authTeamPer(props);
+  const { userId, teamId, tmbId, permission, isRoot } = await authTeam(props);
 
   const mcp = await MongoMcpKey.findOne({ _id: mcpId }).lean();
 

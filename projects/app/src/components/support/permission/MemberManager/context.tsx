@@ -4,8 +4,9 @@ import type {
   UpdateClbPermissionProps
 } from '@fastgpt/global/support/permission/collaborator';
 import { PermissionList } from '@fastgpt/global/support/permission/constant';
-import { Permission } from '@fastgpt/global/support/permission/controller';
+import { Permission, type PermissionBase } from '@fastgpt/global/support/permission/controller';
 import type {
+  PermissionBaseListType,
   PermissionListType,
   PermissionValueType
 } from '@fastgpt/global/support/permission/type';
@@ -24,9 +25,9 @@ const MemberModal = dynamic(() => import('./MemberModal'));
 const ManageModal = dynamic(() => import('./ManageModal'));
 
 export type MemberManagerInputPropsType = {
-  permission: Permission;
+  permission: PermissionBase<any>;
   onGetCollaboratorList: () => Promise<CollaboratorItemType[]>;
-  permissionList?: PermissionListType;
+  permissionList?: PermissionBaseListType<any>;
   onUpdateCollaborators: (props: UpdateClbPermissionProps) => Promise<any>;
   onDelOneCollaborator: (
     props: RequireOnlyOne<{ tmbId: string; groupId: string; orgId: string }>

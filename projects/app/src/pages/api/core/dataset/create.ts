@@ -16,7 +16,7 @@ import {
 import { MongoDataset } from '@fastgpt/service/core/dataset/schema';
 import { authDataset } from '@fastgpt/service/support/permission/dataset/auth';
 import { checkTeamDatasetLimit } from '@fastgpt/service/support/permission/teamLimit';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import type { ApiRequestProps } from '@fastgpt/service/type/next';
 import { addOperationLog } from '@fastgpt/service/support/operationLog/addOperationLog';
 import { OperationLogEventEnum } from '@fastgpt/global/support/operationLog/constants';
@@ -51,7 +51,7 @@ async function handler(
         authApiKey: true,
         per: WritePermissionVal
       })
-    : await authTeamPer({
+    : await authTeam({
         req,
         authToken: true,
         authApiKey: true,

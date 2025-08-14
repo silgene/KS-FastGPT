@@ -66,10 +66,9 @@ export const TeamModalContextProvider = ({ children }: { children: ReactNode }) 
     async () => {
       const res = await getTeamList(TeamMemberStatusEnum.active);
       return res.filter((tmb) => {
-        // TODO: 这里需要判断当前用户的团队是否有权限管理
-        // const permission = new TeamPermission({ per: tmb.permission.value });
-        // return permission.hasManagePer;
-        return true;
+        // 判断当前用户否有权限管理团队成员
+        const permission = new TeamPermission({ per: tmb.permission.value });
+        return permission.hasManageMemberPer;
       });
     },
     {

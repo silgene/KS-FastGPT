@@ -20,7 +20,6 @@ export enum TabEnum {
   'thirdParty' = 'thirdParty',
   'individuation' = 'individuation',
   'apikey' = 'apikey',
-  'loginout' = 'loginout',
   'team' = 'team',
   'model' = 'model',
   'space' = 'space',
@@ -81,7 +80,7 @@ const AccountContainer = ({
           }
         ]
       : []),
-    ...((feConfigs?.show_pay && userInfo?.team?.permission.hasManagePer) || true
+    ...(feConfigs?.show_pay || true
       ? [
           {
             icon: 'support/bill/payRecordLight',
@@ -109,7 +108,7 @@ const AccountContainer = ({
           }
         ]
       : []),
-    ...(userInfo?.team?.permission.hasApikeyCreatePer || true
+    ...(true
       ? [
           {
             icon: 'key',
@@ -132,30 +131,14 @@ const AccountContainer = ({
       icon: 'common/settingLight',
       label: t('common:Setting'),
       value: TabEnum.setting
-    },
-    {
-      icon: 'support/account/loginoutLight',
-      label: t('account:logout'),
-      value: TabEnum.loginout
     }
   ]);
 
-  const { openConfirm, ConfirmModal } = useConfirm({
-    content: t('account:confirm_logout')
-  });
-
   const setCurrentTab = useCallback(
     (tab: string) => {
-      if (tab === TabEnum.loginout) {
-        openConfirm(() => {
-          setUserInfo(null);
-          router.replace('/login');
-        })();
-      } else {
-        router.replace('/account/' + tab);
-      }
+      router.replace('/account/' + tab);
     },
-    [openConfirm, router, setUserInfo]
+    [router]
   );
 
   return (
@@ -205,7 +188,6 @@ const AccountContainer = ({
           {children}
         </Box>
       </Flex>
-      <ConfirmModal />
     </PageContainer>
   );
 };

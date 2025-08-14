@@ -1,6 +1,6 @@
 import { type TeamTmbItemType } from '@fastgpt/global/support/user/team/type';
 import { parseHeaderCert } from '../controller';
-import { getTmbInfoByTmbId } from '../../user/team/controller';
+import { getTmbInfoByTmbId, getTmbInfoByUserIdAndTeamId } from '../../user/team/controller';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
 import { type AuthModeType, type AuthResponseType } from '../type';
 import { NullPermission } from '@fastgpt/global/support/permission/constant';
@@ -11,13 +11,21 @@ import { ERROR_ENUM } from '@fastgpt/global/common/error/errorCode';
 import { type ApiRequestProps } from '../../../type/next';
 
 /* auth user role  */
-export async function authTeamPer(props: AuthModeType): Promise<
+export async function authTeam(
+  props: AuthModeType & {
+    teamId?: string;
+  }
+): Promise<
   AuthResponseType<TeamPermission> & {
     tmb: TeamTmbItemType;
   }
 > {
   const result = await parseHeaderCert(props);
-  const tmb = await getTmbInfoByTmbId({ tmbId: result.tmbId });
+
+  const tmb = await getTmbInfoByUserIdAndTeamId({
+    userId: result.userId,
+    teamId: props.teamId || result.teamId
+  });
 
   if (result.isRoot) {
     return {

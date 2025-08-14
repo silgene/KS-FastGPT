@@ -1,4 +1,4 @@
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { httpApiSchema2Plugins } from '@fastgpt/global/core/app/httpPlugin/utils';
 import { WritePermissionVal } from '@fastgpt/global/support/permission/constant';
@@ -36,7 +36,7 @@ async function handler(
 
   const { teamId, tmbId, userId } = parentId
     ? await authApp({ req, appId: parentId, per: TeamAppCreatePermissionVal, authToken: true })
-    : await authTeamPer({ req, authToken: true, per: TeamAppCreatePermissionVal });
+    : await authTeam({ req, authToken: true, per: TeamAppCreatePermissionVal });
 
   await checkTeamAppLimit(teamId);
 

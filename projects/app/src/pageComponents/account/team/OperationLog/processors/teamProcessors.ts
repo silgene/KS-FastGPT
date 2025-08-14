@@ -6,10 +6,13 @@ export const processAssignPermissionSpecific = (metadata: any) => {
 
   return {
     ...metadata,
-    appCreate: permission.hasAppCreatePer ? '✔' : '✘',
-    datasetCreate: permission.hasDatasetCreatePer ? '✔' : '✘',
-    apiKeyCreate: permission.hasApikeyCreatePer ? '✔' : '✘',
-    manage: permission.hasManagePer ? '✔' : '✘'
+    // appCreate: permission.hasAppCreatePer ? '✔' : '✘',
+    // datasetCreate: permission.hasDatasetCreatePer ? '✔' : '✘',
+    // apiKeyCreate: permission.hasApikeyCreatePer ? '✔' : '✘',
+    // manage: permission.hasManagePer ? '✔' : '✘'
+    spaceManage: permission.hasSpaceManagePer ? '✔' : '✘',
+    inviteTeamMember: permission.hasInviteTeamMemberPer ? '✔' : '✘',
+    manageMember: permission.hasManageMemberPer ? '✔' : '✘'
   };
 };
 

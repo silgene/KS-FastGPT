@@ -79,7 +79,8 @@ const AppListContextProvider = ({ children }: { children: ReactNode }) => {
     runAsync: loadMyApps,
     loading: isFetchingApps
   } = useRequest2(
-    () => {
+    async () => {
+      if (!spaceId) return [];
       const formatType = (() => {
         if (!type || type === 'all') return undefined;
         if (type === AppTypeEnum.plugin)

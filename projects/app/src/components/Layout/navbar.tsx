@@ -14,6 +14,8 @@ import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import TeamSelector from '@/pageComponents/account/TeamSelector';
 import type { TeamTmbItemType } from '@fastgpt/global/support/user/team/type';
 import MyDivider from '@fastgpt/web/components/common/MyDivider';
+import MyIconButton from '@fastgpt/web/components/common/Icon/button';
+import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
 
 export enum NavbarTypeEnum {
   normal = 'normal',
@@ -41,7 +43,7 @@ const hoverStyle: LinkProps = {
 const Navbar = ({ unread }: { unread: number }) => {
   const { t } = useTranslation();
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { userInfo, setUserInfo } = useUserStore();
   const { gitStar, feConfigs } = useSystemStore();
   const { lastChatAppId } = useChatStore();
 
@@ -98,6 +100,11 @@ const Navbar = ({ unread }: { unread: number }) => {
     const currentTeam = teamTmbs.find((item) => item.teamId === userInfo?.team?.teamId);
     setCurrentTeamIcon(currentTeam?.teamAvatar || '');
   }, []);
+
+  const { openConfirm, ConfirmModal } = useConfirm({
+    content: t('account:confirm_logout')
+  });
+
   return (
     <Flex
       flexDirection={'column'}
@@ -228,7 +235,7 @@ const Navbar = ({ unread }: { unread: number }) => {
         </Link>
       </MyTooltip> */}
       <MyDivider w={'60%'} color={'gray.200'} h={2}></MyDivider>
-      <Box>
+      <Flex flexDir={'column'} gap={2} justifyContent={'center'} alignItems={'center'}>
         <MyTooltip label={t('common:user.team.Select Team')} placement={'right-end'}>
           <TeamSelector
             isGlobal
@@ -244,7 +251,21 @@ const Navbar = ({ unread }: { unread: number }) => {
             onTeamTmbsChanged={teamTmbsChanged}
           ></TeamSelector>
         </MyTooltip>
-      </Box>
+        <MyTooltip label={t('account:logout')} placement={'right-end'}>
+          <MyIconButton
+            size="5"
+            icon="support/account/loginoutLight"
+            border={'1px solid #E2E8F0'}
+            onClick={() => {
+              openConfirm(() => {
+                setUserInfo(null);
+                router.replace('/login');
+              })();
+            }}
+          ></MyIconButton>
+        </MyTooltip>
+        <ConfirmModal />
+      </Flex>
     </Flex>
   );
 };

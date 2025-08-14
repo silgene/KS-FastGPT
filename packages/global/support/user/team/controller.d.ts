@@ -48,12 +48,13 @@ export type InviteMemberResponse = Record<
 export type TeamMemberListQuery = {
   teamId?: string;
   status?: 'active' | 'inactive';
-  withOrgs?: boolean;
-  withPermission?: boolean;
   searchKey?: string;
-  orgId?: string;
-  groupId?: string;
   spaceQuery?: {
     spaceId: string;
   };
+  // 已废弃
+  withPermission?: boolean;
+  orgId?: string;
+  groupId?: string;
+  withOrgs?: boolean;
 };

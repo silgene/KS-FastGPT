@@ -1,18 +1,19 @@
-import { type PerConstructPros, Permission } from '../controller';
+import { type PerConstructPros, Permission, PermissionBase } from '../controller';
 import {
-  TeamApikeyCreatePermissionVal,
-  TeamAppCreatePermissionVal,
-  TeamDatasetCreatePermissionVal,
   TeamDefaultPermissionVal,
-  TeamPermissionList
+  TeamInviteTeamMemberPermissionVal,
+  TeamManageMemberPermissionVal,
+  type TeamPermissionKeyEnum,
+  TeamPermissionList,
+  TeamSpaceManagePermissionVal
 } from './constant';
 
-export class TeamPermission extends Permission {
-  hasAppCreatePer: boolean = false;
-  hasDatasetCreatePer: boolean = false;
-  hasApikeyCreatePer: boolean = false;
+export class TeamPermission extends PermissionBase<TeamPermissionKeyEnum> {
+  hasSpaceManagePer: boolean = false;
+  hasInviteTeamMemberPer: boolean = false;
+  hasManageMemberPer: boolean = false;
 
-  constructor(props?: PerConstructPros) {
+  constructor(props?: PerConstructPros<TeamPermissionKeyEnum>) {
     if (!props) {
       props = {
         per: TeamDefaultPermissionVal
@@ -24,9 +25,9 @@ export class TeamPermission extends Permission {
     super(props);
 
     this.setUpdatePermissionCallback(() => {
-      this.hasAppCreatePer = this.checkPer(TeamAppCreatePermissionVal);
-      this.hasDatasetCreatePer = this.checkPer(TeamDatasetCreatePermissionVal);
-      this.hasApikeyCreatePer = this.checkPer(TeamApikeyCreatePermissionVal);
+      this.hasSpaceManagePer = this.checkPer(TeamSpaceManagePermissionVal);
+      this.hasInviteTeamMemberPer = this.checkPer(TeamInviteTeamMemberPermissionVal);
+      this.hasManageMemberPer = this.checkPer(TeamManageMemberPermissionVal);
     });
   }
 }

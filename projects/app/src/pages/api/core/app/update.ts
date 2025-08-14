@@ -19,8 +19,7 @@ import { AppFolderTypeList, AppTypeEnum } from '@fastgpt/global/core/app/constan
 import { type ClientSession } from 'mongoose';
 import { mongoSessionRun } from '@fastgpt/service/common/mongo/sessionRun';
 import { getResourceClbsAndGroups } from '@fastgpt/service/support/permission/controller';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
-import { TeamAppCreatePermissionVal } from '@fastgpt/global/support/permission/user/constant';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { AppErrEnum } from '@fastgpt/global/common/error/code/app';
 import { refreshSourceAvatar } from '@fastgpt/service/common/file/image/controller';
 import { MongoResourcePermission } from '@fastgpt/service/support/permission/schema';
@@ -90,14 +89,6 @@ async function handler(req: ApiRequestProps<AppUpdateBody, AppUpdateQuery>) {
     if (app.parentId) {
       // move from a folder, check the (old) folder's permission
       await authApp({ req, authToken: true, appId: app.parentId, per: ManagePermissionVal });
-    }
-    if (parentId === null || !app.parentId) {
-      // move to root or move from root
-      await authTeamPer({
-        req,
-        authToken: true,
-        per: TeamAppCreatePermissionVal
-      });
     }
   } else {
     // is not move, write permission of the app.

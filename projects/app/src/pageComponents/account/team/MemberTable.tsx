@@ -52,6 +52,10 @@ import { useEditTitle } from '@/web/common/hooks/useEditTitle';
 import PopoverConfirm from '@fastgpt/web/components/common/MyPopover/PopoverConfirm';
 import MyIconButton from '@fastgpt/web/components/common/Icon/button';
 import { useMount } from 'ahooks';
+import { getRoleList, updateMemberRole } from '@/web/support/user/role/api';
+import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import RoleSelect from '@/components/support/user/role/RoleSelect';
+import { type ParseKeys } from '@fastgpt/web/types/i18next';
 
 const DirectInviteModal = dynamic(() => import('./Invite/DirectInviteModal'));
 const TeamTagModal = dynamic(() => import('@/components/support/user/team/TeamTagModal'));
@@ -64,6 +68,18 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
   //关闭同步模式
   const isSyncMember = feConfigs?.register_method?.includes('sync');
   const { myTeams, onSwitchTeam, currentTeam } = useContextSelector(TeamContext, (v) => v);
+  const {
+    data: teamRoleList = [],
+    refresh: refreshTeamRoleList,
+    loading: teamRoleListLoading
+  } = useRequest2(
+    () => {
+      return getRoleList({ type: RoleTypeEnum.team });
+    },
+    {
+      manual: false
+    }
+  );
 
   // Member status selector
   const statusOptions = [
@@ -95,10 +111,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
     isLoading: loadingMembers,
     refreshList: refetchMemberList,
     ScrollData: MemberScrollData
-  } = useScrollPagination<
-    any,
-    PaginationResponse<TeamMemberItemType<{ withOrgs: true; withPermission: true }>>
-  >(
+  } = useScrollPagination<any, PaginationResponse<TeamMemberItemType>>(
     async (params) => {
       if (!currentTeam) return { list: [], total: 0 };
       return getTeamMembers(params);
@@ -149,8 +162,14 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
     successToast: t('common:Success'),
     errorToast: t('common:user.team.invite.Reject')
   });
-
-  const isLoading = loadingMembers || isSyncing;
+  const { runAsync: onUpdateMemberRole, loading: updateMemberRoleLoading } = useRequest2(
+    updateMemberRole,
+    {
+      manual: true,
+      onSuccess: onRefreshMembers
+    }
+  );
+  const isLoading = loadingMembers || isSyncing || updateMemberRoleLoading;
 
   const { EditModal: EditMemberNameModal, onOpenModal: openEditMemberName } = useEditTitle({
     title: t('account_team:edit_member'),
@@ -192,7 +211,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
               onChange={(e) => setSearchKey(e.target.value)}
             />
           </Box>
-          {userInfo?.team.permission.hasManagePer && feConfigs?.show_team_chat && (
+          {userInfo?.team.permission.hasManageMemberPer && feConfigs?.show_team_chat && (
             <Button
               variant={'whitePrimary'}
               size="md"
@@ -206,7 +225,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
               {t('account_team:label_sync')}
             </Button>
           )}
-          {userInfo?.team.permission.hasManagePer && isSyncMember && (
+          {userInfo?.team.permission.hasManageMemberPer && isSyncMember && (
             <Button
               variant={'primary'}
               size="md"
@@ -220,7 +239,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
               {t('account_team:sync_immediately')}
             </Button>
           )}
-          {userInfo?.team.permission.hasManagePer && !isSyncMember && (
+          {userInfo?.team.permission.hasManageMemberPer && !isSyncMember && (
             <Button
               variant={'primary'}
               size="md"
@@ -279,10 +298,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
                   <Th borderLeftRadius="6px" bgColor="myGray.100">
                     {t('account_team:user_name')}
                   </Th>
-                  <Th bgColor="myGray.100">{t('common:contact_way')}</Th>
-                  <Th bgColor="myGray.100" pl={9}>
-                    {t('account_team:org')}
-                  </Th>
+                  <Th bgColor="myGray.100">{t('account_team:user_role')}</Th>
                   <Th bgColor="myGray.100">{t('account_team:join_update_time')}</Th>
                   <Th borderRightRadius="6px" bgColor="myGray.100">
                     {t('common:Action')}
@@ -296,7 +312,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
                       <HStack>
                         <Avatar src={member.avatar} w={['18px', '22px']} borderRadius={'50%'} />
                         <Box className={'textEllipsis'}>
-                          {member.memberName}
+                          {member.username}
                           {member.status !== 'active' && (
                             <Tag ml="2" colorSchema="gray" bg={'myGray.100'} color={'myGray.700'}>
                               {t('account_team:leave')}
@@ -305,11 +321,29 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
                         </Box>
                       </HStack>
                     </Td>
-                    <Td maxW={'300px'}>{member.contact || '-'}</Td>
+
                     <Td maxWidth="300px">
-                      {(() => {
-                        return <OrgTags orgs={member.orgs || undefined} type="tag" />;
-                      })()}
+                      {/* TODO:增加更换团队所有者 */}
+                      {userInfo?.team.permission.hasManageMemberPer ? (
+                        <RoleSelect
+                          myRoleList={teamRoleList}
+                          value={member.role._id}
+                          isOwner={member.tmbId === currentTeam?.tmbId}
+                          onChange={(roleId) => {
+                            onUpdateMemberRole({
+                              teamId: currentTeam?.teamId,
+                              tmbId: member.tmbId,
+                              roleId,
+                              type: RoleTypeEnum.team
+                            });
+                          }}
+                          disabled={member.tmbId === currentTeam?.tmbId}
+                        ></RoleSelect>
+                      ) : member.role.defaultRole ? (
+                        t(member.role.name as ParseKeys)
+                      ) : (
+                        member.role.name
+                      )}
                     </Td>
                     <Td maxW={'300px'}>
                       <VStack gap={0} align="start">
@@ -322,8 +356,7 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
                       </VStack>
                     </Td>
                     <Td>
-                      {userInfo?.team.permission.hasManagePer &&
-                        member.role !== TeamMemberRoleEnum.owner &&
+                      {userInfo?.team.permission.hasManageMemberPer &&
                         member.tmbId !== userInfo?.team.tmbId &&
                         (member.status === TeamMemberStatusEnum.active ? (
                           <HStack>

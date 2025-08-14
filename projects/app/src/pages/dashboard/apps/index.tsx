@@ -59,8 +59,7 @@ const MyApps = ({ MenuIcon }: { MenuIcon: JSX.Element }) => {
     searchKey,
     setSearchKey
   } = useContextSelector(AppListContext, (v) => v);
-  const { userInfo } = useUserStore();
-  const { spaceInfo } = useUserStore();
+  const { userInfo, spaceInfo } = useUserStore();
   const spaceId = spaceInfo?._id || '';
   const [createAppType, setCreateAppType] = useState<CreateAppType>();
   const {
@@ -187,7 +186,7 @@ const MyApps = ({ MenuIcon }: { MenuIcon: JSX.Element }) => {
 
             {(folderDetail
               ? folderDetail.permission.hasWritePer && folderDetail?.type !== AppTypeEnum.httpPlugin
-              : userInfo?.team.permission.hasAppCreatePer) && (
+              : spaceInfo?.permission.hasAppEditPer) && (
               <MyMenu
                 size="md"
                 Button={

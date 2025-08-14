@@ -17,7 +17,10 @@ import type {
   UpdateTeamProps
 } from '@fastgpt/global/support/user/team/controller';
 import { getResourcePermission } from '../../permission/controller';
-import { PerResourceTypeEnum } from '@fastgpt/global/support/permission/constant';
+import {
+  OwnerPermissionVal,
+  PerResourceTypeEnum
+} from '@fastgpt/global/support/permission/constant';
 import { TeamPermission } from '@fastgpt/global/support/permission/user/controller';
 import { TeamDefaultPermissionVal } from '@fastgpt/global/support/permission/user/constant';
 import { MongoMemberGroupModel } from '../../permission/memberGroup/memberGroupSchema';
@@ -29,17 +32,22 @@ import { refreshSourceAvatar } from '../../../common/file/image/controller';
 import { type PaginationProps } from '@fastgpt/global/common/fetch/type';
 import { MongoUser } from '../schema';
 import { type UserModelSchema } from '@fastgpt/global/support/user/type';
+import { getRoleByTmbId } from '../role/controller';
+import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import { MongoRoleUser } from '../role/roleUser/roleUserSchema';
+import { getCustomRole } from '@fastgpt/global/support/user/role/controller';
+import { type RoleSchemaType } from '@fastgpt/global/support/user/role/type';
+import { MongoRole } from '../role/roleSchema';
 
 async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemType> {
   const tmb = await MongoTeamMember.findOne(match).populate<{ team: TeamSchema }>('team').lean();
   if (!tmb) {
     return Promise.reject('member not exist');
   }
-
-  const Per = await getResourcePermission({
-    resourceType: PerResourceTypeEnum.team,
-    teamId: tmb.teamId,
-    tmbId: tmb._id
+  const { permission: Per } = await getRoleByTmbId({
+    type: RoleTypeEnum.team,
+    tmbId: tmb._id,
+    resourceId: tmb.teamId
   });
 
   return {
@@ -83,7 +91,22 @@ export async function getTmbInfoByTmbId({ tmbId }: { tmbId: string }) {
     status: notLeaveStatus
   });
 }
-
+export async function getTmbInfoByUserIdAndTeamId({
+  userId,
+  teamId
+}: {
+  userId: string;
+  teamId: string;
+}) {
+  if (!userId || !teamId) {
+    return Promise.reject('tmbId or userId is required');
+  }
+  return getTeamMember({
+    userId: new Types.ObjectId(userId),
+    teamId: new Types.ObjectId(teamId),
+    status: notLeaveStatus
+  });
+}
 export async function getUserDefaultTeam({ userId }: { userId: string }) {
   if (!userId) {
     return Promise.reject('tmbId or userId is required');
@@ -269,6 +292,10 @@ export async function getTeamMemberList({
   offset,
   teamId
 }: PaginationProps<TeamMemberListQuery> & { teamId: string }) {
+  const team = await MongoTeam.findById(teamId).lean();
+  if (!team) {
+    return Promise.reject('团队不存在');
+  }
   const userMatch: Record<string, any> = { status: status || TeamMemberStatusEnum.active };
   if (searchKey?.trim().length) {
     userMatch.username = { $regex: searchKey, $options: 'i' };
@@ -285,6 +312,21 @@ export async function getTeamMemberList({
     .skip(Number(offset) || 0)
     .limit(Number(pageSize) || 10)
     .lean();
+  const ownerRole = await MongoRole.findOne({
+    type: RoleTypeEnum.team,
+    status: 'active',
+    permission: OwnerPermissionVal
+  });
+  const roleUsers = await MongoRoleUser.find({
+    userId: { $in: res.map((item) => item.userId) },
+    type: RoleTypeEnum.team,
+    teamId
+  })
+    .populate<{ role: RoleSchemaType }>('role')
+    .lean();
+  const roleUserMap = new Map<string, RoleSchemaType>(
+    roleUsers.map((item) => [String(item.userId), item.role])
+  );
   return res
     .filter((item) => item.user)
     .map((item) => {
@@ -293,12 +335,20 @@ export async function getTeamMemberList({
         tmbId: item._id,
         teamId: item.teamId,
         memberName: item.name,
+        username: item.user.username,
         avatar: item.avatar,
-        role: item.role,
+        role:
+          String(team.ownerId) === String(item.userId)
+            ? ownerRole
+            : roleUserMap.get(String(item.userId)) || getCustomRole(RoleTypeEnum.team, 0, '无角色'),
         status: item.status,
         contact: item.user.contact,
         createTime: item.createTime,
-        updateTime: item.updateTime
+        updateTime: item.updateTime,
+        permission: new TeamPermission({
+          per: roleUserMap.get(String(item.userId))?.permission || TeamDefaultPermissionVal,
+          isOwner: String(team.ownerId) === String(item.userId)
+        })
       };
     });
 }

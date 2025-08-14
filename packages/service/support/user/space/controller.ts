@@ -56,7 +56,7 @@ export const getSpaceMemberList = async ({
     });
     return { total: 1, list: [{ ...space.tmb, role, username: space.tmb.user.username }] };
   }
-  // 因为owner不在resourcePermission中，在分页查询时排除掉owner,但返回时需要考虑owner
+  // 因为owner不在MongoRoleUser中，在分页查询时排除掉owner,但返回时需要考虑owner
   // 应该不需要考虑offset=1的情况
   const skip = Math.max(Number(offset) - 1, 0);
   const limit = (() => {
@@ -66,40 +66,36 @@ export const getSpaceMemberList = async ({
     return res;
   })();
 
-  // space的owner不在resourcePermission中,查询的是对这个空间有权限的团队成员
-  const tmbs = (
-    await MongoResourcePermission.find({
-      resourceId: spaceId,
-      resourceType: PerResourceTypeEnum.space
+  const roleUsers = (
+    await MongoRoleUser.find({
+      type: RoleTypeEnum.space,
+      spaceId
     })
-      .populate<{ tmb: TeamMemberSchema & { user: { username: string } } }>({
-        path: 'tmb',
-        populate: {
-          path: 'user',
-          select: 'username'
-        }
-      })
+      .populate<{ role: RoleSchemaType }>(RoleCollectionName)
       .limit(limit)
       .skip(skip)
       .lean()
   ).map((item) => {
-    return { ...item.tmb, permission: item.permission };
+    return { ...item, permission: new SpacePermission({ per: item.role.permission }) };
   });
   const total =
-    (await MongoResourcePermission.countDocuments({
-      resourceId: spaceId,
-      resourceType: PerResourceTypeEnum.space
-    })) + 1; // +1是因为owner不在resourcePermission中
-  // 查询这个空间中所有用户(tmb)的角色
-  const roles = await MongoRoleUser.find({
-    spaceId,
-    userId: { $in: tmbs.map((item) => item.userId) },
-    type: RoleTypeEnum.space
+    (await MongoRoleUser.countDocuments({
+      type: RoleTypeEnum.space,
+      spaceId
+    })) + 1; // +1是因为owner不在roleUser中
+  // 查询这个空间中所有角色的用户(tmb)
+  const tmbs = await MongoTeamMember.find({
+    userId: { $in: roleUsers.map((item) => item.userId) },
+    teamId: space.teamId
   })
-    .populate<{ role: RoleSchemaType }>(RoleCollectionName)
+    .populate<{ user: { username: string } }>({
+      path: 'user',
+      select: 'username'
+    })
     .lean();
-  const roleUserMap = new Map<string, (typeof roles)[0]>(
-    roles.map((role) => [String(role.userId), role])
+
+  const roleUserMap = new Map<string, (typeof roleUsers)[0]>(
+    roleUsers.map((roleUser) => [String(roleUser.userId), roleUser])
   );
   const spaceOwner = {
     ...space.tmb,
@@ -118,9 +114,7 @@ export const getSpaceMemberList = async ({
       return {
         ...tmb,
         username: tmb.user?.username || tmb.name,
-        role:
-          roleUserMap.get(String(tmb.userId))?.role ||
-          getCustomRole(RoleTypeEnum.space, tmb.permission)
+        role: roleUserMap.get(String(tmb.userId))!.role
       };
     })
   ];

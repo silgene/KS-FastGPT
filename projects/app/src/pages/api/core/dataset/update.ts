@@ -22,7 +22,7 @@ import {
   syncChildrenPermission,
   syncCollaborators
 } from '@fastgpt/service/support/permission/inheritPermission';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { TeamDatasetCreatePermissionVal } from '@fastgpt/global/support/permission/user/constant';
 import { DatasetErrEnum } from '@fastgpt/global/common/error/code/dataset';
 import { MongoDatasetTraining } from '@fastgpt/service/core/dataset/training/schema';
@@ -124,7 +124,7 @@ async function handler(
     }
     if (parentId === null || !dataset.parentId) {
       // move to root or move from root
-      await authTeamPer({
+      await authTeam({
         req,
         authToken: true,
         per: TeamDatasetCreatePermissionVal

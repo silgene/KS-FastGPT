@@ -1,6 +1,6 @@
 import { NextAPI } from '@/service/middleware/entry';
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
-import { updateRoleType } from '@fastgpt/service/support/user/role/controller';
+import { updateRole } from '@fastgpt/service/support/user/role/controller';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
 import { authCert } from '@fastgpt/service/support/permission/auth/common';
@@ -11,7 +11,7 @@ async function handler(req: ApiRequestProps<UpdateRoleType>, res: ApiResponseTyp
   await authCert({ req, authToken: true });
   const body = req.body;
   const updatedRole = await mongoSessionRun(async (session) => {
-    const updatedRole = await updateRoleType({
+    const updatedRole = await updateRole({
       ...body,
       session
     });

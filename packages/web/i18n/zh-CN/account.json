@@ -4,10 +4,6 @@
   "add_default_model": "添加预设模型",
   "api_key": "API 密钥",
   "bills_and_invoices": "账单与发票",
-  "spacePermission": "空间权限",
-  "rolePermission": "角色权限",
-  "space_management": "空间管理",
-  "space_management_desc": "管理团队空间中成员的不同权限",
   "channel": "模型渠道",
   "config_model": "模型配置",
   "confirm_logout": "确认退出登录?",
@@ -84,9 +80,13 @@
   "personalization": "个性化",
   "promotion_records": "促销记录",
   "reset_default": "恢复默认配置",
+  "rolePermission": "角色权限",
+  "role_manage": "角色管理",
+  "role_manage_desc": "管理空间、团队中成员的不同角色的权限",
+  "spacePermission": "空间权限",
+  "space_management": "空间管理",
+  "space_management_desc": "管理团队空间中成员的不同权限",
   "team": "团队管理",
   "third_party": "第三方账号",
-  "usage_records": "使用记录",
-  "role_manage": "角色管理",
-  "role_manage_desc": "管理空间、团队中成员的不同角色的权限"
+  "usage_records": "使用记录"
 }

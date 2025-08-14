@@ -16,7 +16,7 @@ import { MongoApp } from '@fastgpt/service/core/app/schema';
 import { MongoAppVersion } from '@fastgpt/service/core/app/version/schema';
 import { authApp } from '@fastgpt/service/support/permission/app/auth';
 import { checkTeamAppLimit } from '@fastgpt/service/support/permission/teamLimit';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
 import { type ApiRequestProps } from '@fastgpt/service/type/next';
 import { addOperationLog } from '@fastgpt/service/support/operationLog/addOperationLog';

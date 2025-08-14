@@ -1,10 +1,12 @@
 import { RoleStatusEnum, RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { MongoRole } from './roleSchema';
 import {
+  getCustomRole,
   RolePerResourceTypeMap,
   type UpdateRoleType
 } from '@fastgpt/global/support/user/role/controller';
 import {
+  NullPermission,
   OwnerPermissionVal,
   PerResourceTypeEnum
 } from '@fastgpt/global/support/permission/constant';
@@ -113,7 +115,8 @@ export const getRoleByTmbId = async ({
     .lean();
   if (!roleUser) {
     // TODO: 国际化配置
-    return Promise.reject('没有找到角色');
+    return getCustomRole(RoleTypeEnum.team, NullPermission, '无角色');
+    // return Promise.reject('没有找到角色');
   }
   return {
     ...roleUser.role
@@ -140,7 +143,7 @@ export const addRoleType = async ({
   return role;
 };
 
-export const updateRoleType = async ({
+export const updateRole = async ({
   roleId,
   permission,
   description,
@@ -165,42 +168,54 @@ export const updateRoleType = async ({
     { permission, description, name },
     { new: true, session }
   ).lean();
-  const roleUsers = await MongoRoleUser.find({
-    roleId
-  });
-  const tmbs = await MongoTeamMember.find({
-    userId: {
-      $in: roleUsers.map((roleUser) => roleUser.userId)
-    }
-  });
-  const tmbsMap = new Map<string, TeamMemberSchema>(tmbs.map((tmb) => [String(tmb.userId), tmb]));
-  const needUpdateList = roleUsers
-    .map((item) => {
-      const tmbId = tmbsMap.get(String(item.userId))?._id;
-      if (!tmbId || !item.userId) {
-        return null;
-      }
-      let resourceId: string | undefined = undefined;
-      if (item.type === RoleTypeEnum.team) {
-        resourceId = item.teamId;
-      } else if (item.type === RoleTypeEnum.space) {
-        resourceId = item.spaceId;
-      }
-      return {
-        updateOne: {
-          filter: {
-            tmbId,
-            resourceType: item.type,
-            resourceId
-          },
-          update: { permission }
-        }
-      };
-    })
-    .filter((item) => item !== null);
-  await MongoResourcePermission.bulkWrite(needUpdateList, { session });
+
   if (!updatedRole) {
     throw new Error('角色不存在或更新失败');
   }
   return updatedRole;
+};
+export const updateMemberRole = async ({
+  type,
+  teamId,
+  spaceId,
+  tmbId,
+  roleId
+}: {
+  type: RoleTypeEnum;
+  teamId?: string;
+  spaceId?: string;
+  tmbId: string;
+  roleId: string;
+}) => {
+  const tmb = await MongoTeamMember.findOne({
+    _id: tmbId
+  });
+  if (!tmb) {
+    return Promise.reject('团队成员不存在');
+  }
+  if (String(tmb.teamId) !== String(teamId)) {
+    return Promise.reject('该成员不属于该团队');
+  }
+  const role = await MongoRole.findOne({
+    _id: roleId,
+    type,
+    status: RoleStatusEnum.active
+  });
+  if (!role) {
+    return Promise.reject('角色不存在');
+  }
+  await MongoRoleUser.findOneAndUpdate(
+    {
+      userId: tmb.userId,
+      type,
+      ...(type === RoleTypeEnum.team ? { teamId } : {}),
+      ...(type === RoleTypeEnum.space ? { spaceId } : {})
+    },
+    {
+      roleId: role._id
+    },
+    {
+      upsert: true
+    }
+  );
 };

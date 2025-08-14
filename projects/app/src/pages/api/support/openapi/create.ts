@@ -1,6 +1,6 @@
 import { MongoOpenApi } from '@fastgpt/service/support/openapi/schema';
 import type { EditApiKeyProps } from '@/global/support/openapi/api';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { getNanoid } from '@fastgpt/global/common/string/tools';
 import type { ApiRequestProps } from '@fastgpt/service/type/next';
 import { NextAPI } from '@/service/middleware/entry';
@@ -15,7 +15,7 @@ async function handler(req: ApiRequestProps<EditApiKeyProps>): Promise<string> {
   const { tmbId, teamId } = await (async () => {
     if (!appId) {
       // global apikey is being created, auth the tmb
-      const { teamId, tmbId } = await authTeamPer({
+      const { teamId, tmbId } = await authTeam({
         req,
         authToken: true,
         per: TeamApikeyCreatePermissionVal

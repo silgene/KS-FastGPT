@@ -1,6 +1,6 @@
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
 import { NextAPI } from '@/service/middleware/entry';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
 import { authAppByTmbId } from '@fastgpt/service/support/permission/app/auth';
@@ -21,7 +21,7 @@ async function handler(
   req: ApiRequestProps<createBody, createQuery>,
   res: ApiResponseType<any>
 ): Promise<createResponse> {
-  const { teamId, tmbId, permission } = await authTeamPer({
+  const { teamId, tmbId, permission } = await authTeam({
     req,
     authToken: true,
     authApiKey: true

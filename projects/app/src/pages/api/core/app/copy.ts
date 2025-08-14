@@ -2,7 +2,7 @@ import { NextAPI } from '@/service/middleware/entry';
 import { WritePermissionVal } from '@fastgpt/global/support/permission/constant';
 import { TeamAppCreatePermissionVal } from '@fastgpt/global/support/permission/user/constant';
 import { authApp } from '@fastgpt/service/support/permission/app/auth';
-import { authTeamPer } from '@fastgpt/service/support/permission/user/auth';
+import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
 
 import { addOperationLog } from '@fastgpt/service/support/operationLog/addOperationLog';

@@ -14,7 +14,7 @@ import {
   Button,
   VStack
 } from '@chakra-ui/react';
-import SpacePermissionSelect from '@/pageComponents/account/space/SpacePermissionSelect';
+import RoleSelect from '@/components/support/user/role/RoleSelect';
 import Icon from '@fastgpt/web/components/common/Icon';
 import { useTranslation } from 'next-i18next';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
@@ -157,7 +157,7 @@ function SpaceManage() {
   );
 
   // 检查当前用户是否为空间所有者
-  const isSpaceOwner = userInfo?.team.permission.hasManagePer || false;
+  const isSpaceOwner = currentSpace?.permission.isOwner;
   const isLoading = useMemo(
     () => loadingMembers || spaceListLoading || updateMemberLoading || removeMemberLoading,
     [loadingMembers, spaceListLoading, updateMemberLoading, removeMemberLoading]
@@ -281,7 +281,7 @@ function SpaceManage() {
                       </Td>
                       <Td maxW={'300px'}>{member.username || '-'}</Td>
                       <Td maxW={'300px'}>
-                        <SpacePermissionSelect
+                        <RoleSelect
                           value={member.role._id}
                           onChange={(newRoleId) =>
                             handleUpdateMemberPermission(member._id, newRoleId)
@@ -302,7 +302,7 @@ function SpaceManage() {
                         </VStack>
                       </Td>
                       <Td>
-                        {userInfo?.team.permission.hasManagePer &&
+                        {currentSpace?.permission.hasMemberManagePer &&
                           member._id !== userInfo?.team.tmbId && (
                             <HStack>
                               <PopoverConfirm

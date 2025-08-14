@@ -4,6 +4,7 @@ import { RoleStatusEnum, RoleTypeEnum } from './constant';
 import { OwnerPermissionVal, PerResourceTypeEnum } from '../../../support/permission/constant';
 import type { RoleDetailType, RoleSchemaType } from './type';
 import type { PermissionValueType } from '../../../support/permission/type';
+import { i18nT } from '../../../../web/i18n/utils';
 
 export const RolePermissionMap = {
   [RoleTypeEnum.space]: {
@@ -22,16 +23,17 @@ export const RolePerResourceTypeMap: Record<RoleTypeEnum, `${PerResourceTypeEnum
   [RoleTypeEnum.team]: PerResourceTypeEnum.team,
   [RoleTypeEnum.system]: PerResourceTypeEnum.system
 };
-// 看后续需求,这个是否要废弃
+
 export const getCustomRole = (
   type: RoleTypeEnum,
-  permission: PermissionValueType
+  permission: PermissionValueType,
+  name: string = '自定义角色'
 ): RoleSchemaType => {
   // 返回一个自定义角色的数据
   return {
     _id: '',
     // TODO: 国际化
-    name: '自定义角色',
+    name,
     type,
     status: RoleStatusEnum.active,
     permission,
@@ -45,72 +47,72 @@ export const getCustomRole = (
 export const DefaultRoleList = [
   {
     // 团队成员
-    name: 'common:user.role.default.Team Member',
+    name: i18nT('common:user.role.default.Team Member'),
     type: RoleTypeEnum.team,
     status: RoleStatusEnum.active,
     // 对团队只读
-    permission: 0b000100,
-    description: 'common:user.role.default.Team Member Description',
+    permission: 0b000000,
+    description: i18nT('common:user.role.default.Team Member Description'),
     defaultRole: true
   },
   {
     // 团队所有者
-    name: 'common:user.role.default.Team Owner',
+    name: i18nT('common:user.role.default.Team Owner'),
     type: RoleTypeEnum.team,
     status: RoleStatusEnum.active,
     // 拥有所有权限
     permission: OwnerPermissionVal,
-    description: 'common:user.role.default.Team Owner Description',
+    description: i18nT('common:user.role.default.Team Owner Description'),
     defaultRole: true
   },
   {
     // 团队管理员
-    name: 'common:user.role.default.Team Manager',
+    name: i18nT('common:user.role.default.Team Manager'),
     type: RoleTypeEnum.team,
     status: RoleStatusEnum.active,
     // 拥有管理权限
     permission: 0b111111,
-    description: 'common:user.role.default.Team Manager Description',
+    description: i18nT('common:user.role.default.Team Manager Description'),
     defaultRole: true
   },
   {
     // 空间成员
-    name: 'common:user.role.default.Space Member',
+    name: i18nT('common:user.role.default.Space Member'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
     // 对空间智能体，知识库可读可写
     permission: 0b0001011011000,
-    description: 'common:user.role.default.Space Member Description',
+    description: i18nT('common:user.role.default.Space Member Description'),
     defaultRole: true
   },
   {
     // 空间所有者
-    name: 'common:user.role.default.Space Owner',
+    name: i18nT('common:user.role.default.Space Owner'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
     // 对空间可以管理
     permission: OwnerPermissionVal,
-    description: 'common:user.role.default.Space Owner Description',
+    description: i18nT('common:user.role.default.Space Owner Description'),
     defaultRole: true
   },
   {
     // 空间管理员
-    name: 'common:user.role.default.Space Manager',
+    name: i18nT('common:user.role.default.Space Manager'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
     // 对空间可以管理
     permission: 0b1111111111000,
-    description: 'common:user.role.default.Space Manager Description',
+    description: i18nT('common:user.role.default.Space Manager Description'),
     defaultRole: true
   },
   {
     // 空间只读成员
-    name: 'common:user.role.default.Space Reader',
+    name: i18nT('common:user.role.default.Space Reader'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
     // 对空间只读
     permission: 0b0001001001000,
-    description: 'common:user.role.default.Space Reader Description',
+    description: i18nT('common:user.role.default.Space Reader Description'),
     defaultRole: true
   }
   // TODO: 后续可以添加系统角色
@@ -126,4 +128,11 @@ export type UpdateRoleType = {
   name?: string;
   description?: string;
   tagColor?: string;
+};
+export type UpdateMemberRoleRequestType = {
+  type: RoleTypeEnum;
+  teamId?: string;
+  spaceId?: string;
+  tmbId: string;
+  roleId: string;
 };

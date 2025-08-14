@@ -3,11 +3,6 @@ import { authCert } from '@fastgpt/service/support/permission/auth/common';
 import { type NextApiRequest, type NextApiResponse } from 'next';
 import { MongoResourcePermission } from '@fastgpt/service/support/permission/schema';
 import { TeamPermission } from '@fastgpt/global/support/permission/user/controller';
-import {
-  TeamApikeyCreatePermissionVal,
-  TeamAppCreatePermissionVal,
-  TeamDatasetCreatePermissionVal
-} from '@fastgpt/global/support/permission/user/constant';
 import { retryFn } from '@fastgpt/global/common/system/utils';
 
 async function handler(req: NextApiRequest, _res: NextApiResponse) {
@@ -23,23 +18,23 @@ async function handler(req: NextApiRequest, _res: NextApiResponse) {
 
   for await (const rp of rps) {
     const per = new TeamPermission({ per: rp.permission });
-    console.log(per.hasWritePer, per.value);
-    if (per.hasWritePer) {
-      const newPer = per.addPer(
-        TeamAppCreatePermissionVal,
-        TeamDatasetCreatePermissionVal,
-        TeamApikeyCreatePermissionVal
-      );
-      rp.permission = newPer.value;
+    // console.log(per.hasWritePer, per.value);
+    // if (per.hasWritePer) {
+    //   const newPer = per.addPer(
+    //     TeamAppCreatePermissionVal,
+    //     TeamDatasetCreatePermissionVal,
+    //     TeamApikeyCreatePermissionVal
+    //   );
+    //   rp.permission = newPer.value;
 
-      try {
-        await retryFn(async () => {
-          await rp.save();
-        });
-      } catch (error) {
-        console.log('更新权限异常', error);
-      }
-    }
+    //   try {
+    //     await retryFn(async () => {
+    //       await rp.save();
+    //     });
+    //   } catch (error) {
+    //     console.log('更新权限异常', error);
+    //   }
+    // }
   }
 
   return { success: true };

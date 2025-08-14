@@ -45,6 +45,7 @@ const MemberCard = ({
   isSelected: boolean;
   onToggle: () => void;
 }) => {
+  const { t } = useTranslation();
   return (
     <HStack
       justifyContent="space-between"
@@ -63,7 +64,7 @@ const MemberCard = ({
       <Box ml="2" w="full">
         <Text fontWeight="medium">{member.memberName}</Text>
         <Text fontSize="sm" color="gray.600">
-          {member.role === 'owner' ? '团队所有者' : member.role === 'admin' ? '管理员' : '成员'}
+          {member.role.defaultRole ? t(member.role?.name as ParseKeys) : member.role.name}
         </Text>
       </Box>
       {isSelected && <Box w="4" h="3" bg="blue.500" borderRadius="full" />}

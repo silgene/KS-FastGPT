@@ -1,8 +1,8 @@
 import { TeamPermission } from '@fastgpt/global/support/permission/user/controller';
 import { type AuthModeType, type AuthResponseType } from '../type';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
-import { authTeamPer } from '../user/auth';
-import { TeamManagePermissionVal } from '@fastgpt/global/support/permission/user/constant';
+import { authTeam } from '../user/auth';
+import { TeamManageMemberPermissionVal } from '@fastgpt/global/support/permission/user/constant';
 
 /*
   Team manager can control org
@@ -12,10 +12,10 @@ export const authOrgMember = async ({
   ...props
 }: {
   orgIds?: string | string[];
-} & AuthModeType): Promise<AuthResponseType> => {
-  const result = await authTeamPer({
+} & AuthModeType): Promise<AuthResponseType<TeamPermission>> => {
+  const result = await authTeam({
     ...props,
-    per: TeamManagePermissionVal
+    per: TeamManageMemberPermissionVal
   });
   const { teamId, tmbId, isRoot, tmb } = result;
 
@@ -32,12 +32,12 @@ export const authOrgMember = async ({
     };
   }
 
-  if (tmb.permission.hasManagePer) {
+  if (tmb.permission.hasManageMemberPer) {
     return {
       ...result,
       permission: tmb.permission
     };
   }
 
-  return Promise.reject(TeamErrEnum.unAuthTeam);
+  return Promise.reject('');
 };

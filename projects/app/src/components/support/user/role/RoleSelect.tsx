@@ -5,7 +5,7 @@ import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import { type ParseKeys } from '@fastgpt/web/types/i18next';
 import { useTranslation } from 'react-i18next';
 
-export type SpacePermissionSelectProps = Omit<ButtonProps, 'onChange' | 'value'> & {
+export type RoleSelectProps = Omit<ButtonProps, 'onChange' | 'value'> & {
   value: string;
   onChange: (value: string) => void;
   customButton?: React.ReactNode;
@@ -14,7 +14,7 @@ export type SpacePermissionSelectProps = Omit<ButtonProps, 'onChange' | 'value'>
   myRoleList: RoleSchemaType[];
 };
 
-const SpacePermissionSelect = ({
+const RoleSelect = ({
   value,
   onChange,
   customButton,
@@ -22,7 +22,7 @@ const SpacePermissionSelect = ({
   disabled = false,
   myRoleList,
   ...buttonProps
-}: SpacePermissionSelectProps) => {
+}: RoleSelectProps) => {
   const { t } = useTranslation();
   const roleList = useMemo(() => {
     if (isOwner) {
@@ -61,4 +61,4 @@ const SpacePermissionSelect = ({
   );
 };
 
-export default SpacePermissionSelect;
+export default RoleSelect;

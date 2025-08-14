@@ -32,8 +32,9 @@ import {
 } from '@fastgpt/global/support/permission/space/constant';
 import { NullPermission, OwnerPermissionVal } from '@fastgpt/global/support/permission/constant';
 import {
-  TeamManagePermissionVal,
-  TeamReadPermissionVal
+  TeamManageMemberPermissionVal,
+  TeamSpaceManagePermissionVal,
+  TeamInviteTeamMemberPermissionVal
 } from '@fastgpt/global/support/permission/user/constant';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
@@ -117,12 +118,8 @@ const TeamDetailStructure: RoleDetailStructureType = [
     label: '空间管理',
     permissions: [
       {
-        label: '查看所有空间',
-        val: TeamReadPermissionVal
-      },
-      {
         label: '管理所有空间',
-        val: TeamManagePermissionVal
+        val: TeamSpaceManagePermissionVal
       }
     ]
   },
@@ -130,18 +127,14 @@ const TeamDetailStructure: RoleDetailStructureType = [
     label: '团队成员管理',
     permissions: [
       {
-        label: '查看团队成员',
-        val: TeamReadPermissionVal
-      },
-      {
         label: '管理团队成员',
         info: '可以管理团队成员的所有权限，包括删除',
-        val: TeamManagePermissionVal
+        val: TeamManageMemberPermissionVal
       },
       {
-        label: '添加管理员',
+        label: '邀请团队成员',
         info: '可以将其他成员提升为管理员',
-        val: OwnerPermissionVal
+        val: TeamInviteTeamMemberPermissionVal
       }
     ]
   }

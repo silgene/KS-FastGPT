@@ -10,6 +10,8 @@ import { PerResourceTypeEnum } from '@fastgpt/global/support/permission/constant
 import { SpaceDefaultPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
 import type { TeamSchema } from '@fastgpt/global/support/user/team/type';
+import { getRoleByTmbId } from '../../../support/user/role/controller';
+import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 
 export const authSpaceByTmbId = async ({
   tmbId,
@@ -47,30 +49,34 @@ export const authSpaceByTmbId = async ({
     if (isRoot) {
       return {
         ...space,
-        permission: new SpacePermission({ isOwner: true })
+        permission: new SpacePermission({ allPer: true })
       };
     }
     // 如果该空间不是该团队的,则返回未授权
     if (String(space.teamId) !== teamId) {
       return Promise.reject(SpaceErrEnum.unAuthSpace);
     }
-    // 如果是团队管理员或空间创建者,则拥有所有权限
-    const isOwner = tmbPer.isOwner || String(space.ownerId) === String(tmbId);
-
+    // 空间创建者拥有所有权限，是拥有者
+    const isOwner = String(space.ownerId) === String(tmbId);
+    // 如果团队权限中有管理所有空间的权限,则拥有所有权限
+    const allPer = tmbPer.hasSpaceManagePer;
     const { Per } = await (async () => {
       if (isOwner) {
         return {
           Per: new SpacePermission({ isOwner: true })
         };
+      } else if (allPer) {
+        return {
+          Per: new SpacePermission({ allPer: true })
+        };
       }
       // 获取这个tmb对该空间的权限
-      const rp = await getResourcePermission({
-        teamId,
-        resourceId: spaceId,
-        resourceType: PerResourceTypeEnum.space,
-        tmbId
+      const role = await getRoleByTmbId({
+        type: RoleTypeEnum.space,
+        tmbId,
+        resourceId: spaceId
       });
-      const Per = new SpacePermission({ per: rp ?? SpaceDefaultPermissionVal });
+      const Per = new SpacePermission({ per: role.permission ?? SpaceDefaultPermissionVal });
       return { Per };
     })();
 
