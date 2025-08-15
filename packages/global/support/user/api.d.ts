@@ -5,6 +5,9 @@ import type { TrackRegisterParams } from './login/api';
 import { TeamMemberStatusEnum } from './team/constant';
 import type { OrgType } from './team/org/type';
 import type { TeamMemberItemType } from './team/type';
+import type { PaginationProps, PaginationResponse } from '../../common/fetch/type';
+import type { UserModelSchema } from './type';
+import type { RoleSchemaType } from './role/type';
 
 export type PostLoginProps = {
   username: string;
@@ -33,3 +36,5 @@ export type SearchResult = {
   orgs: Omit<OrgType, 'permission' | 'members'>[];
   groups: MemberGroupSchemaType[];
 };
+export type GetUserListQuery = PaginationProps<{ searchKey: string }>;
+export type GetUserListResponse = PaginationResponse<UserModelSchema & { role: RoleSchemaType }>;

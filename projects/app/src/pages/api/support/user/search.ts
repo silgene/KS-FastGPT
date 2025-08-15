@@ -2,18 +2,23 @@ import { NextAPI } from '@/service/middleware/entry';
 import type { SearchResult } from '@fastgpt/global/support/user/api';
 import type { UserModelSchema } from '@fastgpt/global/support/user/type';
 import { MongoMemberGroupModel } from '@fastgpt/service/support/permission/memberGroup/memberGroupSchema';
-import { authSystemAdmin } from '@fastgpt/service/support/permission/user/auth';
 import { getTeamMemberCount } from '@fastgpt/service/support/user/team/controller';
 import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
+import { authSystem } from '@fastgpt/service/support/permission/system/auth';
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
+import { authCert } from '@fastgpt/service/support/permission/auth/common';
+import { MongoRoleUser } from '@fastgpt/service/support/user/role/roleUser/roleUserSchema';
+import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import { getCustomRole } from '@fastgpt/global/support/user/role/controller';
+import { NullPermission } from '@fastgpt/global/support/permission/constant';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 
 async function handler(
-  req: ApiRequestProps<{ searchKey: string; members?: boolean; orgs?: boolean; groups?: boolean }>,
+  req: ApiRequestProps<{ searchKey: string; members?: boolean }>,
   res: ApiResponseType
 ) {
-  // TODO: 后续将SystemAdmin权限改为团队管理员权限
-  const { teamId } = await authSystemAdmin({ req });
-  const { searchKey = '', members = true, orgs = true, groups = true } = req.body;
+  const { teamId } = await authCert({ req, authToken: true });
+  const { searchKey = '', members = true } = req.body;
   const match: Record<string, any> = {};
   if (searchKey.trim().length) {
     match.username = {
@@ -35,14 +40,24 @@ async function handler(
         match: match
       })
       .lean();
+    const roleUsers = await MongoRoleUser.find({
+      type: RoleTypeEnum.system,
+      userId: { $in: tmbs.map((item) => item.userId) }
+    })
+      .populate<{ role: RoleSchemaType }>('role')
+      .lean();
+    const roleUserMap = new Map(roleUsers.map((item) => [item.userId, item]));
     searchResult.members = tmbs.map((item) => {
       return {
         userId: item.userId,
         tmbId: item._id,
         teamId: item.teamId,
         memberName: item.user.username,
+        username: item.user.username,
         avatar: item.avatar,
-        role: item.role,
+        role:
+          roleUserMap.get(item.userId)?.role ||
+          getCustomRole(RoleTypeEnum.system, NullPermission, '无角色'),
         status: item.status,
         contact: item.user.contact,
         createTime: item.createTime,
@@ -50,10 +65,7 @@ async function handler(
       };
     });
   }
-  if (orgs) {
-  }
-  if (groups) {
-  }
+
   return searchResult;
 }
 export default NextAPI(handler);

@@ -6,6 +6,8 @@ import type { UserUpdateParams } from '@/types/user';
 import type { UserType } from '@fastgpt/global/support/user/type.d';
 import type {
   FastLoginProps,
+  GetUserListQuery,
+  GetUserListResponse,
   OauthLoginProps,
   PostLoginProps,
   SearchResult
@@ -15,6 +17,7 @@ import type {
   GetWXLoginQRResponse
 } from '@fastgpt/global/support/user/login/api.d';
 import type { preLoginResponse } from '@/pages/api/support/user/account/preLogin';
+import { PaginationProps } from '@fastgpt/global/common/fetch/type';
 
 export const sendAuthCode = (data: {
   username: string;
@@ -120,3 +123,6 @@ export const GetSearchUserGroupOrg = (
 ) => GET<SearchResult>('/support/user/search', { searchKey, ...options }, { maxQuantity: 1 });
 
 export const ExportMembers = () => GET<{ csv: string }>('/proApi/support/user/team/member/export');
+
+export const getUserList = (data: GetUserListQuery) =>
+  POST<GetUserListResponse>('/support/user/list', data, { maxQuantity: 1 });
