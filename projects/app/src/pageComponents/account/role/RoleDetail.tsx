@@ -43,7 +43,16 @@ import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 import { Permission } from '@fastgpt/global/support/permission/controller';
 import { updateRole } from '@/web/support/user/role/api';
 import { useToast } from '@fastgpt/web/hooks/useToast';
-
+import {
+  SystemAgentStoreManagePermissionVal,
+  SystemFrontManagePermissionVal,
+  SystemModelManagePermissionVal,
+  SystemReadLogPermissionVal,
+  SystemTeamCreatePermissionVal,
+  SystemTeamManagePermissionVal,
+  SystemUserCreatePermissionVal,
+  SystemUserManagePermissionVal
+} from '@fastgpt/global/support/permission/system/constant';
 export type RoleDetailStructureType = {
   label: string;
   permissions: {
@@ -139,9 +148,68 @@ const TeamDetailStructure: RoleDetailStructureType = [
     ]
   }
 ];
+const SystemDetailStructure: RoleDetailStructureType = [
+  // 系统团队管理
+  {
+    label: '团队相关',
+    permissions: [
+      {
+        label: '管理所有团队',
+        info: '可以管理所有团队的成员和空间',
+        val: SystemTeamManagePermissionVal
+      },
+      {
+        label: '创建团队',
+        info: '可以创建新的团队',
+        val: SystemTeamCreatePermissionVal
+      }
+    ]
+  },
+  {
+    label: '用户相关',
+    permissions: [
+      {
+        label: '用户管理',
+        info: '可以管理所有用户',
+        val: SystemUserManagePermissionVal
+      },
+      {
+        label: '用户创建',
+        info: '可以创建新的用户',
+        val: SystemUserCreatePermissionVal
+      }
+    ]
+  },
+  {
+    label: '系统权限',
+    permissions: [
+      {
+        label: '模型管理',
+        info: '可以管理所有模型',
+        val: SystemModelManagePermissionVal
+      },
+      {
+        label: '系统日志查看',
+        info: '可以查看系统日志',
+        val: SystemReadLogPermissionVal
+      },
+      {
+        label: '智能体中心管理',
+        info: '可以管理智能体中心的所有内容',
+        val: SystemAgentStoreManagePermissionVal
+      },
+      {
+        label: '前台管理',
+        info: '可以管理前台的所有内容',
+        val: SystemFrontManagePermissionVal
+      }
+    ]
+  }
+];
 const RoleDetailStructureMap: Partial<Record<`${RoleTypeEnum}`, RoleDetailStructureType>> = {
   [RoleTypeEnum.space]: SpaceDetailStructure,
-  [RoleTypeEnum.team]: TeamDetailStructure
+  [RoleTypeEnum.team]: TeamDetailStructure,
+  [RoleTypeEnum.system]: SystemDetailStructure
 };
 
 const RoleDetail = () => {

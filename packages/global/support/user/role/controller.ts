@@ -114,8 +114,25 @@ export const DefaultRoleList = [
     permission: 0b0001001001000,
     description: i18nT('common:user.role.default.Space Reader Description'),
     defaultRole: true
+  },
+  {
+    // 系统超级管理员
+    name: i18nT('common:user.role.default.System Admin'),
+    type: RoleTypeEnum.system,
+    status: RoleStatusEnum.active,
+    permission: OwnerPermissionVal,
+    description: i18nT('common:user.role.default.System Admin Description'),
+    defaultRole: true
+  },
+  {
+    // 普通成员
+    name: i18nT('common:user.role.default.System Member'),
+    type: RoleTypeEnum.system,
+    status: RoleStatusEnum.active,
+    permission: 0b0,
+    description: i18nT('common:user.role.default.System Member Description'),
+    defaultRole: true
   }
-  // TODO: 后续可以添加系统角色
 ];
 export type AddRoleModalFormType = {
   name: string;

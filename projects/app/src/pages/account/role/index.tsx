@@ -56,9 +56,14 @@ const RoleManage = () => {
             </Flex>
           </Flex>
         </Flex>
-        <MyBox isLoading={loading} flexGrow={1} px={'1rem'} display={'flex'} gap={4}>
+        <MyBox
+          isLoading={loading}
+          height={'calc(100% - 3.5rem)'}
+          px={'1rem'}
+          display={'flex'}
+          gap={1}
+        >
           <Box
-            flex={'1 0 0'}
             maxW={'150px'}
             display={'flex'}
             flexDirection={'column'}
@@ -66,7 +71,8 @@ const RoleManage = () => {
             overflowY={'auto'}
             justifyContent={'flex-start'}
             pt={'1rem'}
-            flexBasis={'200px'}
+            flexBasis={'220px'}
+            pr={2}
           >
             <Button
               variant={'primary'}
@@ -128,7 +134,7 @@ const RoleManage = () => {
               ];
             })}
           </Box>
-          <MyDivider mt={0} orientation={'vertical'} />
+          <MyDivider mt={0} mr={3} orientation={'vertical'} />
           <Flex flexDir={'column'} flexGrow={1} py={'1rem'}>
             <Flex w={'100%'}>
               <Box>

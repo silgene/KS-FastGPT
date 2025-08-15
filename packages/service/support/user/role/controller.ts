@@ -60,7 +60,7 @@ export const getRoleByTmbId = async ({
 }: {
   type: RoleTypeEnum;
   tmbId: string;
-  resourceId: string;
+  resourceId?: string;
 }): Promise<RoleDetailType> => {
   const roles = await MongoRole.find({
     type,
@@ -86,7 +86,6 @@ export const getRoleByTmbId = async ({
       break;
 
     case RoleTypeEnum.system:
-      // TODO: 补充系统角色权限
       break;
     default:
       break;
@@ -122,7 +121,6 @@ export const getRoleByTmbId = async ({
     ...roleUser.role
   };
 };
-
 export const addRoleType = async ({
   type,
   name,
