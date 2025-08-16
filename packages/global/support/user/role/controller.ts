@@ -63,7 +63,8 @@ export const DefaultRoleList = [
     // 拥有所有权限
     permission: OwnerPermissionVal,
     description: i18nT('common:user.role.default.Team Owner Description'),
-    defaultRole: true
+    defaultRole: true,
+    ownerRole: true
   },
   {
     // 团队管理员
@@ -93,7 +94,8 @@ export const DefaultRoleList = [
     // 对空间可以管理
     permission: OwnerPermissionVal,
     description: i18nT('common:user.role.default.Space Owner Description'),
-    defaultRole: true
+    defaultRole: true,
+    ownerRole: true
   },
   {
     // 空间管理员
@@ -122,7 +124,8 @@ export const DefaultRoleList = [
     status: RoleStatusEnum.active,
     permission: OwnerPermissionVal,
     description: i18nT('common:user.role.default.System Admin Description'),
-    defaultRole: true
+    defaultRole: true,
+    ownerRole: true
   },
   {
     // 普通成员

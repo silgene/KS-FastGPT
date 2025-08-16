@@ -3,3 +3,8 @@ export enum SpaceTypeEnum {
   team = 'team'
 }
 export const SpaceCollectionName = 'space';
+export const SpaceMemberCollectionName = 'spaceMember';
+export enum SpaceMemberStatusEnum {
+  active = 'active',
+  leave = 'leave'
+}

@@ -45,7 +45,7 @@ export type TeamMemberSchema = {
   createTime: Date;
   updateTime?: Date;
   name: string;
-  role: `${TeamMemberRoleEnum}`;
+  roleId: string;
   status: `${TeamMemberStatusEnum}`;
   avatar: string;
 };
@@ -65,7 +65,8 @@ export type TeamTmbItemType = {
   balance?: number;
   tmbId: string;
   teamDomain: string;
-  role: `${TeamMemberRoleEnum}`;
+  // role: `${TeamMemberRoleEnum}`;
+  role: RoleSchemaType;
   status: `${TeamMemberStatusEnum}`;
   notificationAccount?: string;
   permission: TeamPermission;

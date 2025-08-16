@@ -8,6 +8,7 @@ import {
   TeamCollectionName
 } from '@fastgpt/global/support/user/team/constant';
 import { getRandomUserAvatar } from '@fastgpt/global/support/user/utils';
+import { RoleCollectionName } from '@fastgpt/global/support/user/role/constant';
 
 const TeamMemberSchema = new Schema({
   teamId: {
@@ -39,11 +40,11 @@ const TeamMemberSchema = new Schema({
   updateTime: {
     type: Date
   },
-
-  // Abandoned
-  role: {
-    type: String
+  roleId: {
+    type: Schema.Types.ObjectId,
+    ref: 'role'
   },
+
   // Abandoned
   defaultTeam: {
     type: Boolean
@@ -59,6 +60,12 @@ TeamMemberSchema.virtual('team', {
 TeamMemberSchema.virtual('user', {
   ref: userCollectionName,
   localField: 'userId',
+  foreignField: '_id',
+  justOne: true
+});
+TeamMemberSchema.virtual('role', {
+  ref: RoleCollectionName,
+  localField: 'roleId',
   foreignField: '_id',
   justOne: true
 });

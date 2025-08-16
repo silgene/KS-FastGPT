@@ -1,5 +1,5 @@
 import { type SpacePermission } from '../../../support/permission/space/controller';
-import type { SpaceTypeEnum } from './constant';
+import type { SpaceMemberStatusEnum, SpaceTypeEnum } from './constant';
 import { type TeamMemberSchema, type TeamSchema } from '../team/type';
 import type { TeamMemberRoleEnum, TeamMemberStatusEnum } from '../team/constant';
 import type { GroupMemberRole } from '../../permission/memberGroup/constant';
@@ -19,6 +19,13 @@ export type SpaceSchemaType = {
 export type SpaceDetailType = SpaceSchemaType & {
   permission: SpacePermission;
   team: TeamSchema;
+};
+export type SpaceMemberSchemaType = {
+  _id: string;
+  roleId: string;
+  tmbId: string; // 团队成员ID
+  spaceId: string; // 空间ID
+  status: `${SpaceMemberStatusEnum}`; // 成员状态
 };
 
 export type SpaceMemberItemType = Omit<TeamMemberSchema, 'role'> & {

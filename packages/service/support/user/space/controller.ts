@@ -1,4 +1,4 @@
-import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
+import { SpaceMemberStatusEnum, SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
 import { Types, type ClientSession } from 'mongoose';
 import { MongoSpace } from './spaceSchema';
 import { MongoTeamMember } from '../team/teamMemberSchema';
@@ -15,18 +15,19 @@ import type {
   SpaceMemberItemType,
   SpaceSchemaType
 } from '@fastgpt/global/support/user/space/type';
-import { MongoRoleUser } from '../role/roleUser/roleUserSchema';
 import { RoleCollectionName, RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import { getCustomRole } from '@fastgpt/global/support/user/role/controller';
 import type { PaginationProps, PaginationResponse } from '@fastgpt/global/common/fetch/type';
-import { getRoleByTmbId } from '../role/controller';
+import { getDefaultOwnerRole, getRoleByTmbId } from '../role/controller';
 import { MongoRole } from '../role/roleSchema';
 import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
 import type {
   AddMembersPropsType,
   AddUpdateSpacePropsType
 } from '@fastgpt/global/support/user/space/controller';
+import { MongoSpaceMember } from './spaceMemberSchema';
+import { SpaceDefaultPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 
 // 获取空间中成员的列表
 export const getSpaceMemberList = async ({
@@ -34,8 +35,10 @@ export const getSpaceMemberList = async ({
   pageSize,
   offset
 }: PaginationProps<{ spaceId: string }>): Promise<PaginationResponse<SpaceMemberItemType>> => {
-  // 在调用这个函数前需要鉴权是否有空间权限
-  const space = await MongoSpace.findOne({ _id: spaceId })
+  const spaceMember = await MongoSpaceMember.find({
+    spaceId,
+    status: SpaceMemberStatusEnum.active
+  })
     .populate<{ tmb: TeamMemberSchema & { user: { username: string } } }>({
       path: 'tmb',
       populate: {
@@ -43,83 +46,23 @@ export const getSpaceMemberList = async ({
         select: 'username'
       }
     })
+    .populate<{ role: RoleSchemaType }>('role')
+    .limit(pageSize as number)
+    .skip(offset as number)
     .lean();
-  if (!space) {
-    return Promise.reject('空间不存在');
-  }
-  // 只有团队空间才可以有多个成员,个人空间直接返回自身即可
-  if (space.type === SpaceTypeEnum.personal) {
-    const role = await getRoleByTmbId({
-      type: RoleTypeEnum.space,
-      resourceId: spaceId,
-      tmbId: space.ownerId
-    });
-    return { total: 1, list: [{ ...space.tmb, role, username: space.tmb.user.username }] };
-  }
-  // 因为owner不在MongoRoleUser中，在分页查询时排除掉owner,但返回时需要考虑owner
-  // 应该不需要考虑offset=1的情况
-  const skip = Math.max(Number(offset) - 1, 0);
-  const limit = (() => {
-    // 因为多表查询的性能,分页查询最高100个
-    const res = Math.min(Number(pageSize), 100);
-    if (offset === 0) return res - 1;
-    return res;
-  })();
-
-  const roleUsers = (
-    await MongoRoleUser.find({
-      type: RoleTypeEnum.space,
-      spaceId
-    })
-      .populate<{ role: RoleSchemaType }>(RoleCollectionName)
-      .limit(limit)
-      .skip(skip)
-      .lean()
-  ).map((item) => {
-    return { ...item, permission: new SpacePermission({ per: item.role.permission }) };
+  const total = await MongoSpaceMember.countDocuments({
+    spaceId
   });
-  const total =
-    (await MongoRoleUser.countDocuments({
-      type: RoleTypeEnum.space,
-      spaceId
-    })) + 1; // +1是因为owner不在roleUser中
-  // 查询这个空间中所有角色的用户(tmb)
-  const tmbs = await MongoTeamMember.find({
-    userId: { $in: roleUsers.map((item) => item.userId) },
-    teamId: space.teamId
-  })
-    .populate<{ user: { username: string } }>({
-      path: 'user',
-      select: 'username'
-    })
-    .lean();
-
-  const roleUserMap = new Map<string, (typeof roleUsers)[0]>(
-    roleUsers.map((roleUser) => [String(roleUser.userId), roleUser])
-  );
-  const spaceOwner = {
-    ...space.tmb,
-    role: await getRoleByTmbId({
-      type: RoleTypeEnum.space,
-      resourceId: spaceId,
-      tmbId: space.ownerId
-    }),
-    username: space.tmb.user.username
-  };
-  const tmbList = [
-    // 空间创建者
-    ...(skip === 0 ? [spaceOwner] : []),
-    // 合并对这个空间有权限的团队成员 和 在这个空间有角色的成员(以权限为主导)
-    ...tmbs.map((tmb) => {
+  return {
+    total,
+    list: spaceMember.map((item) => {
       return {
-        ...tmb,
-        username: tmb.user?.username || tmb.name,
-        role: roleUserMap.get(String(tmb.userId))!.role
+        ...item.tmb,
+        username: item.tmb.user?.username || item.tmb.name,
+        role: item.role || getCustomRole(RoleTypeEnum.space, 0, '无角色')
       };
     })
-  ];
-
-  return { total, list: tmbList };
+  };
 };
 
 // 创建默认个人空间(每个个人空间都依托于单个团队)
@@ -162,6 +105,16 @@ export const createDefaultPersonalSpace = async ({
     ],
     { session }
   );
+  const ownerRole = await getDefaultOwnerRole(RoleTypeEnum.space);
+
+  await MongoSpaceMember.create([
+    {
+      spaceId: insertedId,
+      tmbId,
+      roleId: ownerRole._id
+    },
+    { session }
+  ]);
   return insertedId;
 };
 
@@ -188,6 +141,17 @@ export const addTeamSpace = async ({
         createTime: new Date(),
         ownerId: tmbId,
         description
+      }
+    ],
+    { session }
+  );
+  const ownerRole = await getDefaultOwnerRole(RoleTypeEnum.space);
+  await MongoSpaceMember.create(
+    [
+      {
+        spaceId: space._id,
+        tmbId,
+        roleId: ownerRole._id
       }
     ],
     { session }
@@ -221,59 +185,33 @@ export const updateTeamSpaceInfo = async ({
 
 // 获取某个团队成员的空间列表
 export const getSpaceList = async (tmbId: string): Promise<SpaceDetailType[]> => {
-  // 先获取用户所有的tmbId, 再根据tmbId获取空间列表(根据createTime排序)
-  const tmb = await MongoTeamMember.findOne({ _id: tmbId }).lean();
-  if (!tmb) {
-    return Promise.reject(TeamErrEnum.notUser);
-  }
-  const resourceIds = (
-    await MongoResourcePermission.find({
-      tmbId,
-      resourceType: PerResourceTypeEnum.space
-    }).lean()
-  ).filter((item) => {
-    const per = new SpacePermission({ per: item.permission });
-    // 筛选有读权限的空间
-    if (!per.hasReadPer) return false;
-    return true;
-  });
-  const spacePerMap = new Map<string, SpacePermission>(
-    resourceIds.map((item) => [item.resourceId, new SpacePermission({ per: item.permission })])
-  );
-  const spaceList = await MongoSpace.find({
-    $or: [
-      // 在resourceIds中
-      { _id: { $in: resourceIds.map((item) => item.resourceId) } },
-      // 或者是空间的拥有者
-      {
-        ownerId: tmbId
-      }
-    ]
+  // 这个tmb在哪些空间中是成员
+  const tmbSpaceMember = await MongoSpaceMember.find({
+    tmbId,
+    status: SpaceMemberStatusEnum.active
   })
-    .populate<{ team: TeamSchema }>('team')
-    .sort({ createTime: -1 })
+    .populate<{ tmb: TeamMemberSchema & { team: TeamSchema } }>({
+      path: 'tmb',
+      populate: {
+        path: 'team'
+      }
+    })
+    .populate<{ role: RoleSchemaType }>('role')
+    .populate<{ space: SpaceSchemaType }>('space')
     .lean();
-  const res = spaceList.map((space) => {
+  return tmbSpaceMember.map((item) => {
     return {
-      _id: space._id,
-      name: space.name,
-      teamId: space.teamId,
-      avatar: space.avatar,
-      createTime: space.createTime,
-      type: space.type,
-      ownerId: space.ownerId,
-      description: space.description,
-      team: space.team as TeamSchema,
-      permission:
-        (String(space.ownerId) === String(tmbId)
-          ? new SpacePermission({ isOwner: true })
-          : spacePerMap.get(space._id)) || new SpacePermission({ per: ReadPermissionVal })
-    };
+      ...item.space,
+      team: item.tmb.team,
+      permission: new SpacePermission({
+        isOwner: String(item.tmb._id) === String(item.spaceId),
+        per: item.role.permission || SpaceDefaultPermissionVal
+      })
+    } as SpaceDetailType;
   });
-  return res;
 };
 
-// 添加团队空间的成员及其角色(需要事务)
+// 添加团队空间的成员及其角色
 export const addSpaceMembers = async ({
   tmbs,
   roleId,
@@ -283,14 +221,8 @@ export const addSpaceMembers = async ({
   session?: ClientSession;
 }): Promise<void> => {
   // 调用前需要先鉴权,对该空间有管理权限
-  const [role, tmbEntities, space] = await Promise.all([
-    // 查询该角色类型的permission
+  const [role, space] = await Promise.all([
     MongoRole.findOne({ _id: roleId, type: RoleTypeEnum.space }).lean(),
-    MongoTeamMember.find({
-      _id: {
-        $in: tmbs
-      }
-    }).lean(),
     MongoSpace.findOne({
       _id: spaceId
     }).lean()
@@ -302,48 +234,16 @@ export const addSpaceMembers = async ({
   if (!space) {
     return Promise.reject(SpaceErrEnum.unExist);
   }
-  if (tmbs.includes(String(space.ownerId))) {
-    return Promise.reject('不能添加空间所有者为成员');
-  }
-  // 检测权限表和角色表中是否已存在
-  const [existingPermissions, existingRoleUsers] = await Promise.all([
-    MongoResourcePermission.find({
-      resourceId: spaceId,
-      resourceType: PerResourceTypeEnum.space,
-      tmbId: { $in: tmbs }
-    }).lean(),
-    MongoRoleUser.find({
-      roleId,
-      userId: { $in: tmbEntities.map((tmb) => tmb.userId) },
-      type: RoleTypeEnum.space,
-      spaceId
-    }).lean()
-  ]);
-  if (existingPermissions.length > 0 || existingRoleUsers.length > 0) {
-    return Promise.reject('有成员已存在于该空间中');
-  }
-
-  // 向权限表，角色表中添加
-
-  await MongoResourcePermission.insertMany(
-    tmbEntities.map((tmb) => ({
-      resourceId: spaceId,
-      resourceType: PerResourceTypeEnum.space,
-      tmbId: tmb._id,
-      teamId: tmb.teamId,
-      permission: role.permission
-    })),
+  await MongoSpaceMember.create(
+    tmbs.map((tmbId) => {
+      return {
+        tmbId,
+        spaceId,
+        role: role._id
+      };
+    }),
     { session }
-  ),
-    await MongoRoleUser.insertMany(
-      tmbEntities.map((tmb) => ({
-        roleId: role._id,
-        userId: tmb.userId,
-        type: RoleTypeEnum.space,
-        spaceId
-      })),
-      { session }
-    );
+  );
 };
 // 移除团队空间的成员及其角色(需要事务)
 export const removeSpaceMembers = async ({
@@ -371,39 +271,21 @@ export const removeSpaceMembers = async ({
   if (tmbs.includes(String(space.ownerId))) {
     return Promise.reject('不能移除空间所有者');
   }
-  // 检测权限表和角色表中是否已存在
-  const [existingPermissions, existingRoleUsers] = await Promise.all([
-    MongoResourcePermission.find({
-      resourceId: spaceId,
-      resourceType: PerResourceTypeEnum.space,
-      tmbId: { $in: tmbs }
-    }).lean(),
-    MongoRoleUser.find({
-      userId: { $in: tmbEntities.map((tmb) => tmb.userId) },
-      type: RoleTypeEnum.space,
-      spaceId
-    }).lean()
-  ]);
-  if (existingPermissions.length !== tmbs.length && existingRoleUsers.length !== tmbs.length) {
-    return Promise.reject('有成员不在该空间中');
+  if (tmbEntities.length !== tmbs.length) {
+    return Promise.reject('部分团队成员不存在');
   }
-
-  // 向权限表，角色表中删除
-
-  await MongoResourcePermission.deleteMany(
+  await MongoSpaceMember.updateMany(
     {
-      _id: { $in: existingPermissions.map((item) => item._id) }
+      tmbId: { $in: tmbs },
+      spaceId
+    },
+    {
+      status: SpaceMemberStatusEnum.leave
     },
     { session }
-  ),
-    await MongoRoleUser.deleteMany(
-      {
-        _id: { $in: existingRoleUsers.map((item) => item._id) }
-      },
-      { session }
-    );
+  );
 };
-// 更新空间成员的角色(需要事务)
+// 更新空间成员的角色
 export const updateSpaceMemberRole = async ({
   tmbId,
   spaceId,
@@ -416,13 +298,9 @@ export const updateSpaceMemberRole = async ({
   session?: ClientSession;
 }) => {
   // 调用前需要先鉴权,对该空间有管理权限
-  const [tmb, resourcePer, newRole, space] = await Promise.all([
+  const [tmb, spaceMember, newRole, space] = await Promise.all([
     MongoTeamMember.findOne({ _id: tmbId }).lean(),
-    MongoResourcePermission.findOne({
-      tmbId,
-      resourceType: PerResourceTypeEnum.space,
-      resourceId: spaceId
-    }).lean(),
+    MongoSpaceMember.findOne({ spaceId, tmbId }).lean(),
     MongoRole.findOne({ _id: roleId, type: RoleTypeEnum.space }).lean(),
     MongoSpace.findOne({ _id: spaceId }).lean()
   ]);
@@ -435,20 +313,21 @@ export const updateSpaceMemberRole = async ({
   if (tmb._id === space.ownerId) {
     return Promise.reject('不能修改空间所有者的角色');
   }
-  if (!resourcePer) {
+  if (!spaceMember) {
     return Promise.reject('成员不在该空间中');
   }
   if (!newRole) {
     return Promise.reject('指定的角色不存在');
   }
-  await MongoResourcePermission.updateOne(
-    { _id: resourcePer._id },
-    { permission: newRole.permission },
-    { session }
-  );
-  await MongoRoleUser.updateOne(
-    { userId: tmb.userId, type: RoleTypeEnum.space, spaceId },
-    { roleId: newRole._id },
-    { session }
+  await MongoSpaceMember.updateOne(
+    {
+      _id: spaceMember._id
+    },
+    {
+      roleId: newRole._id
+    },
+    {
+      session
+    }
   );
 };

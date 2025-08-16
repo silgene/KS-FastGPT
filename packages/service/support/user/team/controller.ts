@@ -34,13 +34,15 @@ import { MongoUser } from '../schema';
 import { type UserModelSchema } from '@fastgpt/global/support/user/type';
 import { getRoleByTmbId } from '../role/controller';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
-import { MongoRoleUser } from '../role/roleUser/roleUserSchema';
 import { getCustomRole } from '@fastgpt/global/support/user/role/controller';
 import { type RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import { MongoRole } from '../role/roleSchema';
 
 async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemType> {
-  const tmb = await MongoTeamMember.findOne(match).populate<{ team: TeamSchema }>('team').lean();
+  const tmb = await MongoTeamMember.findOne(match)
+    .populate<{ team: TeamSchema }>('team')
+    .populate<{ role: RoleSchemaType }>('role')
+    .lean();
   if (!tmb) {
     return Promise.reject('member not exist');
   }
@@ -64,7 +66,7 @@ async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemTyp
     status: tmb.status,
     permission: new TeamPermission({
       per: Per ?? TeamDefaultPermissionVal,
-      isOwner: tmb.role === TeamMemberRoleEnum.owner
+      isOwner: tmb?.role?.ownerRole
     }),
     notificationAccount: tmb.team.notificationAccount,
 
@@ -284,10 +286,6 @@ export async function updateTeam({
 export async function getTeamMemberList({
   status,
   searchKey,
-  withOrgs,
-  orgId,
-  withPermission,
-  groupId,
   pageSize,
   offset,
   teamId
@@ -300,33 +298,18 @@ export async function getTeamMemberList({
   if (searchKey?.trim().length) {
     userMatch.username = { $regex: searchKey, $options: 'i' };
   }
-  const query = MongoTeamMember.find({ teamId }).populate<{ user: UserModelSchema }>({
-    path: 'user',
-    match: userMatch
-  });
-  if (withOrgs) {
-  }
-  if (withPermission) {
-  }
+  const query = MongoTeamMember.find({ teamId })
+    .populate<{ user: UserModelSchema }>({
+      path: 'user',
+      match: userMatch
+    })
+    .populate<{ role: RoleSchemaType }>('role');
+
   const res = await query
     .skip(Number(offset) || 0)
     .limit(Number(pageSize) || 10)
     .lean();
-  const ownerRole = await MongoRole.findOne({
-    type: RoleTypeEnum.team,
-    status: 'active',
-    permission: OwnerPermissionVal
-  });
-  const roleUsers = await MongoRoleUser.find({
-    userId: { $in: res.map((item) => item.userId) },
-    type: RoleTypeEnum.team,
-    teamId
-  })
-    .populate<{ role: RoleSchemaType }>('role')
-    .lean();
-  const roleUserMap = new Map<string, RoleSchemaType>(
-    roleUsers.map((item) => [String(item.userId), item.role])
-  );
+
   return res
     .filter((item) => item.user)
     .map((item) => {
@@ -337,16 +320,13 @@ export async function getTeamMemberList({
         memberName: item.name,
         username: item.user.username,
         avatar: item.avatar,
-        role:
-          String(team.ownerId) === String(item.userId)
-            ? ownerRole
-            : roleUserMap.get(String(item.userId)) || getCustomRole(RoleTypeEnum.team, 0, '无角色'),
+        role: item.role || getCustomRole(RoleTypeEnum.team, 0, '无角色'),
         status: item.status,
         contact: item.user.contact,
         createTime: item.createTime,
         updateTime: item.updateTime,
         permission: new TeamPermission({
-          per: roleUserMap.get(String(item.userId))?.permission || TeamDefaultPermissionVal,
+          per: item?.role?.permission || TeamDefaultPermissionVal,
           isOwner: String(team.ownerId) === String(item.userId)
         })
       };

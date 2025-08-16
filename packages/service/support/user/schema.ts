@@ -4,6 +4,7 @@ import { hashStr } from '@fastgpt/global/common/string/tools';
 import type { UserModelSchema } from '@fastgpt/global/support/user/type';
 import { UserStatusEnum, userStatusMap } from '@fastgpt/global/support/user/constant';
 import { TeamMemberCollectionName } from '@fastgpt/global/support/user/team/constant';
+import { RoleCollectionName } from '@fastgpt/global/support/user/role/constant';
 
 export const userCollectionName = 'users';
 
@@ -50,7 +51,11 @@ const UserSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: TeamMemberCollectionName
   },
-
+  // 系统角色id
+  roleId: {
+    type: Schema.Types.ObjectId,
+    ref: RoleCollectionName
+  },
   inviterId: {
     // 谁邀请注册的
     type: Schema.Types.ObjectId,
@@ -64,6 +69,12 @@ const UserSchema = new Schema({
   avatar: String
 });
 
+UserSchema.virtual('role', {
+  ref: RoleCollectionName,
+  localField: 'roleId',
+  foreignField: '_id',
+  justOne: true
+});
 try {
   // Admin charts
   UserSchema.index({ createTime: -1 });

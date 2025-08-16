@@ -12,19 +12,17 @@ import {
 } from '@fastgpt/global/support/permission/constant';
 import { MongoTeam } from '../team/teamSchema';
 import { MongoSpace } from '../space/spaceSchema';
-import { MongoRoleUser } from './roleUser/roleUserSchema';
+
 import { MongoTeamMember } from '../team/teamMemberSchema';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
-import type {
-  RoleDetailType,
-  RoleSchemaType,
-  RoleUserSchemaType
-} from '@fastgpt/global/support/user/role/type';
+import type { RoleDetailType, RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import type { PaginationProps } from '@fastgpt/global/common/fetch/type';
 import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
 import { type ClientSession } from 'mongoose';
 import { MongoResourcePermission } from '../../../support/permission/schema';
 import type { TeamMemberSchema } from '@fastgpt/global/support/user/team/type';
+import { MongoSpaceMember } from '../space/spaceMemberSchema';
+import { MongoUser } from '../schema';
 /**
  * 获取角色列表
  * @param type 角色类型
@@ -61,65 +59,39 @@ export const getRoleByTmbId = async ({
   type: RoleTypeEnum;
   tmbId: string;
   resourceId?: string;
-}): Promise<RoleDetailType> => {
-  const roles = await MongoRole.find({
-    type,
-    status: RoleStatusEnum.active
-  }).lean();
-  // 看看是不是owner
-  let isOwner = false;
-  switch (type) {
-    case RoleTypeEnum.team:
-      const team = await MongoTeam.findOne({
-        _id: resourceId,
-        ownerId: tmbId
-      });
-      if (team) isOwner = true;
-      break;
-
-    case RoleTypeEnum.space:
-      const space = await MongoSpace.findOne({
-        _id: resourceId,
-        ownerId: tmbId
-      });
-      if (space) isOwner = true;
-      break;
-
-    case RoleTypeEnum.system:
-      break;
-    default:
-      break;
-  }
-  if (isOwner) {
-    const role = roles.filter((role) => role.permission === OwnerPermissionVal)[0];
-    return {
-      ...role
-    };
-  }
-  // 如果不是owner，则查找该用户的角色
-  const tmb = await MongoTeamMember.findOne({
-    _id: tmbId
-  });
-  if (!tmb) {
-    return Promise.reject(TeamErrEnum.notUser);
-  }
-  const roleUser = await MongoRoleUser.findOne({
-    userId: tmb.userId,
-    type,
-    status: RoleStatusEnum.active,
-    ...(type === RoleTypeEnum.team ? { teamId: resourceId } : {}),
-    ...(type === RoleTypeEnum.space ? { spaceId: resourceId } : {})
-  })
-    .populate<{ role: RoleSchemaType }>('role')
-    .lean();
-  if (!roleUser) {
-    // TODO: 国际化配置
-    return getCustomRole(RoleTypeEnum.team, NullPermission, '无角色');
-    // return Promise.reject('没有找到角色');
-  }
-  return {
-    ...roleUser.role
-  };
+}): Promise<RoleSchemaType> => {
+  const role = await (async () => {
+    switch (type) {
+      case RoleTypeEnum.space:
+        const spaceMember = await MongoSpaceMember.findOne({
+          tmbId,
+          spaceId: resourceId
+        })
+          .populate<{ role: RoleSchemaType }>('role')
+          .lean();
+        return spaceMember?.role;
+      case RoleTypeEnum.team:
+        const tmb = await MongoTeamMember.findOne({
+          _id: tmbId,
+          teamId: resourceId
+        })
+          .populate<{ role: RoleSchemaType }>('role')
+          .lean();
+        return tmb?.role;
+      case RoleTypeEnum.system:
+        const userTmb = await MongoTeamMember.findOne({ _id: tmbId })
+          .populate<{ user: { role: RoleSchemaType } }>({
+            path: 'user',
+            select: 'roleId',
+            populate: {
+              path: 'role'
+            }
+          })
+          .lean();
+        return userTmb?.user?.role;
+    }
+  })();
+  return role || getCustomRole(RoleTypeEnum.team, NullPermission, '无角色');
 };
 export const addRoleType = async ({
   type,
@@ -185,14 +157,9 @@ export const updateMemberRole = async ({
   tmbId: string;
   roleId: string;
 }) => {
-  const tmb = await MongoTeamMember.findOne({
-    _id: tmbId
-  });
+  const tmb = await MongoTeamMember.findOne({ _id: tmbId });
   if (!tmb) {
     return Promise.reject('团队成员不存在');
-  }
-  if (String(tmb.teamId) !== String(teamId)) {
-    return Promise.reject('该成员不属于该团队');
   }
   const role = await MongoRole.findOne({
     _id: roleId,
@@ -202,18 +169,26 @@ export const updateMemberRole = async ({
   if (!role) {
     return Promise.reject('角色不存在');
   }
-  await MongoRoleUser.findOneAndUpdate(
-    {
-      userId: tmb.userId,
-      type,
-      ...(type === RoleTypeEnum.team ? { teamId } : {}),
-      ...(type === RoleTypeEnum.space ? { spaceId } : {})
-    },
-    {
-      roleId: role._id
-    },
-    {
-      upsert: true
-    }
-  );
+  switch (type) {
+    case RoleTypeEnum.space:
+      await MongoSpaceMember.findOneAndUpdate({ tmbId, spaceId }, { roleId });
+      break;
+    case RoleTypeEnum.team:
+      await MongoTeamMember.findOneAndUpdate({ _id: tmbId, teamId }, { roleId });
+      break;
+    case RoleTypeEnum.system:
+      await MongoUser.findOneAndUpdate({ _id: tmb.userId }, { roleId });
+      break;
+  }
+};
+export const getDefaultOwnerRole = async (type: RoleTypeEnum) => {
+  const ownerRole = await MongoRole.findOne({
+    type,
+    ownerRole: true,
+    defaultRole: true
+  }).lean();
+  if (!ownerRole) {
+    throw Promise.reject('默认所有者角色不存在,请重新添加');
+  }
+  return ownerRole;
 };

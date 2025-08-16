@@ -7,7 +7,6 @@ import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSc
 import { authSystem } from '@fastgpt/service/support/permission/system/auth';
 import type { ApiRequestProps, ApiResponseType } from '@fastgpt/service/type/next';
 import { authCert } from '@fastgpt/service/support/permission/auth/common';
-import { MongoRoleUser } from '@fastgpt/service/support/user/role/roleUser/roleUserSchema';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { getCustomRole } from '@fastgpt/global/support/user/role/controller';
 import { NullPermission } from '@fastgpt/global/support/permission/constant';
@@ -35,18 +34,15 @@ async function handler(
     const tmbs = await MongoTeamMember.find({
       teamId
     })
-      .populate<{ user: UserModelSchema }>({
+      .populate<{ user: UserModelSchema & { role: RoleSchemaType } }>({
         path: 'user',
-        match: match
+        match: match,
+        populate: {
+          path: 'role'
+        }
       })
       .lean();
-    const roleUsers = await MongoRoleUser.find({
-      type: RoleTypeEnum.system,
-      userId: { $in: tmbs.map((item) => item.userId) }
-    })
-      .populate<{ role: RoleSchemaType }>('role')
-      .lean();
-    const roleUserMap = new Map(roleUsers.map((item) => [item.userId, item]));
+
     searchResult.members = tmbs.map((item) => {
       return {
         userId: item.userId,
@@ -55,9 +51,7 @@ async function handler(
         memberName: item.user.username,
         username: item.user.username,
         avatar: item.avatar,
-        role:
-          roleUserMap.get(item.userId)?.role ||
-          getCustomRole(RoleTypeEnum.system, NullPermission, '无角色'),
+        role: item.user.role || getCustomRole(RoleTypeEnum.system, NullPermission, '无角色'),
         status: item.status,
         contact: item.user.contact,
         createTime: item.createTime,

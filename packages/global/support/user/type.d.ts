@@ -19,6 +19,7 @@ export type UserModelSchema = {
     keyword: string;
   };
   contact?: string;
+  roleId: string;
 };
 
 export type UserType = {
