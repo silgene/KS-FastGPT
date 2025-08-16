@@ -9,6 +9,7 @@ import { getTeamPlanStatus } from './team/api';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
 import { getAllAccessibleSpaces, getLastUsedSpace } from './space/api';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
+import type { TeamMemberItemType } from '@fastgpt/global/support/user/team/type';
 
 type State = {
   systemMsgReadId: string;

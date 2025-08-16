@@ -205,19 +205,20 @@ function SpaceManage() {
             {t('account_team:user_team_invite_member')}
           </Button>
         )}
-        {/* TODO: TeamPermission需要有添加空间的权限 */}
-        <Button
-          variant={'outline'}
-          size="md"
-          borderRadius={'md'}
-          leftIcon={<MyIcon name="common/addCircleLight" w={'16px'} />}
-          onClick={() => {
-            onOpenAddSpaceModal();
-            setAddSpaceModalType('add');
-          }}
-        >
-          {'添加空间'}
-        </Button>
+        {userInfo?.teamPermission?.hasSpaceManagePer && (
+          <Button
+            variant={'outline'}
+            size="md"
+            borderRadius={'md'}
+            leftIcon={<MyIcon name="common/addCircleLight" w={'16px'} />}
+            onClick={() => {
+              onOpenAddSpaceModal();
+              setAddSpaceModalType('add');
+            }}
+          >
+            {'添加空间'}
+          </Button>
+        )}
         {currentSpace?.permission.isOwner && (
           <Button
             variant={'outline'}
@@ -269,7 +270,9 @@ function SpaceManage() {
               <Tbody>
                 {members.map((member) => {
                   // 检查是否可以编辑该成员的权限
-                  const canEditPermissions = isSpaceOwner && member._id !== userInfo?.team.tmbId;
+                  const canEditPermissions =
+                    currentSpace?.permission.hasMemberManagePer &&
+                    member._id !== userInfo?.team.tmbId;
 
                   return (
                     <Tr key={member._id} overflow={'unset'}>
@@ -286,7 +289,7 @@ function SpaceManage() {
                           onChange={(newRoleId) =>
                             handleUpdateMemberPermission(member._id, newRoleId)
                           }
-                          isOwner={member._id === currentSpace?.ownerId}
+                          isOwner={member.role.ownerRole}
                           disabled={!canEditPermissions}
                           myRoleList={myRoleList}
                         />
@@ -333,7 +336,6 @@ function SpaceManage() {
           </TableContainer>
         </MemberScrollData>
       </MyBox>
-      {/* TODO: 这里需要对该空间有MemberManage权限 */}
       {isOpenAddMemberModal && userInfo?.team?.teamId && (
         <SpaceAddMemberModal
           spaceId={currentSpace?._id as string}

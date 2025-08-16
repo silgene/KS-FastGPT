@@ -1,3 +1,4 @@
+import { type SystemPermission } from '../../support/permission/system/controller';
 import type { TeamPermission } from '../permission/user/controller';
 import type { UserStatusEnum } from './constant';
 import type { TeamMemberStatusEnum } from './team/constant';
@@ -30,7 +31,8 @@ export type UserType = {
   promotionRate: UserModelSchema['promotionRate'];
   team: TeamTmbItemType;
   notificationAccount?: string;
-  permission: TeamPermission;
+  systemPermission: SystemPermission;
+  teamPermission: TeamPermission;
   contact?: string;
 };
 

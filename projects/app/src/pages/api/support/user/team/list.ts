@@ -12,6 +12,7 @@ import {
 } from '@fastgpt/global/support/user/team/constant';
 import type { TeamTmbItemType, TeamSchema } from '@fastgpt/global/support/user/team/type';
 import { Types } from 'mongoose';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 
 export type GetTeamListQuery = {
   status?: `${TeamMemberStatusEnum}`;
@@ -38,6 +39,7 @@ async function handler(
     status
   })
     .populate<{ team: TeamSchema }>('team')
+    .populate<{ role: RoleSchemaType }>('role')
     .lean();
 
   // 构建返回数据
@@ -46,13 +48,6 @@ async function handler(
       if (!tmb.team) {
         throw new Error('Team not found');
       }
-
-      // 获取团队权限
-      const Per = await getResourcePermission({
-        resourceType: PerResourceTypeEnum.team,
-        teamId: tmb.teamId,
-        tmbId: tmb._id
-      });
 
       return {
         userId: String(tmb.userId),
@@ -67,8 +62,8 @@ async function handler(
         role: tmb.role,
         status: tmb.status,
         permission: new TeamPermission({
-          per: Per ?? TeamDefaultPermissionVal,
-          isOwner: tmb.role === TeamMemberRoleEnum.owner
+          per: tmb.role?.permission ?? TeamDefaultPermissionVal,
+          isOwner: tmb.role?.ownerRole
         }),
         notificationAccount: tmb.team.notificationAccount,
         lafAccount: tmb.team.lafAccount,

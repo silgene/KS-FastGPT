@@ -13,6 +13,8 @@ import { MongoSpace } from '@fastgpt/service/support/user/space/spaceSchema';
 import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
 import { authSpace } from '@fastgpt/service/support/permission/space/auth';
 import { SpaceMemberReadPermissionVal } from '@fastgpt/global/support/permission/space/constant';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
+import { MongoSpaceMember } from '@fastgpt/service/support/user/space/spaceMemberSchema';
 
 type availableMember = {
   userId: string;
@@ -20,7 +22,7 @@ type availableMember = {
   teamId: string;
   memberName: string;
   avatar: string;
-  role: string;
+  role: RoleSchemaType;
 };
 
 async function handler(
@@ -41,13 +43,12 @@ async function handler(
     return Promise.reject(SpaceErrEnum.unExist);
   }
   // 获取已在空间中的成员 ID
-  const existingMembers = await MongoResourcePermission.find({
-    resourceType: PerResourceTypeEnum.space,
-    resourceId: spaceId
+  const existingMembers = await MongoSpaceMember.find({
+    spaceId,
+    status: 'active'
   })
     .distinct('tmbId')
     .lean();
-  existingMembers.push(space.ownerId);
   // 构建查询条件
   const query = {
     teamId,
@@ -67,6 +68,7 @@ async function handler(
         select: 'username avatar contact',
         match: userMatch // 添加用户名搜索条件
       })
+      .populate<{ role: RoleSchemaType }>('role')
       .skip(offset)
       .limit(pageSize)
       .lean(),

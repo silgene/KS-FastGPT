@@ -71,7 +71,7 @@ const AccountContainer = ({
           }
         ]
       : []),
-    ...(spaceInfo?.permission.hasMemberManagePer
+    ...(true
       ? [
           {
             icon: 'common/settingLight',

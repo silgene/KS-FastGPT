@@ -19,6 +19,8 @@ import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
 import { authTeam } from '@fastgpt/service/support/permission/user/auth';
 import { TeamManageMemberPermissionVal } from '@fastgpt/global/support/permission/user/constant';
+import { authSystem } from '@fastgpt/service/support/permission/system/auth';
+import { SystemUserManagePermissionVal } from '@fastgpt/global/support/permission/system/constant';
 
 async function handler(req: ApiRequestProps<UpdateMemberRoleRequestType>, res: ApiResponseType) {
   const { type, tmbId, teamId, spaceId, roleId } = req.body;
@@ -29,6 +31,9 @@ async function handler(req: ApiRequestProps<UpdateMemberRoleRequestType>, res: A
   if (type === RoleTypeEnum.team) {
     if (!teamId) return Promise.reject(TeamErrEnum.unAuthTeam);
     await authTeam({ teamId, req, authToken: true, per: TeamManageMemberPermissionVal });
+  }
+  if (type === RoleTypeEnum.system) {
+    await authSystem({ req, authToken: true, per: SystemUserManagePermissionVal });
   }
   await updateMemberRole(req.body);
 }

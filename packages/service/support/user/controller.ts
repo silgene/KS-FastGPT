@@ -2,6 +2,8 @@ import { type UserType } from '@fastgpt/global/support/user/type';
 import { MongoUser } from './schema';
 import { getTmbInfoByTmbId, getUserDefaultTeam } from './team/controller';
 import { ERROR_ENUM } from '@fastgpt/global/common/error/errorCode';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
+import { SystemPermission } from '@fastgpt/global/support/permission/system/controller';
 
 export async function authUserExist({ userId, username }: { userId?: string; username?: string }) {
   if (userId) {
@@ -32,7 +34,9 @@ export async function getUserDetail({
     }
     return Promise.reject(ERROR_ENUM.unAuthorization);
   })();
-  const user = await MongoUser.findById(tmb.userId);
+  const user = await MongoUser.findById(tmb.userId)
+    .populate<{ role: RoleSchemaType }>('role')
+    .lean();
 
   if (!user) {
     return Promise.reject(ERROR_ENUM.unAuthorization);
@@ -46,7 +50,8 @@ export async function getUserDetail({
     promotionRate: user.promotionRate,
     team: tmb,
     notificationAccount: tmb.notificationAccount,
-    permission: tmb.permission,
+    systemPermission: new SystemPermission({ per: user.role?.permission }),
+    teamPermission: tmb.permission,
     contact: user.contact
   };
 }
