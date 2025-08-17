@@ -9,6 +9,7 @@ import { authCert } from '../auth/common';
 import { MongoUser } from '../../user/schema';
 import { ERROR_ENUM } from '@fastgpt/global/common/error/errorCode';
 import { type ApiRequestProps } from '../../../type/next';
+import { TeamMemberStatusEnum } from '@fastgpt/global/support/user/team/constant';
 
 /* auth user role  */
 export async function authTeam(
@@ -26,7 +27,9 @@ export async function authTeam(
     userId: result.userId,
     teamId: props.teamId || result.teamId
   });
-
+  if (tmb.status !== TeamMemberStatusEnum.active) {
+    return Promise.reject(TeamErrEnum.unAuthTeam);
+  }
   if (result.isRoot) {
     return {
       ...result,

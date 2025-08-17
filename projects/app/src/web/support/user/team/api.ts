@@ -6,6 +6,7 @@ import type {
 } from '@fastgpt/global/support/permission/collaborator';
 import type {
   CreateTeamProps,
+  InviteUserToTeamProps,
   TeamMemberListQuery,
   UpdateInviteProps,
   UpdateTeamProps
@@ -27,6 +28,7 @@ import type {
   InvitationLinkCreateType,
   InvitationType
 } from '@fastgpt/service/support/user/team/invitationLink/type';
+import type { AvailableUserListQuery, GetUserListResponse } from '@fastgpt/global/support/user/api';
 
 /* --------------- team  ---------------- */
 export const getTeamList = (status: `${TeamMemberSchema['status']}`) =>
@@ -126,3 +128,8 @@ export type CreateAndInviteMemberResponse = {
 
 export const postCreateAndInviteTeamMember = (data: CreateAndInviteMemberProps) =>
   POST<CreateAndInviteMemberResponse>('/support/user/team/member/createAndInvite', data);
+
+export const inviteUserToTeam = (data: InviteUserToTeamProps) =>
+  POST('/support/user/team/member/inviteUserToTeam', data);
+export const getAvailableUsers = (data: AvailableUserListQuery) =>
+  POST<GetUserListResponse>('/support/user/team/availableUserList', data);

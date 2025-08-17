@@ -6,10 +6,11 @@ import { TeamMemberStatusEnum } from '@fastgpt/global/support/user/team/constant
 import { createUserSession, authUserSession } from '@fastgpt/service/support/user/session';
 import { setCookie } from '@fastgpt/service/support/permission/controller';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
+import { authCert } from '@fastgpt/service/support/permission/auth/common';
 
 async function handler(req: ApiRequestProps, res: ApiResponseType) {
   // 验证用户身份
-  const { userId } = await authSystemAdmin({ req });
+  const { userId } = await authCert({ req, authToken: true });
 
   const { teamId } = req.body as { teamId: string };
 

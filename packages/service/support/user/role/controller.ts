@@ -23,6 +23,7 @@ import { MongoResourcePermission } from '../../../support/permission/schema';
 import type { TeamMemberSchema } from '@fastgpt/global/support/user/team/type';
 import { MongoSpaceMember } from '../space/spaceMemberSchema';
 import { MongoUser } from '../schema';
+import { SpaceMemberStatusEnum } from '@fastgpt/global/support/user/space/constant';
 /**
  * 获取角色列表
  * @param type 角色类型

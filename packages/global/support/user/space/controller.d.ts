@@ -9,3 +9,8 @@ export type AddUpdateSpacePropsType = {
   description?: string;
   avatar?: string;
 };
+export type GetSpaceMemberListPropsType = {
+  spaceId: string;
+  status?: SpaceMemberStatusEnum;
+  searchKey?: string;
+};

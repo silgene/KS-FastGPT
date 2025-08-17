@@ -29,6 +29,7 @@ import Avatar from '@fastgpt/web/components/common/Avatar';
 import {
   getSpaceMemberList,
   removeSpaceMembers,
+  restoreSpaceMember,
   updateSpaceMemberRole
 } from '@/web/support/user/space/api';
 import dynamic from 'next/dynamic';
@@ -45,9 +46,13 @@ import { getRoleList } from '@/web/support/user/role/api';
 import { type ParseKeys } from '@fastgpt/web/types/i18next';
 import { type PermissionValueType } from '@fastgpt/global/support/permission/type';
 import { useContextSelector } from 'use-context-selector';
-import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
+import { SpaceMemberStatusEnum, SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { useToast } from '@fastgpt/web/hooks/useToast';
+import SearchInput from '@fastgpt/web/components/common/Input/SearchInput';
+import MySelect from '@fastgpt/web/components/common/MySelect';
+import type { GetSpaceMemberListPropsType } from '@fastgpt/global/support/user/space/controller';
+import Tag from '@fastgpt/web/components/common/Tag';
 
 const SpaceAddMemberModal = dynamic(
   () => import('@/pageComponents/account/space/SpaceAddMemberModal')
@@ -62,7 +67,11 @@ function SpaceManage() {
     setCurrentSpaceId,
     currentSpace,
     spaceListLoading,
-    refreshSpaceList
+    refreshSpaceList,
+    spaceMemberSearchKey,
+    spaceMemberSearchStatus,
+    setSpaceMemberSearchKey,
+    setSpaceMemberSearchStatus
   } = useContextSelector(SpaceManageContext, (context) => context);
   const { toast } = useToast();
   const {
@@ -71,7 +80,7 @@ function SpaceManage() {
     refreshList: refetchMemberList,
     ScrollData: MemberScrollData
   } = useScrollPagination<
-    PaginationProps<{ spaceId: string }>,
+    PaginationProps<GetSpaceMemberListPropsType>,
     PaginationResponse<SpaceMemberItemType>
   >(
     async (props) => {
@@ -84,8 +93,17 @@ function SpaceManage() {
     },
     {
       pageSize: 20,
-      params: { spaceId: currentSpace?._id || '' },
-      refreshDeps: [currentSpace?._id, currentSpace?.type],
+      params: {
+        spaceId: currentSpace?._id || '',
+        searchKey: spaceMemberSearchKey,
+        status: spaceMemberSearchStatus
+      },
+      refreshDeps: [
+        currentSpace?._id,
+        currentSpace?.type,
+        spaceMemberSearchKey,
+        spaceMemberSearchStatus
+      ],
       throttleWait: 500,
       debounceWait: 200
     }
@@ -118,6 +136,18 @@ function SpaceManage() {
     },
     {
       onSuccess: onRefreshMembers
+    }
+  );
+  const { runAsync: onRestoreMember, loading: restoreMemberLoading } = useRequest2(
+    restoreSpaceMember,
+    {
+      onSuccess: () => {
+        onRefreshMembers();
+        toast({
+          title: t('common:Success'),
+          status: 'success'
+        });
+      }
     }
   );
 
@@ -156,12 +186,36 @@ function SpaceManage() {
     [onUpdateMemberPermission, members]
   );
 
-  // 检查当前用户是否为空间所有者
-  const isSpaceOwner = currentSpace?.permission.isOwner;
   const isLoading = useMemo(
-    () => loadingMembers || spaceListLoading || updateMemberLoading || removeMemberLoading,
-    [loadingMembers, spaceListLoading, updateMemberLoading, removeMemberLoading]
+    () =>
+      loadingMembers ||
+      spaceListLoading ||
+      updateMemberLoading ||
+      removeMemberLoading ||
+      restoreMemberLoading,
+    [
+      loadingMembers,
+      spaceListLoading,
+      updateMemberLoading,
+      removeMemberLoading,
+      restoreMemberLoading
+    ]
   );
+  const statusOptions = [
+    {
+      label: t('common:All'),
+      value: undefined
+    },
+    {
+      label: t('common:user.team.member.active'),
+      value: 'active'
+    },
+    {
+      label: t('account_team:leave'),
+      value: 'leave'
+    }
+  ];
+
   return (
     <>
       {/* 页面标题和操作区域 */}
@@ -249,7 +303,21 @@ function SpaceManage() {
 
       {/* 权限管理表格 */}
       <MyBox isLoading={isLoading} flex={'1 0 0'} py={'1.5rem'} px={'2rem'}>
-        <MemberScrollData>
+        <Flex gap={2} mb={4} align={'center'}>
+          <MySelect
+            width={'100px'}
+            value={spaceMemberSearchStatus}
+            list={statusOptions}
+            onChange={(val) => setSpaceMemberSearchStatus(val)}
+          ></MySelect>
+          <SearchInput
+            width={'200px'}
+            value={spaceMemberSearchKey}
+            placeholder={t('account_team:search_member')}
+            onChange={(e) => setSpaceMemberSearchKey(e.target.value)}
+          />
+        </Flex>
+        <MemberScrollData isLoading={false}>
           <TableContainer overflow={'unset'} fontSize={'sm'}>
             <Table overflow={'unset'}>
               <Thead>
@@ -280,6 +348,11 @@ function SpaceManage() {
                         <HStack>
                           <Avatar src={member.avatar} w={['18px', '22px']} borderRadius={'50%'} />
                           <Box className={'textEllipsis'}>{member.name}</Box>
+                          {member.status === SpaceMemberStatusEnum.leave && (
+                            <Tag ml="2" colorSchema="gray" bg={'myGray.100'} color={'myGray.700'}>
+                              {t('account_team:leave')}
+                            </Tag>
+                          )}
                         </HStack>
                       </Td>
                       <Td maxW={'300px'}>{member.username || '-'}</Td>
@@ -306,7 +379,8 @@ function SpaceManage() {
                       </Td>
                       <Td>
                         {currentSpace?.permission.hasMemberManagePer &&
-                          member._id !== userInfo?.team.tmbId && (
+                          member._id !== userInfo?.team.tmbId &&
+                          member.status !== SpaceMemberStatusEnum.leave && (
                             <HStack>
                               <PopoverConfirm
                                 Trigger={
@@ -324,6 +398,29 @@ function SpaceManage() {
                                   username: member.name
                                 })}
                                 onConfirm={() => onRemoveMember(member._id)}
+                              />
+                            </HStack>
+                          )}
+                        {currentSpace?.permission.hasMemberManagePer &&
+                          member._id !== userInfo?.team.tmbId &&
+                          member.status === SpaceMemberStatusEnum.leave && (
+                            <HStack>
+                              <PopoverConfirm
+                                Trigger={
+                                  <Box>
+                                    <MyIconButton
+                                      icon={'common/confirm/restoreTip'}
+                                      hoverColor={'red.500'}
+                                      hoverBg="red.50"
+                                      size={'1rem'}
+                                    />
+                                  </Box>
+                                }
+                                type="delete"
+                                content={`确认将 ${member.username} 恢复为成员？`}
+                                onConfirm={() =>
+                                  onRestoreMember({ tmbId: member._id, spaceId: currentSpace._id })
+                                }
                               />
                             </HStack>
                           )}

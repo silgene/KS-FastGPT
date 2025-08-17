@@ -6,7 +6,11 @@ import { type PaginationResponse, type PaginationProps } from '@fastgpt/global/c
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import type { TeamMemberListQuery } from '@fastgpt/global/support/user/team/controller.d';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
-import type { AddUpdateSpacePropsType } from '@fastgpt/global/support/user/space/controller';
+import type {
+  AddUpdateSpacePropsType,
+  GetSpaceMemberListPropsType
+} from '@fastgpt/global/support/user/space/controller';
+import type { SpaceMemberStatusEnum } from '@fastgpt/global/support/user/space/constant';
 
 export const getLastUsedSpace = () =>
   GET<SpaceDetailType>('/support/user/space/lastUsedSpace', {}, { maxQuantity: 1 });
@@ -25,7 +29,7 @@ export const getAllAccessibleSpaces = async () => {
 export const getSpaceMemberList = ({
   spaceId,
   ...paginationProps
-}: PaginationProps<{ spaceId: string }>) =>
+}: PaginationProps<GetSpaceMemberListPropsType>) =>
   POST<PaginationResponse<SpaceMemberItemType>>('/support/user/space/memberList', {
     spaceId,
     ...paginationProps
@@ -57,6 +61,8 @@ export const removeSpaceMembers = ({ spaceId, tmbs }: { spaceId: string; tmbs: s
     spaceId,
     tmbs
   });
+export const restoreSpaceMember = ({ spaceId, tmbId }: { spaceId: string; tmbId: string }) =>
+  POST('/support/user/space/restoreMember', { spaceId, tmbId });
 
 // 更新空间成员角色
 export const updateSpaceMemberRole = ({

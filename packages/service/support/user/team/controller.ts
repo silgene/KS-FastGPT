@@ -13,6 +13,7 @@ import {
 import { MongoTeamMember } from './teamMemberSchema';
 import { MongoTeam } from './teamSchema';
 import type {
+  InviteUserToTeamProps,
   TeamMemberListQuery,
   UpdateTeamProps
 } from '@fastgpt/global/support/user/team/controller';
@@ -37,6 +38,8 @@ import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { getCustomRole } from '@fastgpt/global/support/user/role/controller';
 import { type RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import { MongoRole } from '../role/roleSchema';
+import { getRandomUserAvatar } from '@fastgpt/global/support/user/utils';
+import { createDefaultPersonalSpace } from '../space/controller';
 
 async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemType> {
   const tmb = await MongoTeamMember.findOne(match)
@@ -77,10 +80,9 @@ async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemTyp
 }
 
 export const getTeamOwner = async (teamId: string) => {
-  const tmb = await MongoTeamMember.findOne({
-    teamId,
-    role: TeamMemberRoleEnum.owner
-  }).lean();
+  const ownerRole = await MongoRole.findOne({ ownerRole: true, type: RoleTypeEnum.team }).lean();
+  if (!ownerRole) return null;
+  const tmb = await MongoTeamMember.findOne({ teamId, roleId: ownerRole._id }).lean();
   return tmb;
 };
 
@@ -335,4 +337,60 @@ export async function getTeamMemberList({
 export async function getTeamMemberCount(teamId: string) {
   const count = await MongoTeamMember.countDocuments({ teamId }).lean();
   return count;
+}
+export async function inviteUserToTeam({
+  userIds,
+  teamId,
+  session,
+  roleId
+}: InviteUserToTeamProps & { session: ClientSession }) {
+  if (!userIds?.length) {
+    return Promise.reject('userIds is required');
+  }
+  if (!teamId) {
+    return Promise.reject('teamId is required');
+  }
+  const team = await MongoTeam.findById(teamId).lean();
+  if (!team) {
+    return Promise.reject('团队不存在');
+  }
+
+  const role = await MongoRole.findById(roleId).lean();
+  if (!role || role.type !== RoleTypeEnum.team) {
+    return Promise.reject('角色不存在');
+  }
+  const users = await MongoUser.find(
+    {
+      _id: { $in: userIds }
+    },
+    'username'
+  ).lean<{ username: string; _id: string }[]>();
+  const op = users.map((user) => {
+    return {
+      updateOne: {
+        filter: { userId: user._id, teamId },
+        update: {
+          $set: {
+            roleId: role._id,
+            status: TeamMemberStatusEnum.active,
+            updateTime: new Date()
+          },
+          $setOnInsert: {
+            name: user.username,
+            avatar: getRandomUserAvatar()
+          }
+        },
+        upsert: true
+      }
+    };
+  });
+  const inserted = await MongoTeamMember.bulkWrite(op, { session });
+  for (const tmbId of Object.values(inserted.insertedIds) as string[]) {
+    const tmb = await getTmbInfoByTmbId({ tmbId });
+    await createDefaultPersonalSpace({
+      tmbId,
+      name: tmb.memberName + '的个人空间',
+      session
+    });
+  }
 }

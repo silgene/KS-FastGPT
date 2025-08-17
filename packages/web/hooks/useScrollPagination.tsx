@@ -314,7 +314,7 @@ export function useScrollPagination<
           ref={ref}
           h={'100%'}
           overflow={'auto'}
-          isLoading={isLoading || isLoadingProp}
+          isLoading={isLoadingProp ?? isLoading}
           {...props}
         >
           {scrollLoadType === 'top' && total > 0 && isLoading && (

@@ -38,3 +38,7 @@ export type SearchResult = {
 };
 export type GetUserListQuery = PaginationProps<{ searchKey: string }>;
 export type GetUserListResponse = PaginationResponse<UserModelSchema & { role: RoleSchemaType }>;
+export type AvailableUserListQuery = PaginationProps<{
+  searchKey?: string;
+  teamId: string;
+}>;

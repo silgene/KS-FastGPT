@@ -1,7 +1,7 @@
 import type { PermissionValueType } from '@fastgpt/global/support/permission/type';
 import type { AuthModeType, AuthResponseType } from '../type';
 import { parseHeaderCert } from '../controller';
-import { getRoleByTmbId } from 'support/user/role/controller';
+import { getRoleByTmbId } from '../../../support/user/role/controller';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import { SystemPermission } from '@fastgpt/global/support/permission/system/controller';
 export const authSystemByTmbId = async ({

@@ -24,21 +24,38 @@ import { MongoRole } from '../role/roleSchema';
 import { SpaceErrEnum } from '@fastgpt/global/common/error/code/space';
 import type {
   AddMembersPropsType,
-  AddUpdateSpacePropsType
+  AddUpdateSpacePropsType,
+  GetSpaceMemberListPropsType
 } from '@fastgpt/global/support/user/space/controller';
 import { MongoSpaceMember } from './spaceMemberSchema';
 import { SpaceDefaultPermissionVal } from '@fastgpt/global/support/permission/space/constant';
+import { getRandomUserAvatar } from '@fastgpt/global/support/user/utils';
 
 // 获取空间中成员的列表
 export const getSpaceMemberList = async ({
   spaceId,
   pageSize,
-  offset
-}: PaginationProps<{ spaceId: string }>): Promise<PaginationResponse<SpaceMemberItemType>> => {
-  const spaceMember = await MongoSpaceMember.find({
-    spaceId,
-    status: SpaceMemberStatusEnum.active
-  })
+  offset,
+  status,
+  searchKey
+}: PaginationProps<GetSpaceMemberListPropsType>): Promise<
+  PaginationResponse<SpaceMemberItemType>
+> => {
+  const match: Record<string, any> = { spaceId };
+  if (status) {
+    match.status = status;
+  }
+  if (searchKey && searchKey.trim()) {
+    match.$and = [
+      {
+        $or: [
+          { 'tmb.user.username': { $regex: searchKey, $options: 'i' } },
+          { 'tmb.name': { $regex: searchKey, $options: 'i' } }
+        ]
+      }
+    ];
+  }
+  const spaceMember = await MongoSpaceMember.find(match)
     .populate<{ tmb: TeamMemberSchema & { user: { username: string } } }>({
       path: 'tmb',
       populate: {
@@ -59,7 +76,8 @@ export const getSpaceMemberList = async ({
       return {
         ...item.tmb,
         username: item.tmb.user?.username || item.tmb.name,
-        role: item.role || getCustomRole(RoleTypeEnum.space, 0, '无角色')
+        role: item.role || getCustomRole(RoleTypeEnum.space, 0, '无角色'),
+        status: item.status
       };
     })
   };
@@ -69,7 +87,7 @@ export const getSpaceMemberList = async ({
 export const createDefaultPersonalSpace = async ({
   tmbId,
   name = '个人空间',
-  avatar = '/icon/logo.svg',
+  avatar = getRandomUserAvatar(),
   session
 }: {
   tmbId: string;
@@ -234,16 +252,27 @@ export const addSpaceMembers = async ({
   if (!space) {
     return Promise.reject(SpaceErrEnum.unExist);
   }
-  await MongoSpaceMember.create(
-    tmbs.map((tmbId) => {
-      return {
-        tmbId,
-        spaceId,
-        role: role._id
-      };
-    }),
-    { session }
-  );
+  const ops = tmbs.map((tmbId) => {
+    return {
+      updateOne: {
+        filter: {
+          tmbId,
+          spaceId
+        },
+        update: {
+          $set: {
+            roleId: role._id,
+            status: SpaceMemberStatusEnum.active
+          },
+          $setOnInsert: {
+            createTime: new Date()
+          }
+        },
+        upsert: true
+      }
+    };
+  });
+  await MongoSpaceMember.bulkWrite(ops, { session });
 };
 // 移除团队空间的成员及其角色(需要事务)
 export const removeSpaceMembers = async ({
@@ -280,7 +309,38 @@ export const removeSpaceMembers = async ({
       spaceId
     },
     {
-      status: SpaceMemberStatusEnum.leave
+      $set: {
+        status: SpaceMemberStatusEnum.leave
+      }
+    },
+    { session }
+  );
+};
+export const restoreSpaceMember = async ({
+  tmbId,
+  spaceId,
+  session
+}: {
+  tmbId: string;
+  spaceId: string;
+  session?: ClientSession;
+}) => {
+  const leaveSpaceMember = await MongoSpaceMember.findOne({
+    tmbId,
+    spaceId,
+    status: SpaceMemberStatusEnum.leave
+  }).lean();
+  if (!leaveSpaceMember) {
+    return Promise.reject('成员不曾存在于该空间');
+  }
+  await MongoSpaceMember.updateOne(
+    {
+      _id: leaveSpaceMember._id
+    },
+    {
+      $set: {
+        status: SpaceMemberStatusEnum.active
+      }
     },
     { session }
   );

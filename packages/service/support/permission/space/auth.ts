@@ -8,10 +8,12 @@ import { getTmbInfoByTmbId } from '../../../support/user/team/controller';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 import { PerResourceTypeEnum } from '@fastgpt/global/support/permission/constant';
 import { SpaceDefaultPermissionVal } from '@fastgpt/global/support/permission/space/constant';
-import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
+import { SpaceMemberStatusEnum, SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
 import type { TeamSchema } from '@fastgpt/global/support/user/team/type';
 import { getRoleByTmbId } from '../../../support/user/role/controller';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import { MongoSpaceMember } from '../../../support/user/space/spaceMemberSchema';
+import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 
 export const authSpaceByTmbId = async ({
   tmbId,
@@ -70,13 +72,17 @@ export const authSpaceByTmbId = async ({
           Per: new SpacePermission({ allPer: true })
         };
       }
-      // 获取这个tmb对该空间的权限
-      const role = await getRoleByTmbId({
-        type: RoleTypeEnum.space,
+      // 获取这个tmb对该空间的权限,以及是否在该空间
+      const spaceMember = await MongoSpaceMember.findOne({
         tmbId,
-        resourceId: spaceId
+        spaceId,
+        status: SpaceMemberStatusEnum.active
+      })
+        .populate<{ role: RoleSchemaType }>('role')
+        .lean();
+      const Per = new SpacePermission({
+        per: spaceMember?.role.permission ?? SpaceDefaultPermissionVal
       });
-      const Per = new SpacePermission({ per: role.permission ?? SpaceDefaultPermissionVal });
       return { Per };
     })();
 

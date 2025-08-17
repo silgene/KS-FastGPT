@@ -133,7 +133,8 @@ const Team = () => {
                 height={'28px'}
               />
             </Flex>
-            {userInfo?.team?.role === TeamMemberRoleEnum.owner && (
+            {/* TODO：团队owner权限才有editTeam */}
+            {
               <Flex align={'center'} justify={'center'} ml={2} p={'0.44rem'}>
                 <MyIcon
                   name="edit"
@@ -153,7 +154,7 @@ const Team = () => {
                   }}
                 />
               </Flex>
-            )}
+            }
           </Flex>
 
           <Box

@@ -56,6 +56,7 @@ import { getRoleList, updateMemberRole } from '@/web/support/user/role/api';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
 import RoleSelect from '@/components/support/user/role/RoleSelect';
 import { type ParseKeys } from '@fastgpt/web/types/i18next';
+import TeamAddMemberModal from './AddMember/TeamAddMemeberModal';
 
 const DirectInviteModal = dynamic(() => import('./Invite/DirectInviteModal'));
 const TeamTagModal = dynamic(() => import('@/components/support/user/team/TeamTagModal'));
@@ -414,12 +415,13 @@ function MemberTable({ Tabs }: { Tabs: React.ReactNode }) {
         </MemberScrollData>
       </MyBox>
 
-      {isOpenInvite && userInfo?.team?.teamId && (
-        <DirectInviteModal
+      {currentTeam?.teamId && (
+        <TeamAddMemberModal
+          teamId={currentTeam?.teamId}
           isOpen={isOpenInvite}
           onClose={onCloseInvite}
           onSuccess={onRefreshMembers}
-        />
+        ></TeamAddMemberModal>
       )}
       {isOpenTeamTagsAsync && <TeamTagModal onClose={onCloseTeamTagsAsync} />}
     </>

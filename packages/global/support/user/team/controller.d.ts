@@ -32,10 +32,12 @@ export type UpdateTeamMemberProps = {
   role?: TeamMemberSchema['role'];
   status?: TeamMemberSchema['status'];
 };
+// 已弃用
 export type InviteMemberProps = {
   teamId: string;
   usernames: string[];
 };
+// 已弃用
 export type UpdateInviteProps = {
   tmbId: string;
   status: TeamMemberSchema['status'];
@@ -57,4 +59,9 @@ export type TeamMemberListQuery = {
   orgId?: string;
   groupId?: string;
   withOrgs?: boolean;
+};
+export type InviteUserToTeamProps = {
+  userIds: string[];
+  teamId: string;
+  roleId: string;
 };

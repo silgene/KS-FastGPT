@@ -31,4 +31,5 @@ export type SpaceMemberSchemaType = {
 export type SpaceMemberItemType = Omit<TeamMemberSchema, 'role'> & {
   role: RoleDetailType;
   username: string;
+  status: `${SpaceMemberStatusEnum}`; // 成员状态
 };

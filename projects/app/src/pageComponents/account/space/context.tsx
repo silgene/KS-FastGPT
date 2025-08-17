@@ -5,7 +5,10 @@ import { getTeamMemberCount } from '@/web/support/user/team/api';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import type { SpaceDetailType } from '@fastgpt/global/support/user/space/type';
 import { getAllAccessibleSpaces } from '@/web/support/user/space/api';
-import { SpaceTypeEnum } from '@fastgpt/global/support/user/space/constant';
+import {
+  type SpaceMemberStatusEnum,
+  SpaceTypeEnum
+} from '@fastgpt/global/support/user/space/constant';
 import { SpaceMemberManagePermissionVal } from '@fastgpt/global/support/permission/space/constant';
 import { SpacePermission } from '@fastgpt/global/support/permission/space/controller';
 type SpaceManageContextType = {
@@ -22,6 +25,11 @@ type SpaceManageContextType = {
   currentSpace: SpaceDetailType | null;
   spaceListLoading: boolean;
   refreshSpaceList: () => void;
+
+  spaceMemberSearchKey: string;
+  spaceMemberSearchStatus: SpaceMemberStatusEnum | undefined;
+  setSpaceMemberSearchKey: (key: string) => void;
+  setSpaceMemberSearchStatus: (status: SpaceMemberStatusEnum | undefined) => void;
 };
 
 export const SpaceManageContext = createContext<SpaceManageContextType>({
@@ -38,6 +46,14 @@ export const SpaceManageContext = createContext<SpaceManageContextType>({
   currentSpace: null,
   spaceListLoading: false,
   refreshSpaceList: () => {
+    throw new Error('Function not implemented.');
+  },
+  spaceMemberSearchKey: '',
+  spaceMemberSearchStatus: undefined,
+  setSpaceMemberSearchKey: () => {
+    throw new Error('Function not implemented.');
+  },
+  setSpaceMemberSearchStatus: () => {
     throw new Error('Function not implemented.');
   }
 });
@@ -91,6 +107,10 @@ export const SpaceManageContextProvider = ({ children }: { children: ReactNode }
   const currentSpace = useMemo(() => {
     return spaceList.find((space) => space._id === currentSpaceId) || null;
   }, [currentSpaceId, spaceList]);
+  const [spaceMemberSearchKey, setSpaceMemberSearchKey] = useState<string>('');
+  const [spaceMemberSearchStatus, setSpaceMemberSearchStatus] = useState<
+    SpaceMemberStatusEnum | undefined
+  >();
   const contextValue: SpaceManageContextType = {
     // 实现具体的状态和方法
     teamSize: teamMemberCountData?.count || 0,
@@ -100,7 +120,11 @@ export const SpaceManageContextProvider = ({ children }: { children: ReactNode }
     setCurrentSpaceId,
     currentSpace,
     spaceListLoading: loading,
-    refreshSpaceList
+    refreshSpaceList,
+    spaceMemberSearchKey,
+    spaceMemberSearchStatus,
+    setSpaceMemberSearchKey,
+    setSpaceMemberSearchStatus
   };
 
   return <SpaceManageContext.Provider value={contextValue}>{children}</SpaceManageContext.Provider>;
