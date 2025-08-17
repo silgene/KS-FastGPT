@@ -47,6 +47,7 @@ export const getCustomRole = (
 export const DefaultRoleList = [
   {
     // 团队成员
+    _id: '688698578d3f3ecf1eed0ee1',
     name: i18nT('common:user.role.default.Team Member'),
     type: RoleTypeEnum.team,
     status: RoleStatusEnum.active,
@@ -57,6 +58,7 @@ export const DefaultRoleList = [
   },
   {
     // 团队所有者
+    _id: '688698578d3f3ecf1eed0f10',
     name: i18nT('common:user.role.default.Team Owner'),
     type: RoleTypeEnum.team,
     status: RoleStatusEnum.active,
@@ -67,6 +69,7 @@ export const DefaultRoleList = [
     ownerRole: true
   },
   {
+    _id: '688698578d3f3ecf1eed0f28',
     // 团队管理员
     name: i18nT('common:user.role.default.Team Manager'),
     type: RoleTypeEnum.team,
@@ -78,6 +81,7 @@ export const DefaultRoleList = [
   },
   {
     // 空间成员
+    _id: '688698578d3f3ecf1eed0f37',
     name: i18nT('common:user.role.default.Space Member'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
@@ -88,6 +92,7 @@ export const DefaultRoleList = [
   },
   {
     // 空间所有者
+    _id: '688698578d3f3ecf1eed0f41',
     name: i18nT('common:user.role.default.Space Owner'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
@@ -99,6 +104,7 @@ export const DefaultRoleList = [
   },
   {
     // 空间管理员
+    _id: '688698578d3f3ecf1eed0f46',
     name: i18nT('common:user.role.default.Space Manager'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
@@ -109,6 +115,7 @@ export const DefaultRoleList = [
   },
   {
     // 空间只读成员
+    _id: '688698578d3f3ecf1eed0f4b',
     name: i18nT('common:user.role.default.Space Reader'),
     type: RoleTypeEnum.space,
     status: RoleStatusEnum.active,
@@ -119,16 +126,17 @@ export const DefaultRoleList = [
   },
   {
     // 系统超级管理员
+    _id: '689f416598878b78042d5762',
     name: i18nT('common:user.role.default.System Admin'),
     type: RoleTypeEnum.system,
     status: RoleStatusEnum.active,
     permission: OwnerPermissionVal,
     description: i18nT('common:user.role.default.System Admin Description'),
-    defaultRole: true,
-    ownerRole: true
+    defaultRole: true
   },
   {
     // 普通成员
+    _id: '689f416598878b78042d5798',
     name: i18nT('common:user.role.default.System Member'),
     type: RoleTypeEnum.system,
     status: RoleStatusEnum.active,

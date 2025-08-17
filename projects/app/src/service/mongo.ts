@@ -56,20 +56,10 @@ export async function initRootUser(retry = 3): Promise<any> {
 export async function initDefaultRole(retry = 3): Promise<any> {
   // 创建初始的团队角色,空间角色
   try {
-    const defaultRoles = await MongoRole.find({
-      defaultRole: true
-    });
-    if (defaultRoles.length === DefaultRoleList.length) {
-      console.log('Default roles already initialized');
-      return;
-    }
     await mongoSessionRun(async (session) => {
       for (let i = 0; i < DefaultRoleList.length; i++) {
         const newRole = DefaultRoleList[i];
-        const existRole = defaultRoles[i];
-        if (!existRole) {
-          await MongoRole.insertOne(newRole, { session });
-        }
+        await MongoRole.updateOne({ _id: newRole._id }, newRole, { session, upsert: true });
       }
     });
     console.log('DefaultRole initialized');
