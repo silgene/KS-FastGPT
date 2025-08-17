@@ -13,5 +13,5 @@ export enum RoleStatusEnum {
   active = 'active',
   inactive = 'inactive'
 }
-export const RoleCollectionName = 'role';
+export const RoleCollectionName = 'roles';
 export const RoleUserCollectionName = 'roleUser';

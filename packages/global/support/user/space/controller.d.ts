@@ -1,3 +1,5 @@
+import { type SpaceMemberStatusEnum } from './constant';
+
 export type AddMembersPropsType = {
   tmbs: string[];
   roleId: string;

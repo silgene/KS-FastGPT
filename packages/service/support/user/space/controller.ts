@@ -13,6 +13,7 @@ import { SpacePermission } from '@fastgpt/global/support/permission/space/contro
 import type {
   SpaceDetailType,
   SpaceMemberItemType,
+  SpaceMemberSchemaType,
   SpaceSchemaType
 } from '@fastgpt/global/support/user/space/type';
 import { RoleCollectionName, RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
@@ -30,6 +31,8 @@ import type {
 import { MongoSpaceMember } from './spaceMemberSchema';
 import { SpaceDefaultPermissionVal } from '@fastgpt/global/support/permission/space/constant';
 import { getRandomUserAvatar } from '@fastgpt/global/support/user/utils';
+import { TeamMemberCollectionName } from '@fastgpt/global/support/user/team/constant';
+import { userCollectionName } from '../schema';
 
 // 获取空间中成员的列表
 export const getSpaceMemberList = async ({
@@ -41,41 +44,74 @@ export const getSpaceMemberList = async ({
 }: PaginationProps<GetSpaceMemberListPropsType>): Promise<
   PaginationResponse<SpaceMemberItemType>
 > => {
-  const match: Record<string, any> = { spaceId };
-  if (status) {
-    match.status = status;
-  }
+  const basePipeline: any[] = [
+    { $match: { spaceId: new Types.ObjectId(spaceId), ...(status ? { status } : {}) } },
+    {
+      $lookup: {
+        from: TeamMemberCollectionName,
+        localField: 'tmbId',
+        foreignField: '_id',
+        as: 'tmb'
+      }
+    },
+    { $unwind: '$tmb' },
+    {
+      $lookup: {
+        from: userCollectionName,
+        localField: 'tmb.userId',
+        foreignField: '_id',
+        as: 'tmbUser'
+      }
+    },
+    { $unwind: { path: '$tmbUser', preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
+        from: RoleCollectionName,
+        localField: 'roleId',
+        foreignField: '_id',
+        as: 'role'
+      }
+    },
+    { $unwind: { path: '$role', preserveNullAndEmptyArrays: true } }
+  ];
+
+  // 如果有搜索词，把对应的 $match 插入 basePipeline 的末尾
   if (searchKey && searchKey.trim()) {
-    match.$and = [
-      {
+    basePipeline.push({
+      $match: {
         $or: [
-          { 'tmb.user.username': { $regex: searchKey, $options: 'i' } },
-          { 'tmb.name': { $regex: searchKey, $options: 'i' } }
+          { 'tmb.name': { $regex: searchKey, $options: 'i' } },
+          { 'tmbUser.username': { $regex: searchKey, $options: 'i' } }
         ]
       }
-    ];
+    });
   }
-  const spaceMember = await MongoSpaceMember.find(match)
-    .populate<{ tmb: TeamMemberSchema & { user: { username: string } } }>({
-      path: 'tmb',
-      populate: {
-        path: 'user',
-        select: 'username'
+
+  // 用 $facet 同时返回分页数据和总数
+  const page = Number(pageSize) || 10;
+  const skip = Number(offset) || 0;
+  const aggResult = await MongoSpaceMember.aggregate([
+    {
+      $facet: {
+        data: [...basePipeline, { $skip: skip }, { $limit: page }],
+        total: [...basePipeline, { $count: 'count' }]
       }
-    })
-    .populate<{ role: RoleSchemaType }>('role')
-    .limit(pageSize as number)
-    .skip(offset as number)
-    .lean();
-  const total = await MongoSpaceMember.countDocuments({
-    spaceId
-  });
+    }
+  ]);
+  const result = aggResult[0] || { data: [], total: [] };
+
+  const spaceMember = result.data as (SpaceMemberSchemaType & {
+    tmb: TeamMemberSchema;
+  } & { role: RoleSchemaType } & { tmbUser?: { username: string } })[];
+  const total = result.total[0]?.count || 0;
+
+  console.log(RoleCollectionName);
   return {
     total,
     list: spaceMember.map((item) => {
       return {
         ...item.tmb,
-        username: item.tmb.user?.username || item.tmb.name,
+        username: item.tmbUser?.username || item.tmb.name,
         role: item.role || getCustomRole(RoleTypeEnum.space, 0, '无角色'),
         status: item.status
       };
