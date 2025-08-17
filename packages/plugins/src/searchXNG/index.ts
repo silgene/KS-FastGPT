@@ -7,11 +7,11 @@ type Props = {
   url: string;
 };
 
-interface SearchResult {
+type SearchResult = {
   title: string;
   link: string;
   snippet: string;
-}
+};
 
 type Response = Promise<{
   result: string;

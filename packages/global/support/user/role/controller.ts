@@ -151,8 +151,9 @@ export type UpdateRoleType = {
 };
 export type UpdateMemberRoleRequestType = {
   type: RoleTypeEnum;
+  roleId: string;
   teamId?: string;
   spaceId?: string;
-  tmbId: string;
-  roleId: string;
+  tmbId?: string;
+  userId?: string;
 };

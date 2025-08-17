@@ -3,6 +3,7 @@ import { MongoRole } from './roleSchema';
 import {
   getCustomRole,
   RolePerResourceTypeMap,
+  type UpdateMemberRoleRequestType,
   type UpdateRoleType
 } from '@fastgpt/global/support/user/role/controller';
 import {
@@ -150,18 +151,9 @@ export const updateMemberRole = async ({
   teamId,
   spaceId,
   tmbId,
-  roleId
-}: {
-  type: RoleTypeEnum;
-  teamId?: string;
-  spaceId?: string;
-  tmbId: string;
-  roleId: string;
-}) => {
-  const tmb = await MongoTeamMember.findOne({ _id: tmbId });
-  if (!tmb) {
-    return Promise.reject('团队成员不存在');
-  }
+  roleId,
+  userId
+}: UpdateMemberRoleRequestType) => {
   const role = await MongoRole.findOne({
     _id: roleId,
     type,
@@ -172,13 +164,17 @@ export const updateMemberRole = async ({
   }
   switch (type) {
     case RoleTypeEnum.space:
+      if (!spaceId) return Promise.reject('需要传递spaceId');
+      if (!tmbId) return Promise.reject('需要传递tmbId');
       await MongoSpaceMember.findOneAndUpdate({ tmbId, spaceId }, { roleId });
       break;
     case RoleTypeEnum.team:
+      if (!tmbId) return Promise.reject('需要传递tmbId');
       await MongoTeamMember.findOneAndUpdate({ _id: tmbId, teamId }, { roleId });
       break;
     case RoleTypeEnum.system:
-      await MongoUser.findOneAndUpdate({ _id: tmb.userId }, { roleId });
+      if (!userId) return Promise.reject('需要传递userID');
+      await MongoUser.findOneAndUpdate({ _id: userId }, { roleId });
       break;
   }
 };

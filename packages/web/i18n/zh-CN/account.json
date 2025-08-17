@@ -87,6 +87,7 @@
   "space_management": "空间管理",
   "space_management_desc": "管理团队空间中成员的不同权限",
   "team": "团队管理",
+  "member": "成员管理",
   "third_party": "第三方账号",
   "usage_records": "使用记录"
 }

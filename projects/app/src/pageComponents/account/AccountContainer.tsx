@@ -21,6 +21,7 @@ export enum TabEnum {
   'individuation' = 'individuation',
   'apikey' = 'apikey',
   'team' = 'team',
+  'member' = 'member',
   'model' = 'model',
   'space' = 'space',
   'role' = 'role'
@@ -57,6 +58,11 @@ const AccountContainer = ({
             icon: 'support/user/usersLight',
             label: t('account:team'),
             value: TabEnum.team
+          },
+          {
+            icon: 'support/user/usersLight',
+            label: t('account:member'),
+            value: TabEnum.member
           },
           {
             icon: 'support/usage/usageRecordLight',
