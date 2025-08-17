@@ -16,6 +16,7 @@ export type CreateAndInviteMemberProps = {
   users: Array<{
     username: string;
     password: string;
+    roleId: string;
   }>;
 };
 
@@ -44,7 +45,7 @@ async function handler(
     const failed: Array<{ username: string; error: string }> = [];
     const alreadyExists: Array<{ username: string; userId: string }> = [];
 
-    for (const { username, password } of users) {
+    for (const { username, password, roleId } of users) {
       try {
         // 检查用户是否已存在
         const existingUser = await MongoUser.findOne({ username }, '_id', { session }).lean();
@@ -99,7 +100,8 @@ async function handler(
                 userId: newUser._id,
                 name: 'Member',
                 status: TeamMemberStatusEnum.active,
-                createTime: new Date()
+                createTime: new Date(),
+                roleId
               }
             ],
             { session }

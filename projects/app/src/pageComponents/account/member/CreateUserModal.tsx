@@ -19,20 +19,11 @@ import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import RoleSelect from '@/components/support/user/role/RoleSelect';
 import { getRoleList } from '@/web/support/user/role/api';
 import { RoleTypeEnum } from '@fastgpt/global/support/user/role/constant';
+import { createUser } from '@/web/support/user/api';
 
 type CreateUserModalProps = {
   onClose: () => void;
   onSuccess: () => void;
-};
-
-// 临时API函数，实际应该从API文件导入
-const createSystemUser = async (userData: {
-  username: string;
-  password: string;
-  roleId: string;
-}): Promise<void> => {
-  // TODO: 实现实际的API调用
-  console.log('创建用户:', userData);
 };
 
 const CreateUserModal = ({ onClose, onSuccess }: CreateUserModalProps) => {
@@ -49,7 +40,7 @@ const CreateUserModal = ({ onClose, onSuccess }: CreateUserModalProps) => {
   });
 
   const { runAsync: onCreateUser, loading: createUserLoading } = useRequest2(
-    () => createSystemUser(formData),
+    () => createUser(formData),
     {
       manual: true,
       onSuccess: () => {

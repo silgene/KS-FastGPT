@@ -117,6 +117,7 @@ export type CreateAndInviteMemberProps = {
   users: Array<{
     username: string;
     password: string;
+    roleId: string;
   }>;
 };
 

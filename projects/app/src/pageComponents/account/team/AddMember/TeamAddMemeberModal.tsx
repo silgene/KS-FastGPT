@@ -13,6 +13,7 @@ import type { ParseKeys } from '@fastgpt/web/types/i18next';
 import FillRowTabs from '@fastgpt/web/components/common/Tabs/FillRowTabs';
 import { useUserStore } from '@/web/support/user/useUserStore';
 import TeamAddMemberFromUser from './TeamAddMemberFromUser';
+import TeamAddMemberCreateUser from './TeamAddMemberCreateUser';
 
 enum AddTeamMemberTabEnum {
   fromUser = 'fromUser',
@@ -79,7 +80,13 @@ const TeamAddMemberModal = ({
             onSuccess={onSuccess}
           ></TeamAddMemberFromUser>
         )}
-        {addTeamMemberTab === AddTeamMemberTabEnum.addUser && <></>}
+        {addTeamMemberTab === AddTeamMemberTabEnum.addUser && (
+          <TeamAddMemberCreateUser
+            teamId={teamId}
+            onClose={onClose}
+            onSuccess={onSuccess}
+          ></TeamAddMemberCreateUser>
+        )}
       </ModalBody>
     </MyModal>
   );

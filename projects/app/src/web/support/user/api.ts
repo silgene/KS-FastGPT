@@ -18,7 +18,7 @@ import type {
 } from '@fastgpt/global/support/user/login/api.d';
 import type { preLoginResponse } from '@/pages/api/support/user/account/preLogin';
 import { PaginationProps } from '@fastgpt/global/common/fetch/type';
-
+import type { CreateUserResponse } from '@/pages/api/support/user/account/createUser';
 export const sendAuthCode = (data: {
   username: string;
   type: `${UserAuthTypeEnum}`;
@@ -126,3 +126,6 @@ export const ExportMembers = () => GET<{ csv: string }>('/proApi/support/user/te
 
 export const getUserList = (data: GetUserListQuery) =>
   POST<GetUserListResponse>('/support/user/list', data, { maxQuantity: 1 });
+
+export const createUser = (data: { username: string; password: string; roleId: string }) =>
+  POST<CreateUserResponse>('/support/user/account/createUser', data);

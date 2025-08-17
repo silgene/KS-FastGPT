@@ -4,7 +4,7 @@ import { getTmbInfoByTmbId, getUserDefaultTeam } from './team/controller';
 import { ERROR_ENUM } from '@fastgpt/global/common/error/errorCode';
 import type { RoleSchemaType } from '@fastgpt/global/support/user/role/type';
 import { SystemPermission } from '@fastgpt/global/support/permission/system/controller';
-
+import { hashStr } from '@fastgpt/global/common/string/tools';
 export async function authUserExist({ userId, username }: { userId?: string; username?: string }) {
   if (userId) {
     return MongoUser.findOne({ _id: userId });
@@ -54,4 +54,21 @@ export async function getUserDetail({
     teamPermission: tmb.permission,
     contact: user.contact
   };
+}
+
+export async function createSystemUser({
+  username,
+  password,
+  roleId
+}: {
+  username: string;
+  password: string;
+  roleId: string;
+}) {
+  const user = await MongoUser.create({
+    username,
+    password: hashStr(password),
+    roleId: roleId
+  });
+  return user;
 }
